@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SMILES Viewer & Editor</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; text-align: center; }
+        #jsme_container { margin: 10px auto; border: 1px solid #ccc; width: fit-content; }
+        input[type="text"], button { width: 100%; margin-top: 10px; padding: 8px; box-sizing: border-box; }
+        .radios { margin-top: 10px; display: flex; justify-content: space-between; }
+        #img { margin: 15px auto; max-width: 100%; display: none; }
+        #error { color: red; margin-top: 10px; }
+        #iupac_name { margin-top: 10px; font-weight: bold; color: #333; min-height: 1.2em; }
+    </style>
+
+    <script type="text/javascript" src="JSME_2024-04-29/jsme/jsme.nocache.js"></script>
+<!-- gemini pro -->
+<script>
+        let jsmeApplet = null;
+        let debounceTimer = null;
+
+        function jsmeOnLoad() {
+            jsmeApplet = new JSApplet.JSME("jsme_container", "450px", "350px", {
+                "options": "query,hydrogens"
+            });
+
+            jsmeApplet.setCallBack("AfterStructureModified", function(event) {
+                // КЛЮЧЕВОЙ МОМЕНТ: Если ты сейчас печатаешь в input, игнорируем события от JSME
+                if (document.activeElement && document.activeElement.id === 'smiles') {
+                    return;
+                }
+
+                const smiles = event.src.smiles();
+                document.getElementById('smiles').value = smiles;
+
+                if (smiles && smiles.trim() !== '') {
+                    getName(smiles);
+                } else {
+                    document.getElementById('iupac_name').innerText = '';
+                }
+            });
+
+            const initialSmiles = document.getElementById('smiles').value.trim();
+            if (initialSmiles) {
+                jsmeApplet.readGenericMolecule(initialSmiles);
+                getName(initialSmiles);
+            }
+        }
+
+        // Вызывается при ручном вводе в input
+        function onInputChanged() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                if (!jsmeApplet) return;
+
+                const smiles = document.getElementById('smiles').value.trim();
+
+                if (smiles !== '') {
+                    // Передаем в JSME. Если формула недописана, он может выдать внутреннюю ошибку,
+                    // но благодаря проверке document.activeElement выше, твой текст не сотрется.
+                    try {
+                        jsmeApplet.readGenericMolecule(smiles);
+                    } catch (e) {
+                        console.warn("SMILES пока не валиден для отрисовки");
+                    }
+                    getName(smiles);
+                } else {
+                    jsmeApplet.clear();
+                    document.getElementById('iupac_name').innerText = '';
+                }
+            }, 400); // Ждем 400мс после последнего нажатия клавиши
+        }
+
+        async function getName(smiles) {
+            const nameDiv = document.getElementById('iupac_name');
+            try {
+                const res = await fetch(`http://127.0.0.1:1235/api/get_name?smiles=${encodeURIComponent(smiles)}`);
+                const data = await res.json();
+
+                if (res.ok && data.name) {
+                    nameDiv.innerText = "IUPAC: " + data.name;
+                } else {
+                    nameDiv.innerText = "Name not found";
+                }
+            } catch (e) {
+                nameDiv.innerText = "API Offline";
+            }
+        }
+
+        async function render() {
+            const smiles = document.getElementById('smiles').value.trim();
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const img = document.getElementById('img');
+            const err = document.getElementById('error');
+
+            err.innerText = '';
+            img.style.display = 'none';
+
+            if (!smiles) return;
+
+            try {
+                const res = await fetch(`http://127.0.0.1:1235/api/render?smiles=${encodeURIComponent(smiles)}&draw_type=${type}`);
+                const data = await res.json();
+
+                if (res.ok && data.image_base64) {
+                    img.src = 'data:image/png;base64,' + data.image_base64;
+                    img.style.display = 'block';
+                } else {
+                    err.innerText = data.detail || 'Render error';
+                }
+            } catch (e) {
+                err.innerText = 'API Connection Error';
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Контейнер для редактора -->
+    <div id="jsme_container"></div>
+
+    <!-- Поле с IUPAC названием -->
+    <div id="iupac_name"></div>
+
+    <!-- Ввод SMILES с отслеживанием ввода через oninput -->
+    <input type="text" id="smiles" placeholder="Enter SMILES (e.g. c1ccccc1)" value="c1ccccc1" oninput="onInputChanged()">
+
+    <div class="radios">
+        <label><input type="radio" name="type" value="just" checked> Just</label>
+        <label><input type="radio" name="type" value="indexes"> Indexes</label>
+        <label><input type="radio" name="type" value="charges"> Charges</label>
+    </div>
+
+    <button onclick="render()">Render</button>
+
+    <div id="error"></div>
+    <img id="img" alt="Molecule">
+
+</body>
+</html>

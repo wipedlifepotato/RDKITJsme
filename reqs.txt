@@ -1,0 +1,4 @@
+rdkit
+uvicorn
+fastapi
+PySocks

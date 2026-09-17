@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!-- gemini flash -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SMILES Viewer</title>
+    <style>
+        body { font-family: sans-serif; max-width: 400px; margin: 20px auto; }
+        input[type="text"], button { width: 100%; margin-top: 10px; padding: 8px; box-sizing: border-box; }
+        .radios { margin-top: 10px; display: flex; justify-content: space-between; }
+        #img { margin-top: 15px; max-width: 100%; display: none; }
+        #error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <input type="text" id="smiles" placeholder="Enter SMILES (e.g. OS(=O)(=O)O or C1=CC=CC=C1)" value="C1=CC=CC=C1">
+
+    <div class="radios">
+        <label><input type="radio" name="type" value="just" checked> Just</label>
+        <label><input type="radio" name="type" value="indexes"> Indexes</label>
+        <label><input type="radio" name="type" value="charges"> Charges</label>
+    </div>
+
+    <button onclick="render()">Render</button>
+
+    <div id="error"></div>
+    <img id="img" alt="Molecule">
+
+    <script>
+        async function render() {
+            const smiles = document.getElementById('smiles').value.trim();
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const img = document.getElementById('img');
+            const err = document.getElementById('error');
+
+            err.innerText = '';
+            img.style.display = 'none';
+
+            if (!smiles) return;
+
+            try {
+                const res = await fetch(`http://127.0.0.1:1235/api/render?smiles=${encodeURIComponent(smiles)}&draw_type=${type}`);
+                const data = await res.json();
+
+                if (res.ok && data.image_base64) {
+                    img.src = 'data:image/png;base64,' + data.image_base64;
+                    img.style.display = 'block';
+                } else {
+                    err.innerText = data.detail || 'Render error';
+                }
+            } catch (e) {
+                err.innerText = 'API Connection Error';
+            }
+        }
+    </script>
+</body>
+</html>
