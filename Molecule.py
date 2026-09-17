@@ -1,9 +1,9 @@
 from rdkit import Chem
-from rdkit.Chem.Draw import IPythonConsole
+#from rdkit.Chem.Draw import IPythonConsole
 from rdkit.Chem import Draw
 from rdkit.Chem import AllChem
 
-IPythonConsole.ipython_useSVG=True  #< set this to False if you want PNGs instead of SVGs
+#IPythonConsole.ipython_useSVG=True  #< set this to False if you want PNGs instead of SVGs
 def mol_with_atom_index(mol):
     m1 = Chem.Mol(mol)
     for atom in m1.GetAtoms():

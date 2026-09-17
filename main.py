@@ -27,7 +27,7 @@ def parse():
     output = None
     verbose = False
     for o, a in opts:
-        if o == "-h":
+        if o in ("-h", "-host"):
             host = str(a)
         elif o in ('socks', 's'):
             PROXY_ADDRESS=str(a)
@@ -66,7 +66,7 @@ def main():
                 proxy_host,
                 int(proxy_port)
             )
-            opener = urllib.request.build_opener(proxy_handler)
+            opener = urllib.request.build_opener(proxy_handler) if len(PROXY_ADDRESS) else urllib.request.build_opener()
             req = urllib.request.Request(
                 target_url,
                 headers={'User-Agent': 'Mozilla/5.0'}
