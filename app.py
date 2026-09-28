@@ -1,13 +1,19 @@
 import urllib.parse
 import urllib.request
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_db, CachedName
 from Molecule import Molecule
+
 from rdkit import Chem
 from rdkit import DataStructs
+
+from rdkit.Chem import AllChem
+from rdkit.Chem import Descriptors
+from rdkit.Chem import rdMolDescriptors
+
 app = FastAPI(title="SMILES API Rdkit")
 
 app.add_middleware(

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SMILES Viewer, Editor & Paint</title>
+    <title>SMILES Viewer, Editor, Paint & Tools</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -12,7 +12,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 850px;
+            max-width: 900px;
             margin: 0 auto;
             background: #ffffff;
             padding: 20px 25px;
@@ -29,8 +29,8 @@
 
         input[type="text"] {
             flex-grow: 1;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 15px;
             font-family: 'Courier New', Courier, monospace;
             border: 1px solid #dcdde1;
             border-radius: 4px;
@@ -57,36 +57,58 @@
             border-radius: 4px;
             overflow: hidden;
             background: #fff;
+            margin-bottom: 15px;
         }
 
-        .controls {
+        .controls, .tools-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 10px;
+            padding: 12px;
             background: #f5f6fa;
             border-radius: 4px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
+        
+        .tools-panel { flex-direction: column; align-items: flex-start; }
+        .tools-row { display: flex; gap: 10px; width: 100%; }
+        
         .radios label { margin-right: 15px; cursor: pointer; font-weight: 500; }
 
         button {
-            padding: 10px 20px;
-            font-size: 15px;
+            padding: 9px 15px;
+            font-size: 14px;
             font-weight: bold;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s;
         }
+        
         .btn-render { background-color: #00a8ff; color: white; }
         .btn-render:hover { background-color: #0097e6; }
         .btn-chiral { background-color: #9c88ff; color: white; }
         .btn-chiral:hover { background-color: #8c7ae6; }
+        .btn-tool { background-color: #718093; color: white; }
+        .btn-tool:hover { background-color: #2f3640; }
         .btn-save { background-color: #44bd32; color: white; width: 100%; margin-top: 10px; }
         .btn-save:hover { background-color: #4cd137; }
 
-        /* Панель рисования (Paint Toolbar) */
+        .output-box {
+            width: 100%;
+            padding: 10px;
+            background: #fff;
+            border: 1px dashed #dcdde1;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+            min-height: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Paint Toolbar */
         .paint-toolbar {
             display: none;
             gap: 10px;
@@ -111,7 +133,6 @@
             width: 100%;
         }
 
-        /* Контейнер под Canvas холст */
         #canvas_wrapper {
             position: relative;
             display: inline-block;
@@ -129,7 +150,7 @@
 <body>
 
 <div class="container">
-    <h2>SMILES Editor & Paint Annotator</h2>
+    <h2>SMILES Editor & Analysis Tools</h2>
 
     <div class="input-group">
         <input type="text" id="smiles" placeholder="Enter SMILES (e.g. c1ccccc1)" value="c1ccccc1">
@@ -142,7 +163,29 @@
     </div>
 
     <div id="jsme_container"></div>
+    
+    <!-- New API Tools Panel -->
+    <div class="tools-panel">
+        <div class="tools-row">
+            <button class="btn-tool" onclick="getProperties()">Properties</button>
+            <button class="btn-tool" onclick="convertSmiles()">Convert Formats</button>
+            <button class="btn-tool" onclick="downloadSDF()">Download 3D SDF</button>
+        </div>
+        <div id="properties_out" class="output-box">Molecular properties will appear here...</div>
 
+        <div class="tools-row" style="margin-top: 10px;">
+            <input type="text" id="smarts_pattern" placeholder="SMARTS pattern (e.g. c1ccccc1)">
+            <button class="btn-tool" onclick="searchSubstructure()">Substructure Search</button>
+        </div>
+        
+        <div class="tools-row">
+            <input type="text" id="smiles2" placeholder="Second SMILES for similarity">
+            <button class="btn-tool" onclick="checkSimilarity()">Compare Similarity</button>
+        </div>
+        <div id="advanced_out" class="output-box">Search & similarity results will appear here...</div>
+    </div>
+
+    <!-- Render Controls -->
     <div class="controls">
         <div class="radios">
             <label><input type="radio" name="type" value="just" checked> Just</label>
@@ -155,16 +198,16 @@
         </div>
     </div>
 
-    <!-- Тулбар для рисования -->
+    <!-- Paint Toolbar -->
     <div class="paint-toolbar" id="paint_toolbar">
-        <label>🎨 Цвет:</label>
+        <label>🎨 Color:</label>
         <input type="color" id="brush_color" value="#e84118">
         
-        <label>📏 Размер:</label>
+        <label>📏 Size:</label>
         <input type="range" id="brush_size" min="1" max="15" value="3">
 
-        <label><input type="checkbox" id="eraser_mode"> 🧹 Ластик</label>
-        <button class="btn-clear" onclick="clearCanvasDrawings()">Очистить рисунок</button>
+        <label><input type="checkbox" id="eraser_mode"> 🧹 Eraser</label>
+        <button class="btn-clear" onclick="clearCanvasDrawings()">Clear Drawing</button>
     </div>
 
     <div class="result-container">
@@ -180,9 +223,9 @@
 <script>
     const rdkit_api_h = `http://127.0.0.1:1235/`;
     let jsmeApplet = null;
-    let baseMoleculeImage = new Image(); // Храним оригинальный рендер
+    let baseMoleculeImage = new Image();
 
-    // Элементы холста Paint
+    // Canvas elements
     const canvas = document.getElementById('paint_canvas');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
@@ -215,7 +258,7 @@
                         jsmeApplet.readGenericMolecularInput(initialSmiles);
                     }
                 } catch (e) {
-                    console.warn("Ошибка при начальной загрузке:", e);
+                    console.warn("Initial load error:", e);
                 }
                 getName(initialSmiles);
             }
@@ -231,7 +274,7 @@
                 jsmeApplet.readGenericMolecularInput(smiles);
                 getName(smiles);
             } catch (e) {
-                alert("Не удалось загрузить формулу. Проверьте SMILES.");
+                alert("Failed to load molecule. Check the SMILES string.");
             }
         } else {
             jsmeApplet.clear();
@@ -251,16 +294,13 @@
         }
     }
 
-    // Запрос стереоцентров
     async function getChiral() {
         const smiles = document.getElementById('smiles').value.trim();
         const chiralDiv = document.getElementById('chiral_info');
         if (!smiles) return;
-
         try {
             const res = await fetch(`${rdkit_api_h}api/get_chiral?smiles=${encodeURIComponent(smiles)}`);
             const data = await res.json();
-
             if (res.ok) {
                 chiralDiv.innerText = `Chiral centers: ${data.centers_count} ${JSON.stringify(data.centers)}`;
             } else {
@@ -271,7 +311,73 @@
         }
     }
 
-    // Рендер молекулы
+    // --- New Endpoints Integration ---
+
+    async function getProperties() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('properties_out');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_properties?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight.toFixed(2)} | <b>LogP:</b> ${data.logp.toFixed(2)} | <b>HBD:</b> ${data.hbd} | <b>HBA:</b> ${data.hba} | <b>TPSA:</b> ${data.tpsa.toFixed(2)}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail || 'Invalid input'}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function convertSmiles() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('properties_out');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}api/convert?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                out.innerHTML = `<b>Canonical:</b> ${data.canonical_smiles}<br><b>InChI:</b> ${data.inchi}<br><b>InChIKey:</b> ${data.inchikey}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.error || data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    function downloadSDF() {
+        const smiles = document.getElementById('smiles').value.trim();
+        if (!smiles) return;
+        // Direct download approach via browser
+        window.open(`${rdkit_api_h}api/get_3d_sdf?smiles=${encodeURIComponent(smiles)}`, '_blank');
+    }
+
+    async function searchSubstructure() {
+        const target = document.getElementById('smiles').value.trim();
+        const pattern = document.getElementById('smarts_pattern').value.trim();
+        const out = document.getElementById('advanced_out');
+        if (!target || !pattern) { out.innerHTML = "Please enter both SMILES and SMARTS pattern."; return; }
+        
+        try {
+            const res = await fetch(`${rdkit_api_h}api/substructure_search?target_smiles=${encodeURIComponent(target)}&pattern_smarts=${encodeURIComponent(pattern)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Substructure Found:</b> ${data.has_match ? 'Yes ✅' : 'No ❌'} | <b>Matches Count:</b> ${data.match_count}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function checkSimilarity() {
+        const s1 = document.getElementById('smiles').value.trim();
+        const s2 = document.getElementById('smiles2').value.trim();
+        const out = document.getElementById('advanced_out');
+        if (!s1 || !s2) { out.innerHTML = "Please enter two SMILES strings to compare."; return; }
+
+        try {
+            const res = await fetch(`${rdkit_api_h}api/similarity?smiles1=${encodeURIComponent(s1)}&smiles2=${encodeURIComponent(s2)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Tanimoto Similarity:</b> ${data.tanimoto_similarity} (0.0 to 1.0)`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Rendering & Paint ---
+
     async function render() {
         const smiles = document.getElementById('smiles').value.trim();
         const type = document.querySelector('input[name="type"]:checked').value;
@@ -292,13 +398,9 @@
 
             if (res.ok && data.image_base64) {
                 baseMoleculeImage.onload = () => {
-                    // Устанавливаем размеры Canvas под полученную картинку
                     canvas.width = baseMoleculeImage.width;
                     canvas.height = baseMoleculeImage.height;
-                    
-                    // Рисуем базовое изображение молекулы
                     redrawCanvas();
-
                     canvas.style.display = 'block';
                     saveBtn.style.display = 'inline-block';
                     toolbar.style.display = 'flex';
@@ -312,7 +414,6 @@
         }
     }
 
-    // Функция перерисовки фона (молекулы)
     function redrawCanvas() {
         ctx.drawImage(baseMoleculeImage, 0, 0);
     }
@@ -321,7 +422,7 @@
         redrawCanvas();
     }
 
-    // --- Логика рисования (Paint) ---
+    // Paint Logic
     canvas.addEventListener('mousedown', (e) => {
         isDrawing = true;
         ctx.beginPath();
@@ -339,7 +440,6 @@
         ctx.lineCap = 'round';
 
         if (isEraser) {
-            // Ластик: восстанавливаем кусочек исходного изображения молекулы
             ctx.save();
             ctx.beginPath();
             ctx.arc(e.offsetX, e.offsetY, size, 0, Math.PI * 2);
@@ -356,7 +456,6 @@
     canvas.addEventListener('mouseup', () => isDrawing = false);
     canvas.addEventListener('mouseleave', () => isDrawing = false);
 
-    // Сохранение итоговой картинки
     function saveImage() {
         const smiles = document.getElementById('smiles').value.trim() || 'molecule';
         const dataUrl = canvas.toDataURL('image/png');
