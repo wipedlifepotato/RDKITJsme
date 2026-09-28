@@ -1413,18 +1413,18 @@
             const res = await fetch(`${rdkit_api_h}rdkit/api/toxicity?smiles=${encodeURIComponent(smiles)}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Toxicity Assessment</b> — Overall Risk: <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${data.overall_risk}</b><br><br>`;
-                for (const [key, assessment] of Object.entries(data.assessments)) {
-                    html += `<b>${assessment.name}</b> (${assessment.risk_level})<br>`;
-                    html += `&nbsp;&nbsp;${assessment.description}<br>`;
-                    if (assessment.alerts_found > 0) {
-                        assessment.matches.forEach(m => {
-                            html += `&nbsp;&nbsp;⚠️ ${m.description} (${m.count}x)<br>`;
-                        });
-                    } else {
-                        html += `&nbsp;&nbsp;✅ No alerts<br>`;
-                    }
-                    html += `<br>`;
+                let html = `<b>Toxicity Assessment (Brenk / PAINS)</b><br>`;
+                html += `<b>Overall Risk:</b> <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${data.overall_risk}</b><br>`;
+                html += `<b>Total Alerts:</b> ${data.total_alerts}<br><br>`;
+                if (data.alerts.length > 0) {
+                    html += `<table style="border-collapse: collapse; width: 100%;">`;
+                    html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">Alert</th><th style="padding: 8px; text-align: left;">Source</th></tr>`;
+                    data.alerts.forEach((a, i) => {
+                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${a.name}</td><td style="padding: 8px;">${a.heading}</td></tr>`;
+                    });
+                    html += `</table>`;
+                } else {
+                    html += `<b>No alerts found</b> — molecule passes Brenk and PAINS filters.`;
                 }
                 out.innerHTML = html;
             } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;

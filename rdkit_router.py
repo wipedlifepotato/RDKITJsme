@@ -1251,53 +1251,41 @@ TOXICITY_ALERTS = {
 }
 
 
-@router.get("/toxicity", summary="Оценка токсичности (hERG, Ames, гепатотоксичность)")
+@router.get("/toxicity", summary="Оценка токсичности через каталоги RDKit (Brenk / PAINS)")
 def assess_toxicity(smiles: str = Query(..., description="SMILES молекулы")):
     """
-    Оценка потенциальной токсичности молекулы:
-    - hERG (кардиотоксичность)
-    - Ames test (мутагенность)
-    - Гепатотоксичность
+    Оценка потенциальной токсичности молекулы через FilterCatalog RDKit:
+    - Brenk filters (нежелательные фрагменты для лекарств)
+    - PAINS (пан-ассайные интерферирующие вещества)
     """
     try:
         m = Molecule(smiles)
         if m.m is None:
             raise ValueError("Invalid SMILES")
-
         mol = m.m
-        alerts = {}
 
-        for tox_type, info in TOXICITY_ALERTS.items():
-            matches = []
-            for smarts_info in info["smarts"]:
-                pattern = Chem.MolFromSmarts(smarts_info["pattern"])
-                if pattern:
-                    found = mol.GetSubstructMatches(pattern)
-                    if found:
-                        matches.append({
-                            "pattern": smarts_info["pattern"],
-                            "description": smarts_info["desc"],
-                            "count": len(found),
-                        })
+        # Подключаем каталоги фильтров (Brenk и PAINS)
+        from rdkit.Chem import FilterCatalog
+        params = FilterCatalog.FilterCatalogParams()
+        params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
+        params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
+        catalog = FilterCatalog.FilterCatalog(params)
 
-            alerts[tox_type] = {
-                "name": info["name"],
-                "description": info["description"],
-                "risk": info["risk"],
-                "alerts_found": len(matches),
-                "matches": matches,
-                "risk_level": "HIGH" if len(matches) >= 2 else "MEDIUM" if len(matches) == 1 else "LOW",
-            }
+        matches = catalog.GetMatches(mol)
+        alerts_found = []
+        for entry in matches:
+            alerts_found.append({
+                "name": entry.GetDescription(),
+                "heading": entry.GetHeading() if hasattr(entry, 'GetHeading') else "Alert"
+            })
 
-        # Общая оценка
-        total_alerts = sum(a["alerts_found"] for a in alerts.values())
-        overall_risk = "HIGH" if total_alerts >= 4 else "MEDIUM" if total_alerts >= 2 else "LOW"
+        overall_risk = "HIGH" if len(alerts_found) >= 2 else "MEDIUM" if len(alerts_found) == 1 else "LOW"
 
         return {
             "smiles": smiles,
             "overall_risk": overall_risk,
-            "total_alerts": total_alerts,
-            "assessments": alerts,
+            "total_alerts": len(alerts_found),
+            "alerts": alerts_found
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
