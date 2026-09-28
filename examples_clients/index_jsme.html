@@ -2,9 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>SMILES Viewer & Editor</title>
+    <title>SMILES Viewer, Editor & Paint</title>
     <style>
-        /* Строгий и чистый функциональный стиль */
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: #f5f6fa;
@@ -13,7 +12,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
             background: #ffffff;
             padding: 20px 25px;
@@ -22,7 +21,6 @@
         }
         h2 { margin-top: 0; font-size: 1.2rem; color: #353b48; border-bottom: 2px solid #f5f6fa; padding-bottom: 10px; }
 
-        /* Группа ввода с кнопкой */
         .input-group {
             display: flex;
             gap: 10px;
@@ -41,16 +39,18 @@
         }
         input[type="text"]:focus { outline: none; border-color: #00a8ff; background-color: #fff; }
 
-        .btn-load {
-            background-color: #e1b12c;
-            color: #fff;
-            white-space: nowrap;
-        }
+        .btn-load { background-color: #e1b12c; color: #fff; white-space: nowrap; }
         .btn-load:hover { background-color: #fbc531; }
 
-        #iupac_name { margin: 0 0 15px 0; font-weight: bold; color: #44bd32; min-height: 1.2em; font-size: 1.1rem; }
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #iupac_name { font-weight: bold; color: #44bd32; min-height: 1.2em; font-size: 1.1rem; }
+        #chiral_info { font-weight: 500; color: #8c7ae6; font-size: 0.95rem; }
 
-        /* Окно JSME */
         #jsme_container {
             width: 100%;
             border: 1px solid #dcdde1;
@@ -59,7 +59,6 @@
             background: #fff;
         }
 
-        /* Панель управления */
         .controls {
             display: flex;
             justify-content: space-between;
@@ -71,10 +70,9 @@
         }
         .radios label { margin-right: 15px; cursor: pointer; font-weight: 500; }
 
-        /* Кнопки */
         button {
             padding: 10px 20px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             border: none;
             border-radius: 4px;
@@ -83,23 +81,65 @@
         }
         .btn-render { background-color: #00a8ff; color: white; }
         .btn-render:hover { background-color: #0097e6; }
-        .btn-save { background-color: #44bd32; color: white; display: none; margin-top: 10px; width: 100%; }
+        .btn-chiral { background-color: #9c88ff; color: white; }
+        .btn-chiral:hover { background-color: #8c7ae6; }
+        .btn-save { background-color: #44bd32; color: white; width: 100%; margin-top: 10px; }
         .btn-save:hover { background-color: #4cd137; }
+
+        /* Панель рисования (Paint Toolbar) */
+        .paint-toolbar {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            background: #e1b12c15;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border: 1px solid #fbc531;
+        }
+        .paint-toolbar label { font-size: 14px; font-weight: 600; }
+        .btn-clear { background-color: #e84118; color: white; padding: 5px 10px; font-size: 13px; }
+
         #error { color: #e84118; margin-top: 10px; font-weight: bold; }
-        .result-container { text-align: center; margin-top: 20px; }
-        #img { max-width: 100%; border: 1px solid #dcdde1; border-radius: 4px; display: none; margin: 0 auto; }
+        
+        .result-container { 
+            position: relative; 
+            text-align: center; 
+            margin-top: 15px; 
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* Контейнер под Canvas холст */
+        #canvas_wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+        }
+        #paint_canvas {
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            background: #ffffff;
+            cursor: crosshair;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>SMILES Editor</h2>
+    <h2>SMILES Editor & Paint Annotator</h2>
 
     <div class="input-group">
         <input type="text" id="smiles" placeholder="Enter SMILES (e.g. c1ccccc1)" value="c1ccccc1">
         <button class="btn-load" onclick="loadToJSME()">Load to JSME</button>
     </div>
-    <div id="iupac_name"></div>
+
+    <div class="info-panel">
+        <div id="iupac_name"></div>
+        <div id="chiral_info"></div>
+    </div>
 
     <div id="jsme_container"></div>
 
@@ -109,137 +149,225 @@
             <label><input type="radio" name="type" value="indexes"> Indexes</label>
             <label><input type="radio" name="type" value="charges"> Charges</label>
         </div>
-        <button class="btn-render" onclick="render()">Render (RDKit)</button>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-chiral" onclick="getChiral()">Chiral Info</button>
+            <button class="btn-render" onclick="render()">Render (RDKit)</button>
+        </div>
+    </div>
+
+    <!-- Тулбар для рисования -->
+    <div class="paint-toolbar" id="paint_toolbar">
+        <label>🎨 Цвет:</label>
+        <input type="color" id="brush_color" value="#e84118">
+        
+        <label>📏 Размер:</label>
+        <input type="range" id="brush_size" min="1" max="15" value="3">
+
+        <label><input type="checkbox" id="eraser_mode"> 🧹 Ластик</label>
+        <button class="btn-clear" onclick="clearCanvasDrawings()">Очистить рисунок</button>
     </div>
 
     <div class="result-container">
         <div id="error"></div>
-        <img id="img" alt="Molecule">
-        <button id="save_btn" class="btn-save" onclick="saveImage()">Save Image</button>
+        <div id="canvas_wrapper">
+            <canvas id="paint_canvas" width="400" height="400"></canvas>
+        </div>
+        <button id="save_btn" class="btn-save" style="display:none;" onclick="saveImage()">Save Image with Notes</button>
     </div>
 </div>
 
-    <script type="text/javascript" src="JSME_2024-04-29/jsme/jsme.nocache.js"></script>
-    <script>
-        const rdkit_api_h = `http://127.0.0.1:1235/`;
-        let jsmeApplet = null;
+<script type="text/javascript" src="JSME_2024-04-29/jsme/jsme.nocache.js"></script>
+<script>
+    const rdkit_api_h = `http://127.0.0.1:1235/`;
+    let jsmeApplet = null;
+    let baseMoleculeImage = new Image(); // Храним оригинальный рендер
 
-        function jsmeOnLoad() {
-            jsmeApplet = new JSApplet.JSME("jsme_container", "100%", "500px", {
-                "options": "query,hydrogens"
-            });
+    // Элементы холста Paint
+    const canvas = document.getElementById('paint_canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
 
-            // Когда рисуем мышкой -> обновляем инпут
-            jsmeApplet.setCallBack("AfterStructureModified", function(event) {
-                const smiles = event.src.smiles();
-                const inputEl = document.getElementById('smiles');
+    function jsmeOnLoad() {
+        jsmeApplet = new JSApplet.JSME("jsme_container", "100%", "450px", {
+            "options": "query,hydrogens"
+        });
 
-                // Только если фокус не на инпуте
-                if (document.activeElement !== inputEl) {
-                    inputEl.value = smiles;
+        jsmeApplet.setCallBack("AfterStructureModified", function(event) {
+            const smiles = event.src.smiles();
+            const inputEl = document.getElementById('smiles');
 
-                    if (smiles && smiles.trim() !== '') {
-                        getName(smiles);
-                    } else {
-                        document.getElementById('iupac_name').innerText = '';
-                    }
-                }
-            });
-
-            // Стартовая загрузка с небольшой задержкой, чтобы GWT-движок JSME успел подгрузить методы
-            setTimeout(() => {
-                const initialSmiles = document.getElementById('smiles').value.trim();
-                if (initialSmiles) {
-                    try {
-                        if (typeof jsmeApplet.readGenericMolecularInput === 'function') {
-                            jsmeApplet.readGenericMolecularInput(initialSmiles);
-                        }
-                    } catch (e) {
-                        console.warn("Ошибка при начальной загрузке:", e);
-                    }
-                    getName(initialSmiles);
-                }
-            }, 200);
-        }
-
-        // Загрузка по кнопке из текстового поля в JSME
-        function loadToJSME() {
-            if (!jsmeApplet) return;
-            const smiles = document.getElementById('smiles').value.trim();
-
-            if (smiles !== '') {
-                try {
-                    // Используем readMolecule — это стандартный метод для загрузки SMILES в JSME
-                    jsmeApplet.readGenericMolecularInput(smiles);
+            if (document.activeElement !== inputEl) {
+                inputEl.value = smiles;
+                if (smiles && smiles.trim() !== '') {
                     getName(smiles);
+                } else {
+                    document.getElementById('iupac_name').innerText = '';
+                    document.getElementById('chiral_info').innerText = '';
+                }
+            }
+        });
+
+        setTimeout(() => {
+            const initialSmiles = document.getElementById('smiles').value.trim();
+            if (initialSmiles) {
+                try {
+                    if (typeof jsmeApplet.readGenericMolecularInput === 'function') {
+                        jsmeApplet.readGenericMolecularInput(initialSmiles);
+                    }
                 } catch (e) {
-                    console.warn("Ошибка парсинга SMILES", e);
-                    alert("Не удалось загрузить формулу. Проверьте правильность SMILES.");
+                    console.warn("Ошибка при начальной загрузке:", e);
                 }
+                getName(initialSmiles);
+            }
+        }, 200);
+    }
+
+    function loadToJSME() {
+        if (!jsmeApplet) return;
+        const smiles = document.getElementById('smiles').value.trim();
+
+        if (smiles !== '') {
+            try {
+                jsmeApplet.readGenericMolecularInput(smiles);
+                getName(smiles);
+            } catch (e) {
+                alert("Не удалось загрузить формулу. Проверьте SMILES.");
+            }
+        } else {
+            jsmeApplet.clear();
+            document.getElementById('iupac_name').innerText = '';
+            document.getElementById('chiral_info').innerText = '';
+        }
+    }
+
+    async function getName(smiles) {
+        const nameDiv = document.getElementById('iupac_name');
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_name?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            nameDiv.innerText = (res.ok && data.name) ? data.name : "Name not found";
+        } catch (e) {
+            nameDiv.innerText = "API Offline";
+        }
+    }
+
+    // Запрос стереоцентров
+    async function getChiral() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const chiralDiv = document.getElementById('chiral_info');
+        if (!smiles) return;
+
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_chiral?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+
+            if (res.ok) {
+                chiralDiv.innerText = `Chiral centers: ${data.centers_count} ${JSON.stringify(data.centers)}`;
             } else {
-                jsmeApplet.clear();
-                document.getElementById('iupac_name').innerText = '';
+                chiralDiv.innerText = "Chiral error";
             }
+        } catch (e) {
+            chiralDiv.innerText = "API Offline";
         }
+    }
 
-        async function getName(smiles) {
-            const nameDiv = document.getElementById('iupac_name');
-            try {
-                const res = await fetch(`${rdkit_api_h}api/get_name?smiles=${encodeURIComponent(smiles)}`);
-                const data = await res.json();
+    // Рендер молекулы
+    async function render() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const err = document.getElementById('error');
+        const saveBtn = document.getElementById('save_btn');
+        const toolbar = document.getElementById('paint_toolbar');
 
-                if (res.ok && data.name) {
-                    nameDiv.innerText = data.name;
-                } else {
-                    nameDiv.innerText = "Name not found";
-                }
-            } catch (e) {
-                nameDiv.innerText = "API Offline";
-            }
-        }
+        err.innerText = '';
+        saveBtn.style.display = 'none';
+        toolbar.style.display = 'none';
+        canvas.style.display = 'none';
 
-        async function render() {
-            const smiles = document.getElementById('smiles').value.trim();
-            const type = document.querySelector('input[name="type"]:checked').value;
-            const img = document.getElementById('img');
-            const err = document.getElementById('error');
-            const saveBtn = document.getElementById('save_btn');
+        if (!smiles) return;
 
-            err.innerText = '';
-            img.style.display = 'none';
-            saveBtn.style.display = 'none';
+        try {
+            const res = await fetch(`${rdkit_api_h}api/render?smiles=${encodeURIComponent(smiles)}&draw_type=${type}`);
+            const data = await res.json();
 
-            if (!smiles) return;
+            if (res.ok && data.image_base64) {
+                baseMoleculeImage.onload = () => {
+                    // Устанавливаем размеры Canvas под полученную картинку
+                    canvas.width = baseMoleculeImage.width;
+                    canvas.height = baseMoleculeImage.height;
+                    
+                    // Рисуем базовое изображение молекулы
+                    redrawCanvas();
 
-            try {
-                const res = await fetch(`${rdkit_api_h}api/render?smiles=${encodeURIComponent(smiles)}&draw_type=${type}`);
-                const data = await res.json();
-
-                if (res.ok && data.image_base64) {
-                    img.src = 'data:image/png;base64,' + data.image_base64;
-                    img.style.display = 'block';
+                    canvas.style.display = 'block';
                     saveBtn.style.display = 'inline-block';
-                } else {
-                    err.innerText = data.detail || 'Render error';
-                }
-            } catch (e) {
-                err.innerText = 'API Connection Error';
+                    toolbar.style.display = 'flex';
+                };
+                baseMoleculeImage.src = 'data:image/png;base64,' + data.image_base64;
+            } else {
+                err.innerText = data.detail || 'Render error';
             }
+        } catch (e) {
+            err.innerText = 'API Connection Error';
         }
+    }
 
-        function saveImage() {
-            const img = document.getElementById('img');
-            const smiles = document.getElementById('smiles').value.trim() || 'molecule';
+    // Функция перерисовки фона (молекулы)
+    function redrawCanvas() {
+        ctx.drawImage(baseMoleculeImage, 0, 0);
+    }
 
-            if (!img.src || img.style.display === 'none') return;
+    function clearCanvasDrawings() {
+        redrawCanvas();
+    }
 
-            const a = document.createElement('a');
-            a.href = img.src;
-            a.download = smiles + '.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+    // --- Логика рисования (Paint) ---
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        
+        const isEraser = document.getElementById('eraser_mode').checked;
+        const color = document.getElementById('brush_color').value;
+        const size = document.getElementById('brush_size').value;
+
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+
+        if (isEraser) {
+            // Ластик: восстанавливаем кусочек исходного изображения молекулы
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(e.offsetX, e.offsetY, size, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(baseMoleculeImage, 0, 0);
+            ctx.restore();
+        } else {
+            ctx.strokeStyle = color;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
         }
-    </script>
+    });
+
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseleave', () => isDrawing = false);
+
+    // Сохранение итоговой картинки
+    function saveImage() {
+        const smiles = document.getElementById('smiles').value.trim() || 'molecule';
+        const dataUrl = canvas.toDataURL('image/png');
+
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = smiles + '_annotated.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
 </body>
 </html>
