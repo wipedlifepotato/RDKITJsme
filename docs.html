@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMILES API Rdkit — Документация</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        header h1 { color: #fff; font-size: 2.5em; margin-bottom: 10px; }
+        header p { color: rgba(255,255,255,0.9); font-size: 1.2em; }
+        .nav {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .nav a {
+            background: #21262d;
+            color: #58a6ff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: 1px solid #30363d;
+            transition: all 0.3s;
+        }
+        .nav a:hover { background: #30363d; border-color: #58a6ff; }
+        .endpoint {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .endpoint-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #21262d;
+        }
+        .endpoint-header:hover { background: #30363d; }
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+        .method-get { background: #238636; color: #fff; }
+        .method-post { background: #8957e5; color: #fff; }
+        .method-delete { background: #da3633; color: #fff; }
+        .endpoint-path { font-family: monospace; color: #58a6ff; }
+        .endpoint-body { padding: 20px; display: none; }
+        .endpoint-body.active { display: block; }
+        .param-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .param-table th, .param-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        .param-table th { color: #8b949e; font-weight: 600; }
+        .param-required { color: #f85149; }
+        .param-optional { color: #8b949e; }
+        .example {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .example pre {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.9em;
+            color: #a5d6ff;
+        }
+        .try-it {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .try-it:hover { background: #2ea043; }
+        .result {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        .result.active { display: block; }
+        .result pre {
+            font-family: monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-left: 8px;
+        }
+        .badge-new { background: #8957e5; color: #fff; }
+        .badge-core { background: #1f6feb; color: #fff; }
+        .section-title {
+            color: #58a6ff;
+            font-size: 1.5em;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        .molecule-viewer {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .molecule-viewer img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        input, select {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #8b949e; }
+        .form-group input, .form-group select { width: 100%; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .status { padding: 10px; border-radius: 6px; margin: 10px 0; }
+        .status-success { background: rgba(35, 134, 54, 0.2); border: 1px solid #238636; }
+        .status-error { background: rgba(218, 54, 51, 0.2); border: 1px solid #da3633; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SMILES API Rdkit</h1>
+            <p>Полнофункциональный хемоинформатический API на базе RDKit</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">v2.0.0 — Расширенный функционал</p>
+        </header>
+
+        <nav class="nav">
+            <a href="#endpoints">Эндпоинты</a>
+            <a href="#try">Попробовать</a>
+            <a href="#examples">Примеры</a>
+            <a href="/docs">Swagger UI</a>
+            <a href="/redoc">ReDoc</a>
+        </nav>
+
+        <h2 class="section-title" id="endpoints">Эндпоинты API</h2>
+
+        <!-- ADME -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/adme</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>ADME / Drug-likeness</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Полный набор ADME-свойств и оценки drug-likeness молекулы.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES молекулы</td></tr>
+                </table>
+                <div class="example">
+                    <strong>Пример запроса:</strong>
+                    <pre>GET /rdkit/api/adme?smiles=CC(=O)Oc1ccccc1C(=O)O</pre>
+                </div>
+                <div class="example">
+                    <strong>Пример ответа:</strong>
+                    <pre>{
+  "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+  "formula": "C9H8O4",
+  "molecular_weight": 180.1574,
+  "logp": 1.19,
+  "hbd": 1,
+  "hba": 4,
+  "tpsa": 63.6,
+  "rotatable_bonds": 3,
+  "lipinski_violations": 0,
+  "lipinski_pass": true,
+  "qed": 0.55,
+  "qed_interpretation": "Good (moderate drug-likeness)",
+  "sa_score": 2.1,
+  "num_rings": 1,
+  "num_aromatic_rings": 1,
+  "num_heteroatoms": 4,
+  "num_atoms": 13,
+  "num_bonds": 13,
+  "fraction_sp3": 0.1111,
+  "num_stereocenters": 0,
+  "num_undefined_stereocenters": 0
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Functional Groups -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/functional_groups</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Функциональные группы</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Определяет наличие функциональных групп в молекуле по SMARTS-паттернам.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES молекулы</td></tr>
+                </table>
+                <div class="example">
+                    <strong>Пример:</strong>
+                    <pre>GET /rdkit/api/functional_groups?smiles=CC(=O)Oc1ccccc1C(=O)O</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validate -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/validate</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Валидация SMILES</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Проверяет корректность SMILES с подробной диагностикой ошибок.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES для проверки</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reaction -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/reaction</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Реакции (SMIRKS)</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Применяет реакцию (SMIRKS) к молекуле.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES реагента</td></tr>
+                    <tr><td>reaction_smarts <span class="param-required">*</span></td><td>string</td><td>SMARTS реакции</td></tr>
+                </table>
+                <div class="example">
+                    <strong>Пример:</strong>
+                    <pre>GET /rdkit/api/reaction?smiles=CC(=O)O&reaction_smarts=[CX3](=O)[OX2H1]>>[CX3](=O)[OX2H0][#6]</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- pKa -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/pka</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Оценка pKa</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Оценивает кислотные/основные центры молекулы.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES молекулы</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Batch -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-post">POST</span>
+                    <span class="endpoint-path">/rdkit/api/batch</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Пакетный анализ</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Анализирует список SMILES за один запрос.</p>
+                <div class="example">
+                    <strong>Пример запроса:</strong>
+                    <pre>POST /rdkit/api/batch
+Content-Type: application/json
+
+{
+  "smiles_list": ["CCO", "CC(=O)O", "c1ccccc1"]
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- InChIKey -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/by_inchikey</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Поиск по InChIKey</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Получает свойства молекулы по InChIKey.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>inchikey <span class="param-required">*</span></td><td>string</td><td>InChIKey молекулы</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Descriptors -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/descriptors</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Все дескрипторы RDKit</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Возвращает все доступные дескрипторы RDKit (200+).</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES молекулы</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3D -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/3d</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>3D-структура</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Генерирует 3D-структуру молекулы в формате SDF, MOL или PDB.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td>smiles <span class="param-required">*</span></td><td>string</td><td>SMILES молекулы</td></tr>
+                    <tr><td>format</td><td>string</td><td>Формат: sdf, mol, pdb (по умолчанию: sdf)</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Library -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/library</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Библиотека молекул</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Возвращает список сохранённых молекул.</p>
+            </div>
+        </div>
+
+        <!-- Compare -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-post">POST</span>
+                    <span class="endpoint-path">/rdkit/api/compare</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Сравнение молекул</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Сравнивает несколько молекул попарно (матрица Tanimoto).</p>
+            </div>
+        </div>
+
+        <!-- Render Highlighted -->
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/render_highlighted</span>
+                    <span class="badge badge-new">NEW</span>
+                </div>
+                <span>Рендеринг с подсветкой</span>
+            </div>
+            <div class="endpoint-body">
+                <p>Рендерит молекулу с подсветкой функциональных групп.</p>
+            </div>
+        </div>
+
+        <!-- Try It Section -->
+        <h2 class="section-title" id="try">Попробовать API</h2>
+
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/adme</span>
+                </div>
+                <span>ADME-свойства</span>
+            </div>
+            <div class="endpoint-body active">
+                <div class="form-group">
+                    <label>SMILES:</label>
+                    <input type="text" id="adme-smiles" value="CC(=O)Oc1ccccc1C(=O)O" placeholder="Введите SMILES...">
+                </div>
+                <button class="try-it" onclick="tryADME()">Отправить запрос</button>
+                <div class="result" id="adme-result"></div>
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/functional_groups</span>
+                </div>
+                <span>Функциональные группы</span>
+            </div>
+            <div class="endpoint-body">
+                <div class="form-group">
+                    <label>SMILES:</label>
+                    <input type="text" id="fg-smiles" value="CC(=O)Oc1ccccc1C(=O)O" placeholder="Введите SMILES...">
+                </div>
+                <button class="try-it" onclick="tryFunctionalGroups()">Отправить запрос</button>
+                <div class="result" id="fg-result"></div>
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/validate</span>
+                </div>
+                <span>Валидация SMILES</span>
+            </div>
+            <div class="endpoint-body">
+                <div class="form-group">
+                    <label>SMILES:</label>
+                    <input type="text" id="validate-smiles" value="CC(=O)Oc1ccccc1C(=O)O" placeholder="Введите SMILES...">
+                </div>
+                <button class="try-it" onclick="tryValidate()">Отправить запрос</button>
+                <div class="result" id="validate-result"></div>
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <div>
+                    <span class="method method-get">GET</span>
+                    <span class="endpoint-path">/rdkit/api/render</span>
+                </div>
+                <span>Рендеринг молекулы</span>
+            </div>
+            <div class="endpoint-body">
+                <div class="form-group">
+                    <label>SMILES:</label>
+                    <input type="text" id="render-smiles" value="CC(=O)Oc1ccccc1C(=O)O" placeholder="Введите SMILES...">
+                </div>
+                <button class="try-it" onclick="tryRender()">Отправить запрос</button>
+                <div class="result" id="render-result"></div>
+            </div>
+        </div>
+
+        <!-- Examples Section -->
+        <h2 class="section-title" id="examples">Примеры молекул</h2>
+        <div class="grid-2">
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div><strong>Аспирин</strong></div>
+                    <span>CC(=O)Oc1ccccc1C(=O)O</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Ацетилсалициловая кислота — обезболивающее, жаропонижающее, противовоспалительное средство.</p>
+                    <button class="try-it" onclick="loadExample('CC(=O)Oc1ccccc1C(=O)O')">Загрузить</button>
+                </div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div><strong>Кофеин</strong></div>
+                    <span>CN1C=NC2=C1C(=O)N(C(=O)N2C)C</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Кофеин — стимулятор центральной нервной системы.</p>
+                    <button class="try-it" onclick="loadExample('CN1C=NC2=C1C(=O)N(C(=O)N2C)C')">Загрузить</button>
+                </div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div><strong>Ибупрофен</strong></div>
+                    <span>CC(C)Cc1ccc(cc1)C(C)C(=O)O</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Ибупрофен — нестероидный противовоспалительный препарат.</p>
+                    <button class="try-it" onclick="loadExample('CC(C)Cc1ccc(cc1)C(C)C(=O)O')">Загрузить</button>
+                </div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div><strong>Парацетамол</strong></div>
+                    <span>CC(=O)Nc1ccc(O)cc1</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Парацетамол — обезболивающее и жаропонижающее средство.</p>
+                    <button class="try-it" onclick="loadExample('CC(=O)Nc1ccc(O)cc1')">Загрузить</button>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align: center; padding: 40px 0; color: #8b949e;">
+            <p>SMILES API Rdkit v2.0.0 — Хемоинформатический API на базе RDKit</p>
+            <p style="margin-top: 10px;">
+                <a href="/docs" style="color: #58a6ff;">Swagger UI</a> |
+                <a href="/redoc" style="color: #58a6ff;">ReDoc</a> |
+                <a href="/rdkit/api/adme" style="color: #58a6ff;">API</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleEndpoint(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('active');
+        }
+
+        async function tryADME() {
+            const smiles = document.getElementById('adme-smiles').value;
+            const resultDiv = document.getElementById('adme-result');
+            resultDiv.classList.add('active');
+            resultDiv.innerHTML = '<div class="status status-success">Загрузка...</div>';
+            try {
+                const response = await fetch(`/rdkit/api/adme?smiles=${encodeURIComponent(smiles)}`);
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status status-error">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        async function tryFunctionalGroups() {
+            const smiles = document.getElementById('fg-smiles').value;
+            const resultDiv = document.getElementById('fg-result');
+            resultDiv.classList.add('active');
+            resultDiv.innerHTML = '<div class="status status-success">Загрузка...</div>';
+            try {
+                const response = await fetch(`/rdkit/api/functional_groups?smiles=${encodeURIComponent(smiles)}`);
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status status-error">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        async function tryValidate() {
+            const smiles = document.getElementById('validate-smiles').value;
+            const resultDiv = document.getElementById('validate-result');
+            resultDiv.classList.add('active');
+            resultDiv.innerHTML = '<div class="status status-success">Загрузка...</div>';
+            try {
+                const response = await fetch(`/rdkit/api/validate?smiles=${encodeURIComponent(smiles)}`);
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status status-error">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        async function tryRender() {
+            const smiles = document.getElementById('render-smiles').value;
+            const resultDiv = document.getElementById('render-result');
+            resultDiv.classList.add('active');
+            resultDiv.innerHTML = '<div class="status status-success">Загрузка...</div>';
+            try {
+                const response = await fetch(`/api/render?smiles=${encodeURIComponent(smiles)}`);
+                const data = await response.json();
+                if (data.image_base64) {
+                    resultDiv.innerHTML = `<img src="data:image/png;base64,${data.image_base64}" alt="Молекула" style="max-width: 100%;">`;
+                } else {
+                    resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status status-error">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        function loadExample(smiles) {
+            document.getElementById('adme-smiles').value = smiles;
+            document.getElementById('fg-smiles').value = smiles;
+            document.getElementById('validate-smiles').value = smiles;
+            document.getElementById('render-smiles').value = smiles;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMILES Viewer, Editor, Paint & Tools</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f5f6fa;
+            color: #2f3640;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h2 { margin-top: 0; font-size: 1.2rem; color: #353b48; border-bottom: 2px solid #f5f6fa; padding-bottom: 10px; }
+        h3 { font-size: 1rem; color: #353b48; margin-top: 15px; margin-bottom: 8px; }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fbfbfb;
+        }
+        input[type="text"]:focus { outline: none; border-color: #00a8ff; background-color: #fff; }
+
+        .btn-load { background-color: #e1b12c; color: #fff; white-space: nowrap; }
+        .btn-load:hover { background-color: #fbc531; }
+
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #iupac_name { font-weight: bold; color: #44bd32; min-height: 1.2em; font-size: 1.1rem; }
+        #chiral_info { font-weight: 500; color: #8c7ae6; font-size: 0.95rem; }
+
+        #jsme_container {
+            width: 100%;
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+
+        .controls, .tools-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 12px;
+            background: #f5f6fa;
+            border-radius: 4px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tools-panel { flex-direction: column; align-items: flex-start; }
+        .tools-row { display: flex; gap: 10px; width: 100%; flex-wrap: wrap; }
+        
+        .radios label { margin-right: 15px; cursor: pointer; font-weight: 500; }
+
+        button {
+            padding: 9px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-render { background-color: #00a8ff; color: white; }
+        .btn-render:hover { background-color: #0097e6; }
+        .btn-chiral { background-color: #9c88ff; color: white; }
+        .btn-chiral:hover { background-color: #8c7ae6; }
+        .btn-tool { background-color: #718093; color: white; }
+        .btn-tool:hover { background-color: #2f3640; }
+        .btn-save { background-color: #44bd32; color: white; width: 100%; margin-top: 10px; }
+        .btn-save:hover { background-color: #4cd137; }
+        .btn-adme { background-color: #e84118; color: white; }
+        .btn-adme:hover { background-color: #c23616; }
+        .btn-fg { background-color: #0097e6; color: white; }
+        .btn-fg:hover { background-color: #00a8ff; }
+        .btn-validate { background-color: #44bd32; color: white; }
+        .btn-validate:hover { background-color: #4cd137; }
+        .btn-pka { background-color: #8c7ae6; color: white; }
+        .btn-pka:hover { background-color: #9c88ff; }
+        .btn-desc { background-color: #e1b12c; color: white; }
+        .btn-desc:hover { background-color: #fbc531; }
+
+        .output-box {
+            width: 100%;
+            padding: 10px;
+            background: #fff;
+            border: 1px dashed #dcdde1;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+            min-height: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Paint Toolbar */
+        .paint-toolbar {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            background: #e1b12c15;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border: 1px solid #fbc531;
+        }
+        .paint-toolbar label { font-size: 14px; font-weight: 600; }
+        .btn-clear { background-color: #e84118; color: white; padding: 5px 10px; font-size: 13px; }
+
+        #error { color: #e84118; margin-top: 10px; font-weight: bold; }
+        
+        .result-container { 
+            position: relative; 
+            text-align: center; 
+            margin-top: 15px; 
+            display: inline-block;
+            width: 100%;
+        }
+
+        #canvas_wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+        }
+        #paint_canvas {
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            background: #ffffff;
+            cursor: crosshair;
+            display: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .badge-new { background: #e84118; color: #fff; }
+        .badge-v2 { background: #00a8ff; color: #fff; }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 6px 12px;
+            background: #dcdde1;
+            border: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tab-btn.active {
+            background: #00a8ff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h2 style="margin: 0;" data-i18n="title">SMILES Editor & Analysis Tools</h2>
+        <div style="display: flex; gap: 5px; align-items: center;">
+            <span class="badge badge-v2">v2.0</span>
+            <button onclick="toggleLang()" style="padding: 4px 10px; font-size: 12px; background: #30363d; color: #fff; border: none; border-radius: 4px; cursor: pointer;" id="lang_btn">EN</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="smiles" data-i18n-placeholder="smilesPlaceholder" placeholder="Enter SMILES (e.g. c1ccccc1)" value="c1ccccc1">
+        <button class="btn-load" onclick="loadToJSME()" data-i18n="load">Load to JSME</button>
+    </div>
+
+    <div class="info-panel">
+        <div id="iupac_name"></div>
+        <div id="chiral_info"></div>
+    </div>
+
+    <div id="jsme_container"></div>
+    
+    <!-- Tabs для новых инструментов -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('basic')" data-i18n="basic">Basic</button>
+        <button class="tab-btn" onclick="switchTab('adme')" data-i18n="adme">ADME <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('analysis')" data-i18n="analysis">Analysis <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('advanced')" data-i18n="advanced">Advanced <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('3d')" data-i18n="viewer3d">3D Viewer <span class="badge badge-new">NEW</span></button>
+    </div>
+
+    <!-- Basic Tools -->
+    <div id="tab-basic" class="tab-content active">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getProperties()">Properties</button>
+                <button class="btn-tool" onclick="convertSmiles()">Convert Formats</button>
+                <button class="btn-tool" onclick="downloadSDF()">Download 3D SDF</button>
+            </div>
+            <div id="properties_out" class="output-box">Molecular properties will appear here...</div>
+
+            <div class="tools-row" style="margin-top: 10px;">
+                <input type="text" id="smarts_pattern" placeholder="SMARTS pattern (e.g. c1ccccc1)">
+                <button class="btn-tool" onclick="searchSubstructure()" data-i18n="substructure">Substructure Search</button>
+            </div>
+            
+            <div class="tools-row">
+                <input type="text" id="smiles2" placeholder="Second SMILES for similarity">
+                <button class="btn-tool" onclick="checkSimilarity()" data-i18n="similarity">Compare Similarity</button>
+            </div>
+            <div id="advanced_out" class="output-box">Search & similarity results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- ADME Tools -->
+    <div id="tab-adme" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-adme" onclick="getADME()" data-i18n="admeBtn">ADME / Drug-likeness</button>
+                <button class="btn-fg" onclick="getFunctionalGroups()" data-i18n="functionalGroups">Functional Groups</button>
+                <button class="btn-validate" onclick="validateSMILES()" data-i18n="validate">Validate SMILES</button>
+            </div>
+            <div id="adme_out" class="output-box">ADME properties will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Analysis Tools -->
+    <div id="tab-analysis" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-pka" onclick="getPKa()" data-i18n="pka">pKa Estimation</button>
+                <button class="btn-desc" onclick="getDescriptors()" data-i18n="descriptors">All Descriptors (200+)</button>
+            </div>
+            <div id="analysis_out" class="output-box">Analysis results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Advanced Tools -->
+    <div id="tab-advanced" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <input type="text" id="reaction_smarts" placeholder="SMIRKS reaction (e.g. [CX3](=O)[OX2H1]>>[CX3](=O)[OX2H0][#6])" style="flex:1">
+                <button class="btn-tool" onclick="applyReaction()" data-i18n="reaction">Apply Reaction</button>
+            </div>
+            <div id="reaction_out" class="output-box">Reaction products will appear here...</div>
+            
+            <div class="tools-row" style="margin-top: 10px;">
+                <input type="text" id="inchikey_input" placeholder="InChIKey (e.g. BSYNRYMUTXBXSQ-UHFFFAOYSA-N)">
+                <button class="btn-tool" onclick="getByInChIKey()" data-i18n="inchikey">Get by InChIKey</button>
+            </div>
+            <div id="inchikey_out" class="output-box">InChIKey lookup results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- 3D Viewer -->
+    <div id="tab-3d" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="load3D()" data-i18n="load3d">Load 3D Structure</button>
+                <button class="btn-tool" onclick="setStyle3D('ball-and-stick')" data-i18n="ballStick">Ball & Stick</button>
+                <button class="btn-tool" onclick="setStyle3D('stick')" data-i18n="stick">Stick</button>
+                <button class="btn-tool" onclick="setStyle3D('sphere')" data-i18n="sphere">Sphere</button>
+                <button class="btn-tool" onclick="toggleSpin3D()" data-i18n="spin">Spin</button>
+            </div>
+            <div id="viewer3d" style="width: 100%; height: 400px; position: relative; border: 1px solid #dcdde1; border-radius: 4px; background: #fff;"></div>
+            <div id="3d_info" class="output-box">3D structure will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Render Controls -->
+    <div class="controls">
+        <div class="radios">
+            <label><input type="radio" name="type" value="just" checked> Just</label>
+            <label><input type="radio" name="type" value="indexes"> Indexes</label>
+            <label><input type="radio" name="type" value="charges"> Charges</label>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-chiral" onclick="getChiral()" data-i18n="chiralInfo">Chiral Info</button>
+            <button class="btn-render" onclick="render()" data-i18n="render">Render (RDKit)</button>
+            <button class="btn-render" onclick="renderChiral()" style="background-color: #e84118;" data-i18n="renderChiral">Render Chiral</button>
+        </div>
+    </div>
+
+    <!-- Paint Toolbar -->
+    <div class="paint-toolbar" id="paint_toolbar">
+        <label>🎨 Color:</label>
+        <input type="color" id="brush_color" value="#e84118">
+        
+        <label>📏 Size:</label>
+        <input type="range" id="brush_size" min="1" max="15" value="3">
+        
+        <label><input type="checkbox" id="eraser_mode"> 🧹 Eraser</label>
+        <button class="btn-clear" onclick="clearCanvasDrawings()">Clear Drawing</button>
+    </div>
+
+    <div class="result-container">
+        <div id="error"></div>
+        <div id="canvas_wrapper">
+            <canvas id="paint_canvas" width="400" height="400"></canvas>
+        </div>
+        <button id="save_btn" class="btn-save" style="display:none;" onclick="saveImage()">Save Image with Notes</button>
+    </div>
+</div>
+
+<script type="text/javascript" src="/StaticFiles/JSME_2024-04-29/jsme/jsme.nocache.js"></script>
+<script type="text/javascript" src="/StaticFiles/3Dmol-min.js"></script>
+<script>
+    const rdkit_api_h = `http://127.0.0.1:1235/`;
+
+    // --- i18n ---
+    const I18N = {
+        ru: {
+            title: 'SMILES Редактор и Инструменты Анализа',
+            load: 'Загрузить в JSME',
+            basic: 'Базовый',
+            adme: 'ADME',
+            analysis: 'Анализ',
+            advanced: 'Расширенный',
+            viewer3d: '3D Просмотр',
+            renderChiral: 'Рендер Хиральные',
+            render: 'Рендер (RDKit)',
+            chiralInfo: 'Хиральные центры',
+            load3d: 'Загрузить 3D Структуру',
+            ballStick: 'Шар-стержень',
+            stick: 'Стержни',
+            sphere: 'Сферы',
+            spin: 'Вращение',
+            properties: 'Свойства',
+            convert: 'Конвертировать',
+            download3d: 'Скачать 3D SDF',
+            substructure: 'Поиск Подструктур',
+            similarity: 'Сравнить Сходство',
+            validate: 'Проверить SMILES',
+            functionalGroups: 'Функциональные Группы',
+            admeBtn: 'ADME / Лепообразность',
+            pka: 'Оценка pKa',
+            descriptors: 'Все Дескрипторы (200+)',
+            reaction: 'Применить Реакцию',
+            inchikey: 'Найти по InChIKey',
+            smilesPlaceholder: 'Введите SMILES (например, c1ccccc1)',
+            smartsPlaceholder: 'SMARTS паттерн (например, c1ccccc1)',
+            secondSmiles: 'Второй SMILES для сравнения',
+            reactionPlaceholder: 'SMIRKS реакция (например, [CX3](=O)[OX2H1]>>[CX3](=O)[OX2H0][#6])',
+            inchikeyPlaceholder: 'InChIKey (например, BSYNRYMUTXBXSQ-UHFFFAOYSA-N)',
+            propertiesOut: 'Свойства молекулы появятся здесь...',
+            advancedOut: 'Результаты поиска и сходства появятся здесь...',
+            admeOut: 'ADME свойства появятся здесь...',
+            analysisOut: 'Результаты анализа появятся здесь...',
+            reactionOut: 'Продукты реакции появятся здесь...',
+            inchikeyOut: 'Результаты поиска по InChIKey появятся здесь...',
+            error: 'Ошибка',
+            apiOffline: 'API недоступен',
+            chiralCentersFound: 'Хиральные центры',
+            substructFound: 'Подструктура найдена',
+            matchesCount: 'Количество совпадений',
+            tanimoto: 'Сходство Танимото',
+            validSmiles: '✓ Действительный SMILES',
+            invalidSmiles: '✗ Недействительный SMILES',
+            errorType: 'Тип ошибки',
+            message: 'Сообщение',
+            warnings: 'Предупреждения',
+            canonical: 'Канонический',
+            threeDLoaded: '3D Структура загружена. Хиральные центры: ',
+            dragToRotate: 'Перетащите для вращения, прокрутка для масштабирования.',
+            formula: 'Формула',
+            logp: 'LogP',
+            qed: 'QED',
+            saScore: 'SA Score',
+            lipinskiViolations: 'Нарушения Липинского',
+            lipinskiPass: 'Пройден',
+            lipinskiFail: 'Не пройден',
+            stereocenters: 'Стереоцентры',
+            pinkSpheres: 'розовые сферы',
+            loading: 'Загрузка...',
+            apiConnectionError: 'Ошибка подключения к API'
+        },
+        en: {
+            title: 'SMILES Editor & Analysis Tools',
+            load: 'Load to JSME',
+            basic: 'Basic',
+            adme: 'ADME',
+            analysis: 'Analysis',
+            advanced: 'Advanced',
+            viewer3d: '3D Viewer',
+            renderChiral: 'Render Chiral',
+            render: 'Render (RDKit)',
+            chiralInfo: 'Chiral Info',
+            load3d: 'Load 3D Structure',
+            ballStick: 'Ball & Stick',
+            stick: 'Stick',
+            sphere: 'Sphere',
+            spin: 'Spin',
+            properties: 'Properties',
+            convert: 'Convert Formats',
+            download3d: 'Download 3D SDF',
+            substructure: 'Substructure Search',
+            similarity: 'Compare Similarity',
+            validate: 'Validate SMILES',
+            functionalGroups: 'Functional Groups',
+            admeBtn: 'ADME / Drug-likeness',
+            pka: 'pKa Estimation',
+            descriptors: 'All Descriptors (200+)',
+            reaction: 'Apply Reaction',
+            inchikey: 'Get by InChIKey',
+            smilesPlaceholder: 'Enter SMILES (e.g. c1ccccc1)',
+            smartsPlaceholder: 'SMARTS pattern (e.g. c1ccccc1)',
+            secondSmiles: 'Second SMILES for similarity',
+            reactionPlaceholder: 'SMIRKS reaction (e.g. [CX3](=O)[OX2H1]>>[CX3](=O)[OX2H0][#6])',
+            inchikeyPlaceholder: 'InChIKey (e.g. BSYNRYMUTXBXSQ-UHFFFAOYSA-N)',
+            propertiesOut: 'Molecular properties will appear here...',
+            advancedOut: 'Search & similarity results will appear here...',
+            admeOut: 'ADME properties will appear here...',
+            analysisOut: 'Analysis results will appear here...',
+            reactionOut: 'Reaction products will appear here...',
+            inchikeyOut: 'InChIKey lookup results will appear here...',
+            error: 'Error',
+            apiOffline: 'API Offline',
+            chiralCentersFound: 'Chiral centers',
+            substructFound: 'Substructure Found',
+            matchesCount: 'Matches Count',
+            tanimoto: 'Tanimoto Similarity',
+            validSmiles: '✓ Valid SMILES',
+            invalidSmiles: '✗ Invalid SMILES',
+            errorType: 'Error Type',
+            message: 'Message',
+            warnings: 'Warnings',
+            canonical: 'Canonical',
+            threeDLoaded: '3D Structure loaded. Chiral centers: ',
+            dragToRotate: 'Drag to rotate, scroll to zoom.',
+            formula: 'Formula',
+            logp: 'LogP',
+            qed: 'QED',
+            saScore: 'SA Score',
+            lipinskiViolations: 'Lipinski Violations',
+            lipinskiPass: 'PASS',
+            lipinskiFail: 'FAIL',
+            stereocenters: 'Stereocenters',
+            pinkSpheres: 'pink spheres',
+            loading: 'Loading...',
+            apiConnectionError: 'API Connection Error'
+        }
+    };
+    let currentLang = localStorage.getItem('lang') || 'ru';
+    function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || key; }
+    function applyI18n() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.textContent = t(el.getAttribute('data-i18n'));
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+        });
+        document.getElementById('lang_btn').textContent = currentLang === 'ru' ? 'EN' : 'RU';
+    }
+    function toggleLang() {
+        currentLang = currentLang === 'ru' ? 'en' : 'ru';
+        localStorage.setItem('lang', currentLang);
+        applyI18n();
+    }
+    applyI18n();
+    let jsmeApplet = null;
+    let baseMoleculeImage = new Image();
+
+    // Canvas elements
+    const canvas = document.getElementById('paint_canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    function jsmeOnLoad() {
+        jsmeApplet = new JSApplet.JSME("jsme_container", "100%", "450px", {
+            "options": "query,hydrogens"
+        });
+
+        jsmeApplet.setCallBack("AfterStructureModified", function(event) {
+            const smiles = event.src.smiles();
+            const inputEl = document.getElementById('smiles');
+
+            if (document.activeElement !== inputEl) {
+                inputEl.value = smiles;
+                if (smiles && smiles.trim() !== '') {
+                    getName(smiles);
+                } else {
+                    document.getElementById('iupac_name').innerText = '';
+                    document.getElementById('chiral_info').innerText = '';
+                }
+            }
+        });
+
+        setTimeout(() => {
+            const initialSmiles = document.getElementById('smiles').value.trim();
+            if (initialSmiles) {
+                try {
+                    if (typeof jsmeApplet.readGenericMolecularInput === 'function') {
+                        jsmeApplet.readGenericMolecularInput(initialSmiles);
+                    }
+                } catch (e) {
+                    console.warn("Initial load error:", e);
+                }
+                getName(initialSmiles);
+            }
+        }, 200);
+    }
+
+    function loadToJSME() {
+        if (!jsmeApplet) return;
+        const smiles = document.getElementById('smiles').value.trim();
+
+        if (smiles !== '') {
+            try {
+                jsmeApplet.readGenericMolecularInput(smiles);
+                getName(smiles);
+            } catch (e) {
+                alert("Failed to load molecule. Check the SMILES string.");
+            }
+        } else {
+            jsmeApplet.clear();
+            document.getElementById('iupac_name').innerText = '';
+            document.getElementById('chiral_info').innerText = '';
+        }
+    }
+
+    async function getName(smiles) {
+        const nameDiv = document.getElementById('iupac_name');
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_name?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            nameDiv.innerText = (res.ok && data.name) ? data.name : "Name not found";
+        } catch (e) {
+            nameDiv.innerText = "API Offline";
+        }
+    }
+
+    async function getChiral() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const chiralDiv = document.getElementById('chiral_info');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_chiral?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                chiralDiv.innerText = `Chiral centers: ${data.centers_count} ${JSON.stringify(data.centers)}`;
+            } else {
+                chiralDiv.innerText = "Chiral error";
+            }
+        } catch (e) {
+            chiralDiv.innerText = "API Offline";
+        }
+    }
+
+    // --- Tab Switching ---
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // --- Basic Endpoints ---
+
+    async function getProperties() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('properties_out');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}api/get_properties?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight.toFixed(2)} | <b>LogP:</b> ${data.logp.toFixed(2)} | <b>HBD:</b> ${data.hbd} | <b>HBA:</b> ${data.hba} | <b>TPSA:</b> ${data.tpsa.toFixed(2)}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail || 'Invalid input'}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function convertSmiles() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('properties_out');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}api/convert?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                out.innerHTML = `<b>Canonical:</b> ${data.canonical_smiles}<br><b>InChI:</b> ${data.inchi}<br><b>InChIKey:</b> ${data.inchikey}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.error || data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    function downloadSDF() {
+        const smiles = document.getElementById('smiles').value.trim();
+        if (!smiles) return;
+        window.open(`${rdkit_api_h}api/get_3d_sdf?smiles=${encodeURIComponent(smiles)}`, '_blank');
+    }
+
+    async function searchSubstructure() {
+        const target = document.getElementById('smiles').value.trim();
+        const pattern = document.getElementById('smarts_pattern').value.trim();
+        const out = document.getElementById('advanced_out');
+        if (!target || !pattern) { out.innerHTML = "Please enter both SMILES and SMARTS pattern."; return; }
+        
+        try {
+            const res = await fetch(`${rdkit_api_h}api/substructure_search?target_smiles=${encodeURIComponent(target)}&pattern_smarts=${encodeURIComponent(pattern)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Substructure Found:</b> ${data.has_match ? 'Yes ✅' : 'No ❌'} | <b>Matches Count:</b> ${data.match_count}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function checkSimilarity() {
+        const s1 = document.getElementById('smiles').value.trim();
+        const s2 = document.getElementById('smiles2').value.trim();
+        const out = document.getElementById('advanced_out');
+        if (!s1 || !s2) { out.innerHTML = "Please enter two SMILES strings to compare."; return; }
+
+        try {
+            const res = await fetch(`${rdkit_api_h}api/similarity?smiles1=${encodeURIComponent(s1)}&smiles2=${encodeURIComponent(s2)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Tanimoto Similarity:</b> ${data.tanimoto_similarity} (0.0 to 1.0)`;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- ADME Endpoints ---
+
+    async function getADME() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('adme_out');
+        if (!smiles) return;
+        out.innerHTML = "Loading ADME properties...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/adme?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `
+                    <b>ADME / Drug-likeness Analysis</b><br>
+                    <b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight} | <b>LogP:</b> ${data.logp}<br>
+                    <b>HBD:</b> ${data.hbd} | <b>HBA:</b> ${data.hba} | <b>TPSA:</b> ${data.tpsa}<br>
+                    <b>Rotatable Bonds:</b> ${data.rotatable_bonds} | <b>Rings:</b> ${data.num_rings} | <b>Aromatic Rings:</b> ${data.num_aromatic_rings}<br>
+                    <b>Lipinski Violations:</b> ${data.lipinski_violations} (${data.lipinski_pass ? 'PASS ✅' : 'FAIL ❌'})<br>
+                    <b>QED:</b> ${data.qed} (${data.qed_interpretation})<br>
+                    <b>SA Score:</b> ${data.sa_score || 'N/A'} | <b>Stereocenters:</b> ${data.num_stereocenters}
+                `;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getFunctionalGroups() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('adme_out');
+        if (!smiles) return;
+        out.innerHTML = "Searching functional groups...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/functional_groups?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Functional Groups Found:</b> ${data.total_groups_found}<br>`;
+                data.functional_groups.forEach(fg => {
+                    html += `• ${fg.name} (${fg.count}x)<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function validateSMILES() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('adme_out');
+        if (!smiles) return;
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/validate?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (data.valid) {
+                out.innerHTML = `<b>✅ Valid SMILES</b><br><b>Canonical:</b> ${data.canonical_smiles}`;
+                if (data.warnings.length > 0) {
+                    out.innerHTML += `<br><b>Warnings:</b> ${data.warnings.join(', ')}`;
+                }
+            } else {
+                out.innerHTML = `<b>❌ Invalid SMILES</b><br><b>Error Type:</b> ${data.error_type}<br><b>Message:</b> ${data.error_message}`;
+            }
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Analysis Endpoints ---
+
+    async function getPKa() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('analysis_out');
+        if (!smiles) return;
+        out.innerHTML = "Estimating pKa...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/pka?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>pKa Estimation</b> — ${data.total_sites} sites found<br>`;
+                data.pka_sites.forEach(site => {
+                    html += `• Atom ${site.atom_idx}: ${site.type} (pKa ~${site.estimated_pka}, ${site.strength})<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getDescriptors() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('analysis_out');
+        if (!smiles) return;
+        out.innerHTML = "Computing 200+ descriptors...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/descriptors?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                const d = data.extra_descriptors;
+                out.innerHTML = `
+                    <b>Descriptors (${data.descriptor_count} total)</b><br>
+                    <b>MW:</b> ${d.MolWt} | <b>LogP:</b> ${d.MolLogP} | <b>TPSA:</b> ${d.TPSA}<br>
+                    <b>HBD:</b> ${d.NumHDonors} | <b>HBA:</b> ${d.NumHAcceptors} | <b>RotB:</b> ${d.NumRotatableBonds}<br>
+                    <b>Rings:</b> ${d.NumRings} | <b>Aromatic Rings:</b> ${d.NumAromaticRings}<br>
+                    <b>Fraction CSP3:</b> ${d.FractionCSP3} | <b>BalabanJ:</b> ${d.BalabanJ}<br>
+                    <b>QED:</b> ${d.QED?.score || 'N/A'}
+                `;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Advanced Endpoints ---
+
+    async function applyReaction() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const reaction = document.getElementById('reaction_smarts').value.trim();
+        const out = document.getElementById('reaction_out');
+        if (!smiles || !reaction) { out.innerHTML = "Please enter both SMILES and SMIRKS reaction."; return; }
+        out.innerHTML = "Applying reaction...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/reaction?smiles=${encodeURIComponent(smiles)}&reaction_smarts=${encodeURIComponent(reaction)}`);
+            const data = await res.json();
+            if (res.ok) {
+                if (data.product_count > 0) {
+                    out.innerHTML = `<b>Reaction Products (${data.product_count}):</b><br>` + data.products.map(p => `• ${p}`).join('<br>');
+                } else {
+                    out.innerHTML = "No reaction products formed.";
+                }
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getByInChIKey() {
+        const inchikey = document.getElementById('inchikey_input').value.trim();
+        const out = document.getElementById('inchikey_out');
+        if (!inchikey) { out.innerHTML = "Please enter an InChIKey."; return; }
+        out.innerHTML = "Looking up InChIKey...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/by_inchikey?inchikey=${encodeURIComponent(inchikey)}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `
+                    <b>InChIKey:</b> ${data.inchikey}<br>
+                    <b>SMILES:</b> ${data.smiles}<br>
+                    <b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight}<br>
+                    <b>LogP:</b> ${data.logp} | <b>QED:</b> ${data.qed}
+                `;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Rendering & Paint ---
+
+    async function render() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const err = document.getElementById('error');
+        const saveBtn = document.getElementById('save_btn');
+        const toolbar = document.getElementById('paint_toolbar');
+
+        err.innerText = '';
+        saveBtn.style.display = 'none';
+        toolbar.style.display = 'none';
+        canvas.style.display = 'none';
+
+        if (!smiles) return;
+
+        try {
+            const res = await fetch(`${rdkit_api_h}api/render?smiles=${encodeURIComponent(smiles)}&draw_type=${type}`);
+            const data = await res.json();
+
+            if (res.ok && data.image_base64) {
+                baseMoleculeImage.onload = () => {
+                    canvas.width = baseMoleculeImage.width;
+                    canvas.height = baseMoleculeImage.height;
+                    redrawCanvas();
+                    canvas.style.display = 'block';
+                    saveBtn.style.display = 'inline-block';
+                    toolbar.style.display = 'flex';
+                };
+                baseMoleculeImage.src = 'data:image/png;base64,' + data.image_base64;
+            } else {
+                err.innerText = data.detail || 'Render error';
+            }
+        } catch (e) {
+            err.innerText = 'API Connection Error';
+        }
+    }
+
+    function redrawCanvas() {
+        ctx.drawImage(baseMoleculeImage, 0, 0);
+    }
+
+    function clearCanvasDrawings() {
+        redrawCanvas();
+    }
+
+    // Paint Logic
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        
+        const isEraser = document.getElementById('eraser_mode').checked;
+        const color = document.getElementById('brush_color').value;
+        const size = document.getElementById('brush_size').value;
+
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+
+        if (isEraser) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(e.offsetX, e.offsetY, size, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(baseMoleculeImage, 0, 0);
+            ctx.restore();
+        } else {
+            ctx.strokeStyle = color;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseleave', () => isDrawing = false);
+
+    function saveImage() {
+        const smiles = document.getElementById('smiles').value.trim() || 'molecule';
+        const dataUrl = canvas.toDataURL('image/png');
+
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = smiles + '_annotated.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // --- Chiral Rendering ---
+    async function renderChiral() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const err = document.getElementById('error');
+        const saveBtn = document.getElementById('save_btn');
+        const toolbar = document.getElementById('paint_toolbar');
+
+        err.innerText = '';
+        saveBtn.style.display = 'none';
+        toolbar.style.display = 'none';
+        canvas.style.display = 'none';
+
+        if (!smiles) return;
+
+        try {
+            const res = await fetch(`${rdkit_api_h}api/render?smiles=${encodeURIComponent(smiles)}&draw_type=chiral&highlight_chiral=true`);
+            const data = await res.json();
+
+            if (res.ok && data.image_base64) {
+                baseMoleculeImage.onload = () => {
+                    canvas.width = baseMoleculeImage.width;
+                    canvas.height = baseMoleculeImage.height;
+                    redrawCanvas();
+                    canvas.style.display = 'block';
+                    saveBtn.style.display = 'inline-block';
+                    toolbar.style.display = 'flex';
+                };
+                baseMoleculeImage.src = 'data:image/png;base64,' + data.image_base64;
+            } else {
+                err.innerText = data.detail || 'Render error';
+            }
+        } catch (e) {
+            err.innerText = 'API Connection Error';
+        }
+    }
+
+    // --- 3D Viewer (WebGL via 3Dmol.js) ---
+    let viewer3D = null;
+    let currentSDF = null;
+    let isSpinning = false;
+
+    async function load3D() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const info = document.getElementById('3d_info');
+        if (!smiles) return;
+        info.innerHTML = 'Loading 3D structure...';
+
+        try {
+            // Получаем SDF и хиральные центры параллельно
+            const [sdfRes, chiralRes] = await Promise.all([
+                fetch(`${rdkit_api_h}rdkit/api/3d?smiles=${encodeURIComponent(smiles)}&format=sdf`),
+                fetch(`${rdkit_api_h}api/get_chiral?smiles=${encodeURIComponent(smiles)}`)
+            ]);
+            const sdfText = await sdfRes.text();
+            const chiralData = await chiralRes.json();
+
+            if (!viewer3D) {
+                viewer3D = $3Dmol.createViewer('viewer3d', { backgroundColor: 'white' });
+            }
+
+            viewer3D.clear();
+            currentSDF = sdfText;
+            viewer3D.addModel(sdfText, 'sdf');
+            viewer3D.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
+
+            // Розовые сферы для хиральных центров
+            if (chiralData.centers && chiralData.centers.length > 0) {
+                chiralData.centers.forEach(([atomIdx]) => {
+                    viewer3D.addStyle({ serial: atomIdx + 1 }, { sphere: { color: '#FF69B4', scale: 0.35 } });
+                });
+            }
+
+            viewer3D.zoomTo();
+            viewer3D.render();
+
+            const chiralCount = chiralData.centers ? chiralData.centers.length : 0;
+            info.innerHTML = `<b>3D Structure loaded.</b> Chiral centers: ${chiralCount} (pink spheres). Drag to rotate, scroll to zoom.`;
+        } catch (e) {
+            info.innerHTML = `<span style="color:red">Error: ${e.message}</span>`;
+        }
+    }
+
+    function setStyle3D(style) {
+        if (!viewer3D) return;
+        viewer3D.setStyle({}, {});
+        if (style === 'ball-and-stick') {
+            viewer3D.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
+        } else if (style === 'stick') {
+            viewer3D.setStyle({}, { stick: { radius: 0.15 } });
+        } else if (style === 'sphere') {
+            viewer3D.setStyle({}, { sphere: { scale: 0.5 } });
+        }
+        viewer3D.render();
+    }
+
+    function toggleSpin3D() {
+        if (!viewer3D) return;
+        isSpinning = !isSpinning;
+        viewer3D.spin(isSpinning ? 'y' : false);
+    }
+</script>
+</body>
+</html>

@@ -2,3 +2,5 @@ rdkit
 uvicorn
 fastapi
 PySocks
+sockshandler
+pydantic
