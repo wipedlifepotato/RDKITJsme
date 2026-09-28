@@ -12,6 +12,7 @@ import urllib.request
 
 from database import get_db, CachedName
 from Molecule import Molecule
+from i18n import get_text, get_lang
 
 from rdkit import Chem
 from rdkit import DataStructs
@@ -26,34 +27,34 @@ PROXY_ADDRESS = "127.0.0.1:9050"
 
 
 @router.get("/", include_in_schema=False)
-async def rdkit_index():
+async def rdkit_index(lang: str = Depends(get_lang)):
     """Индексная страница RDKit API со списком всех эндпоинтов."""
     endpoints = {
-        "ADME & Drug-likeness": {
-            "GET /rdkit/api/adme": "ADME-свойства, Липинский, QED, SA Score",
+        get_text("rdkit_index_adme", lang): {
+            "GET /rdkit/api/adme": get_text("ep_adme_desc", lang),
         },
-        "Analysis": {
-            "GET /rdkit/api/functional_groups": "Поиск функциональных групп (25+ типов)",
-            "GET /rdkit/api/validate": "Валидация SMILES с диагностикой",
-            "GET /rdkit/api/pka": "Оценка pKa (кислотные/основные центры)",
-            "GET /rdkit/api/descriptors": "Все дескрипторы RDKit (200+)",
+        get_text("rdkit_index_analysis", lang): {
+            "GET /rdkit/api/functional_groups": get_text("ep_functional_groups_desc", lang),
+            "GET /rdkit/api/validate": get_text("ep_validate_desc", lang),
+            "GET /rdkit/api/pka": get_text("ep_pka_desc", lang),
+            "GET /rdkit/api/descriptors": get_text("ep_descriptors_desc", lang),
         },
-        "Reactions & Conversion": {
-            "GET /rdkit/api/reaction": "Применение реакций (SMIRKS)",
-            "GET /rdkit/api/by_inchikey": "Поиск по InChIKey",
+        get_text("rdkit_index_reactions", lang): {
+            "GET /rdkit/api/reaction": get_text("ep_reaction_desc", lang),
+            "GET /rdkit/api/by_inchikey": get_text("ep_by_inchikey_desc", lang),
         },
-        "3D & Visualization": {
-            "GET /rdkit/api/3d": "3D-структура (SDF/MOL/PDB)",
-            "GET /rdkit/api/render_highlighted": "Рендеринг с подсветкой групп",
+        get_text("rdkit_index_3d", lang): {
+            "GET /rdkit/api/3d": get_text("ep_3d_desc", lang),
+            "GET /rdkit/api/render_highlighted": get_text("ep_render_highlighted_desc", lang),
         },
-        "Batch & Library": {
-            "POST /rdkit/api/batch": "Пакетный анализ молекул",
-            "GET /rdkit/api/library": "Список молекул в библиотеке",
-            "POST /rdkit/api/library/save": "Сохранение в библиотеку",
-            "DELETE /rdkit/api/library/{smiles}": "Удаление из библиотеки",
+        get_text("rdkit_index_batch", lang): {
+            "POST /rdkit/api/batch": get_text("ep_batch_desc", lang),
+            "GET /rdkit/api/library": get_text("ep_library_desc", lang),
+            "POST /rdkit/api/library/save": get_text("ep_library_save_desc", lang),
+            "DELETE /rdkit/api/library/{smiles}": get_text("ep_library_delete_desc", lang),
         },
-        "Comparison": {
-            "POST /rdkit/api/compare": "Сравнение нескольких молекул (матрица Tanimoto)",
+        get_text("rdkit_index_comparison", lang): {
+            "POST /rdkit/api/compare": get_text("ep_compare_desc", lang),
         },
     }
     return {"endpoints": endpoints, "total": sum(len(v) for v in endpoints.values())}
@@ -96,7 +97,10 @@ class ADMEResponse(BaseModel):
 @router.get(
     "/adme", response_model=ADMEResponse, summary="ADME / Drug-likeness свойства"
 )
-def get_adme_properties(smiles: str = Query(..., description="SMILES молекулы")):
+def get_adme_properties(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Полный набор ADME-свойств и оценки drug-likeness:
     - Правило Липинского (Rule of Five)
@@ -107,7 +111,7 @@ def get_adme_properties(smiles: str = Query(..., description="SMILES молек�
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
 
@@ -129,13 +133,13 @@ def get_adme_properties(smiles: str = Query(..., description="SMILES молек�
         # QED
         qed_score = QED.qed(mol)
         if qed_score >= 0.7:
-            qed_interp = "Excellent (drug-like)"
+            qed_interp = get_text("qed_excellent", lang)
         elif qed_score >= 0.5:
-            qed_interp = "Good (moderate drug-likeness)"
+            qed_interp = get_text("qed_good", lang)
         elif qed_score >= 0.3:
-            qed_interp = "Fair (poor drug-likeness)"
+            qed_interp = get_text("qed_fair", lang)
         else:
-            qed_interp = "Poor (unlikely drug-like)"
+            qed_interp = get_text("qed_poor", lang)
 
         # SA Score (synthetic accessibility)
         try:
@@ -220,7 +224,10 @@ FUNCTIONAL_GROUPS = {
 
 
 @router.get("/functional_groups", summary="Поиск функциональных групп")
-def find_functional_groups(smiles: str = Query(..., description="SMILES молекулы")):
+def find_functional_groups(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Определяет наличие функциональных групп в молекуле по SMARTS-паттернам.
     Возвращает список найденных групп с количеством совпадений.
@@ -228,7 +235,7 @@ def find_functional_groups(smiles: str = Query(..., description="SMILES моле
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
         found = []
@@ -241,7 +248,7 @@ def find_functional_groups(smiles: str = Query(..., description="SMILES моле
                 found.append(
                     {
                         "key": key,
-                        "name": info["name"],
+                        "name": get_text(f"fg_{key}", lang),
                         "smarts": info["smarts"],
                         "count": len(matches),
                         "atom_indices": [list(m) for m in matches],
@@ -263,7 +270,10 @@ def find_functional_groups(smiles: str = Query(..., description="SMILES моле
 
 
 @router.get("/validate", summary="Валидация SMILES с подробной диагностикой")
-def validate_smiles(smiles: str = Query(..., description="SMILES для проверки")):
+def validate_smiles(
+    smiles: str = Query(..., description=get_text("param_smiles_to_validate")),
+    lang: str = Depends(get_lang),
+):
     """
     Проверяет корректность SMILES и возвращает подробную диагностику:
     - Тип ошибки (valence, aromaticity, syntax)
@@ -282,7 +292,7 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
 
     if not smiles or not smiles.strip():
         result["error_type"] = "empty"
-        result["error_message"] = "SMILES string is empty"
+        result["error_message"] = get_text("val_empty", lang)
         return result
 
     smiles = smiles.strip()
@@ -297,7 +307,7 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
             invalid_chars.add((i, ch))
     if invalid_chars:
         result["error_type"] = "invalid_characters"
-        result["error_message"] = f"Invalid characters found: {invalid_chars}"
+        result["error_message"] = f"{get_text('val_invalid_characters', lang)}: {invalid_chars}"
         result["error_position"] = list(invalid_chars)[0][0]
         return result
 
@@ -307,7 +317,7 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
     if open_paren != close_paren:
         result["error_type"] = "unbalanced_parentheses"
         result["error_message"] = (
-            f"Unbalanced parentheses: {open_paren} open vs {close_paren} close"
+            f"{get_text('val_unbalanced_parentheses', lang)}: {open_paren} open vs {close_paren} close"
         )
         return result
 
@@ -316,7 +326,7 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
     if open_bracket != close_bracket:
         result["error_type"] = "unbalanced_brackets"
         result["error_message"] = (
-            f"Unbalanced brackets: {open_bracket} open vs {close_bracket} close"
+            f"{get_text('val_unbalanced_brackets', lang)}: {open_bracket} open vs {close_bracket} close"
         )
         return result
 
@@ -345,10 +355,10 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
                     result["error_message"] = err_str
             else:
                 result["error_type"] = "syntax_error"
-                result["error_message"] = "RDKit could not parse this SMILES string"
+                result["error_message"] = get_text("val_syntax_error", lang)
         except Exception:
             result["error_type"] = "syntax_error"
-            result["error_message"] = "RDKit could not parse this SMILES string"
+            result["error_message"] = get_text("val_syntax_error", lang)
         return result
 
     # Валидный SMILES
@@ -357,11 +367,11 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
 
     # Предупреждения
     if mol.GetNumAtoms() > 100:
-        result["warnings"].append("Large molecule (>100 atoms)")
+        result["warnings"].append(get_text("val_large_molecule", lang))
     if Descriptors.MolWt(mol) > 1000:
-        result["warnings"].append("High molecular weight (>1000 Da)")
+        result["warnings"].append(get_text("val_high_mw", lang))
     if Descriptors.MolLogP(mol) > 7:
-        result["warnings"].append("Very high lipophilicity (LogP > 7)")
+        result["warnings"].append(get_text("val_high_logp", lang))
 
     return result
 
@@ -373,8 +383,9 @@ def validate_smiles(smiles: str = Query(..., description="SMILES для пров
 
 @router.get("/reaction", summary="Применение реакции (SMIRKS)")
 def apply_reaction(
-    smiles: str = Query(..., description="SMILES реагента"),
-    reaction_smarts: str = Query(..., description="SMARTS реакции (SMIRKS)"),
+    smiles: str = Query(..., description=get_text("param_smiles_reagent")),
+    reaction_smarts: str = Query(..., description=get_text("param_reaction_smarts")),
+    lang: str = Depends(get_lang),
 ):
     """
     Применяет реакцию (SMIRKS) к молекуле.
@@ -383,11 +394,11 @@ def apply_reaction(
     try:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         rxn = AllChem.ReactionFromSmarts(reaction_smarts)
         if rxn is None:
-            raise ValueError("Invalid SMIRKS reaction pattern")
+            raise ValueError(get_text("invalid_smirks_reaction", lang))
 
         products = rxn.RunReactants((mol,))
 
@@ -397,7 +408,7 @@ def apply_reaction(
                 "reaction_smarts": reaction_smarts,
                 "products": [],
                 "product_count": 0,
-                "message": "No reaction products formed",
+                "message": get_text("no_reaction_products", lang),
             }
 
         unique_products = []
@@ -429,7 +440,10 @@ def apply_reaction(
 
 
 @router.get("/pka", summary="Оценка pKa молекулы")
-def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")):
+def estimate_pka(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Оценивает кислотные/основные центры молекулы.
     Использует эвристический подход на основе функциональных групп.
@@ -437,7 +451,7 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
         pka_sites = []
@@ -450,8 +464,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "carboxylic_acid",
+                        "type_name": get_text("pka_carboxylic_acid", lang),
                         "estimated_pka": 4.5,
-                        "strength": "acidic",
+                        "strength": get_text("pka_acidic", lang),
                     }
                 )
 
@@ -463,8 +478,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "phenol",
+                        "type_name": get_text("pka_phenol", lang),
                         "estimated_pka": 10.0,
-                        "strength": "acidic",
+                        "strength": get_text("pka_acidic", lang),
                     }
                 )
 
@@ -476,8 +492,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "aliphatic_amine",
+                        "type_name": get_text("pka_aliphatic_amine", lang),
                         "estimated_pka": 10.0,
-                        "strength": "basic",
+                        "strength": get_text("pka_basic", lang),
                     }
                 )
 
@@ -489,8 +506,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "aniline",
+                        "type_name": get_text("pka_aniline", lang),
                         "estimated_pka": 4.6,
-                        "strength": "basic",
+                        "strength": get_text("pka_basic", lang),
                     }
                 )
 
@@ -502,8 +520,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "thiol",
+                        "type_name": get_text("pka_thiol", lang),
                         "estimated_pka": 9.0,
-                        "strength": "acidic",
+                        "strength": get_text("pka_acidic", lang),
                     }
                 )
 
@@ -515,8 +534,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
                     {
                         "atom_idx": match[0],
                         "type": "sulfonic_acid",
+                        "type_name": get_text("pka_sulfonic_acid", lang),
                         "estimated_pka": -2.0,
-                        "strength": "strong_acid",
+                        "strength": get_text("pka_strong_acid", lang),
                     }
                 )
 
@@ -525,9 +545,9 @@ def estimate_pka(smiles: str = Query(..., description="SMILES молекулы")
             "pka_sites": pka_sites,
             "total_sites": len(pka_sites),
             "acidic_sites": len(
-                [s for s in pka_sites if s["strength"] in ("acidic", "strong_acid")]
+                [s for s in pka_sites if s["strength"] in (get_text("pka_acidic", lang), get_text("pka_strong_acid", lang))]
             ),
-            "basic_sites": len([s for s in pka_sites if s["strength"] == "basic"]),
+            "basic_sites": len([s for s in pka_sites if s["strength"] == get_text("pka_basic", lang)]),
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -544,7 +564,7 @@ class BatchRequest(BaseModel):
 
 
 @router.post("/batch", summary="Пакетный анализ молекул")
-def batch_analyze(request: BatchRequest):
+def batch_analyze(request: BatchRequest, lang: str = Depends(get_lang)):
     """
     Анализирует список SMILES за один запрос.
     Возвращает свойства для каждой молекулы.
@@ -555,7 +575,7 @@ def batch_analyze(request: BatchRequest):
             m = Molecule(smiles)
             if m.m is None:
                 results.append(
-                    {"smiles": smiles, "valid": False, "error": "Invalid SMILES"}
+                    {"smiles": smiles, "valid": False, "error": get_text("invalid_smiles", lang)}
                 )
                 continue
 
@@ -608,7 +628,10 @@ def batch_analyze(request: BatchRequest):
 
 
 @router.get("/by_inchikey", summary="Получить свойства по InChIKey")
-def get_by_inchikey(inchikey: str = Query(..., description="InChIKey молекулы")):
+def get_by_inchikey(
+    inchikey: str = Query(..., description=get_text("param_inchikey")),
+    lang: str = Depends(get_lang),
+):
     """
     Получает свойства молекулы по InChIKey.
     Использует Cactus/NCI resolver для конвертации.
@@ -616,9 +639,7 @@ def get_by_inchikey(inchikey: str = Query(..., description="InChIKey молек�
     try:
         # Проверка формата InChIKey
         if len(inchikey) != 27 or inchikey.count("-") != 2:
-            raise ValueError(
-                "Invalid InChIKey format. Expected format: XXXXXXXXXXXXXX-XXXXXXXXXX-X"
-            )
+            raise ValueError(get_text("invalid_inchikey_format", lang))
 
         # Попытка разрешить через Cactus
         safe_key = urllib.parse.quote(inchikey, safe="")
@@ -638,12 +659,12 @@ def get_by_inchikey(inchikey: str = Query(..., description="InChIKey молек�
             smiles = resp.read().decode("utf-8").strip()
 
         if not smiles:
-            raise ValueError("Could not resolve InChIKey")
+            raise ValueError(get_text("could_not_resolve_inchikey", lang))
 
         # Получаем свойства
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Resolved SMILES is invalid")
+            raise ValueError(get_text("resolved_smiles_invalid", lang))
 
         mol = m.m
         return {
@@ -668,7 +689,10 @@ def get_by_inchikey(inchikey: str = Query(..., description="InChIKey молек�
 
 
 @router.get("/descriptors", summary="Все дескрипторы RDKit")
-def get_all_descriptors(smiles: str = Query(..., description="SMILES молекулы")):
+def get_all_descriptors(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Возвращает все доступные дескрипторы RDKit для молекулы.
     Включает 200+ молекулярных дескрипторов.
@@ -676,7 +700,7 @@ def get_all_descriptors(smiles: str = Query(..., description="SMILES молек�
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
 
@@ -762,8 +786,9 @@ def get_all_descriptors(smiles: str = Query(..., description="SMILES молек�
 
 @router.get("/3d", summary="3D-структура молекулы")
 def get_3d_structure(
-    smiles: str = Query(..., description="SMILES молекулы"),
-    format: str = Query("sdf", description="Формат: sdf, mol, pdb"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    format: str = Query("sdf", description=get_text("param_format")),
+    lang: str = Depends(get_lang),
 ):
     """
     Генерирует 3D-структуру молекулы.
@@ -772,7 +797,7 @@ def get_3d_structure(
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = Chem.AddHs(m.m)
         AllChem.EmbedMolecule(mol, AllChem.ETKDG())
@@ -788,7 +813,7 @@ def get_3d_structure(
             block = Chem.MolToPDBBlock(mol)
             media_type = "chemical/x-pdb"
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError(f"{get_text('unsupported_format', lang)}: {format}")
 
         return Response(content=block, media_type=media_type)
     except Exception as e:
@@ -807,12 +832,16 @@ class MoleculeEntry(BaseModel):
 
 
 @router.post("/library/save", summary="Сохранить молекулу в библиотеку")
-def save_to_library(entry: MoleculeEntry, db: Session = Depends(get_db)):
+def save_to_library(
+    entry: MoleculeEntry,
+    lang: str = Depends(get_lang),
+    db: Session = Depends(get_db),
+):
     """Сохраняет молекулу в локальную библиотеку (SQLite)."""
     try:
         m = Molecule(entry.smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         canonical = Chem.MolToSmiles(m.m, canonical=True)
 
@@ -822,12 +851,12 @@ def save_to_library(entry: MoleculeEntry, db: Session = Depends(get_db)):
             if entry.name:
                 existing.name = entry.name
             db.commit()
-            return {"status": "updated", "smiles": canonical}
+            return {"status": get_text("lib_updated", lang), "smiles": canonical}
 
         new_entry = CachedName(smiles=canonical, name=entry.name or "")
         db.add(new_entry)
         db.commit()
-        return {"status": "saved", "smiles": canonical}
+        return {"status": get_text("lib_saved", lang), "smiles": canonical}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -854,15 +883,19 @@ def list_library(
 
 
 @router.delete("/library/{smiles}", summary="Удалить молекулу из библиотеки")
-def delete_from_library(smiles: str, db: Session = Depends(get_db)):
+def delete_from_library(
+    smiles: str,
+    lang: str = Depends(get_lang),
+    db: Session = Depends(get_db),
+):
     """Удаляет молекулу из библиотеки по SMILES."""
     try:
         entry = db.query(CachedName).filter(CachedName.smiles == smiles).first()
         if not entry:
-            raise HTTPException(status_code=404, detail="Molecule not found in library")
+            raise HTTPException(status_code=404, detail=get_text("molecule_not_found_in_library", lang))
         db.delete(entry)
         db.commit()
-        return {"status": "deleted", "smiles": smiles}
+        return {"status": get_text("lib_deleted", lang), "smiles": smiles}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -875,7 +908,8 @@ def delete_from_library(smiles: str, db: Session = Depends(get_db)):
 
 @router.post("/compare", summary="Сравнение нескольких молекул")
 def compare_molecules(
-    smiles_list: List[str] = Query(..., description="Список SMILES для сравнения")
+    smiles_list: List[str] = Query(..., description=get_text("param_smiles_list")),
+    lang: str = Depends(get_lang),
 ):
     """
     Сравнивает несколько молекул попарно.
@@ -891,7 +925,7 @@ def compare_molecules(
                 valid_smiles.append(smiles)
 
         if len(mols) < 2:
-            raise ValueError("Need at least 2 valid SMILES for comparison")
+            raise ValueError(get_text("need_at_least_two_smiles", lang))
 
         fps = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048) for m in mols]
 
@@ -913,10 +947,11 @@ def compare_molecules(
 
 @router.get("/render_highlighted", summary="Рендеринг с подсветкой групп")
 def render_highlighted(
-    smiles: str = Query(..., description="SMILES молекулы"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
     highlight_groups: Optional[List[str]] = Query(
-        None, description="Ключи групп для подсветки"
+        None, description=get_text("param_highlight_groups")
     ),
+    lang: str = Depends(get_lang),
 ):
     """
     Рендерит молекулу с подсветкой функциональных групп.
@@ -924,7 +959,7 @@ def render_highlighted(
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
         highlight_atoms = []
@@ -1013,14 +1048,17 @@ NMR_13C_SHIFTS = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/nmr", summary="Оценка химических сдвигов ЯМР (1H и 13C)")
-def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")):
+def estimate_nmr(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Эвристическая оценка химических сдвигов ЯМР с учетом химического окружения.
     """
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = Chem.AddHs(m.m)
 
@@ -1038,7 +1076,7 @@ def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")
                         proton_shifts.append({
                             "group": "COOH",
                             "shift_range": [10.5, 12.5],
-                            "description": "COOH (карбоновая кислота)",
+                            "description": get_text("nmr_cooh", lang),
                             "multiplicity": "s",
                             "integration": 1
                         })
@@ -1058,10 +1096,10 @@ def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")
                 
                 if is_near_carbonyl:
                     shift_range = [2.0, 2.3]
-                    desc = "CH3 соседний с C=O (ацетил/уксусная кислота)"
+                    desc = get_text("nmr_ch3_near_carbonyl", lang)
                 else:
                     shift_range = [0.8, 1.2]
-                    desc = "CH3 (алифатический метил)"
+                    desc = get_text("nmr_ch3_aliphatic", lang)
 
                 # Собираем сами атомы водорода для этого метила
                 h_count = sum(1 for n in c_atom.GetNeighbors() if n.GetAtomicNum() == 1)
@@ -1078,7 +1116,7 @@ def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")
         carbon_shifts = []
         for atom in mol.GetAtoms():
             if atom.GetAtomicNum() == 6:  # Углерод
-                c_shift = _estimate_13c_shift_improved(mol, atom)
+                c_shift = _estimate_13c_shift_improved(mol, atom, lang)
                 if c_shift:
                     carbon_shifts.append({
                         "atom_idx": atom.GetIdx(),
@@ -1099,7 +1137,7 @@ def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def _estimate_13c_shift_improved(mol, c_atom):
+def _estimate_13c_shift_improved(mol, c_atom, lang="ru"):
     """Точная оценка сдвига для 13C ЯМР."""
     c_idx = c_atom.GetIdx()
     
@@ -1112,21 +1150,21 @@ def _estimate_13c_shift_improved(mol, c_atom):
                 if n2.GetAtomicNum() == 8 and n2.GetIdx() != neighbor.GetIdx():
                     is_acid_or_ester = True
             if is_acid_or_ester:
-                return {"range": [165, 185], "desc": "C=O (карбоновая кислота / сложный эфир)"}
-            return {"range": [190, 220], "desc": "C=O (кетон / альдегид)"}
+                return {"range": [165, 185], "desc": get_text("nmr_carbonyl_acid_ester", lang)}
+            return {"range": [190, 220], "desc": get_text("nmr_carbonyl_ketone_aldehyde", lang)}
 
     # Ароматические углероды
     if c_atom.GetIsAromatic():
-        return {"range": [110, 160], "desc": "Ароматический C"}
+        return {"range": [110, 160], "desc": get_text("nmr_aromatic_c", lang)}
 
     # Алифатические углероды по количеству водородов
     num_h = sum(1 for n in c_atom.GetNeighbors() if n.GetAtomicNum() == 1)
     if num_h >= 3:
-        return {"range": [10, 30], "desc": "CH3 (метил)"}
+        return {"range": [10, 30], "desc": get_text("nmr_methyl", lang)}
     elif num_h == 2:
-        return {"range": [15, 45], "desc": "CH2 (метилен)"}
+        return {"range": [15, 45], "desc": get_text("nmr_methylene", lang)}
     else:
-        return {"range": [25, 60], "desc": "CH (метин) или четвертичный углерод"}
+        return {"range": [25, 60], "desc": get_text("nmr_ch_methine_quaternary", lang)}
 
 def _estimate_1h_shift(mol, h_atom, heavy_atom):
     """Оценка химического сдвига протона."""
@@ -1252,7 +1290,10 @@ TOXICITY_ALERTS = {
 
 
 @router.get("/toxicity", summary="Оценка токсичности через каталоги RDKit (Brenk / PAINS)")
-def assess_toxicity(smiles: str = Query(..., description="SMILES молекулы")):
+def assess_toxicity(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Оценка потенциальной токсичности молекулы через FilterCatalog RDKit:
     - Brenk filters (нежелательные фрагменты для лекарств)
@@ -1261,7 +1302,7 @@ def assess_toxicity(smiles: str = Query(..., description="SMILES молекул�
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
         mol = m.m
 
         # Подключаем каталоги фильтров (Brenk и PAINS)
@@ -1276,10 +1317,15 @@ def assess_toxicity(smiles: str = Query(..., description="SMILES молекул�
         for entry in matches:
             alerts_found.append({
                 "name": entry.GetDescription(),
-                "heading": entry.GetHeading() if hasattr(entry, 'GetHeading') else "Alert"
+                "heading": entry.GetHeading() if hasattr(entry, 'GetHeading') else get_text("tox_alert", lang)
             })
 
-        overall_risk = "HIGH" if len(alerts_found) >= 2 else "MEDIUM" if len(alerts_found) == 1 else "LOW"
+        if len(alerts_found) >= 2:
+            overall_risk = get_text("tox_risk_high", lang)
+        elif len(alerts_found) == 1:
+            overall_risk = get_text("tox_risk_medium", lang)
+        else:
+            overall_risk = get_text("tox_risk_low", lang)
 
         return {
             "smiles": smiles,
@@ -1297,7 +1343,10 @@ def assess_toxicity(smiles: str = Query(..., description="SMILES молекул�
 
 
 @router.get("/retrosynthesis", summary="Ретросинтетический анализ (RECAP)")
-def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES целевой молекулы")):
+def retrosynthetic_analysis(
+    smiles: str = Query(..., description=get_text("param_smiles_target")),
+    lang: str = Depends(get_lang),
+):
     """
     Ретросинтетический анализ молекулы алгоритмом RECAP
     (Retrosynthetic Combinatorial Analysis Procedure).
@@ -1309,7 +1358,7 @@ def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES цел�
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
 
@@ -1353,7 +1402,7 @@ def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES цел�
             "decomposable": bool(fragments),
             "fragments_count": len(fragments),
             "fragments": fragments,
-            "note": "(*) — точка присоединения, где был разорван связь",
+            "note": get_text("retro_note", lang),
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -1366,8 +1415,9 @@ def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES цел�
 
 @router.get("/conformers", summary="Генерация конформеров молекулы")
 def generate_conformers(
-    smiles: str = Query(..., description="SMILES молекулы"),
-    num_conformers: int = Query(10, ge=1, le=50, description="Количество конформеров"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    num_conformers: int = Query(10, ge=1, le=50, description=get_text("param_num_conformers")),
+    lang: str = Depends(get_lang),
 ):
     """
     Генерирует несколько энергетически выгодных конформеров молекулы.
@@ -1376,7 +1426,7 @@ def generate_conformers(
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = Chem.AddHs(m.m)
 
@@ -1386,7 +1436,7 @@ def generate_conformers(
         cids = AllChem.EmbedMultipleConfs(mol, numConfs=num_conformers, params=params)
 
         if len(cids) == 0:
-            raise ValueError("Failed to generate conformers")
+            raise ValueError(get_text("failed_to_generate_conformers", lang))
 
         # Оптимизация каждого конформера
         results = []
@@ -1434,9 +1484,10 @@ def generate_conformers(
 
 @router.get("/export_svg", summary="Экспорт 2D-структуры в SVG")
 def export_svg(
-    smiles: str = Query(..., description="SMILES молекулы"),
-    width: int = Query(400, ge=100, le=2000, description="Ширина в пикселях"),
-    height: int = Query(400, ge=100, le=2000, description="Высота в пикселях"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    width: int = Query(400, ge=100, le=2000, description=get_text("param_width")),
+    height: int = Query(400, ge=100, le=2000, description=get_text("param_height")),
+    lang: str = Depends(get_lang),
 ):
     """
     Экспортирует 2D-структуру молекулы в формате SVG.
@@ -1445,7 +1496,7 @@ def export_svg(
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
 
@@ -1467,14 +1518,17 @@ def export_svg(
 # Масс-спектрометрия (изотопное распределение)
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get("/ms", summary="Масс-спектрометрия (изотопное распределение)")
-def mass_spectrometry(smiles: str = Query(..., description="SMILES молекулы")):
+def mass_spectrometry(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     """
     Расчёт ожидаемого масс-спектра и изотопного распределения через pyOpenMS.
     """
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
         exact_mass = Descriptors.ExactMolWt(mol)

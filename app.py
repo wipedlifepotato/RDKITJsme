@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from database import get_db, CachedName
 from Molecule import Molecule
 from rdkit_router import router as rdkit_router, set_proxy as set_rdkit_proxy
+from i18n import get_text, get_lang
 
 from rdkit import Chem
 from rdkit import DataStructs
@@ -73,15 +74,16 @@ def set_proxy(proxy: str):
 
 @app.get("/api/similarity")
 def calculate_similarity(
-    smiles1: str = Query(..., description="First SMILES"),
-    smiles2: str = Query(..., description="Second SMILES"),
+    smiles1: str = Query(..., description=get_text("param_smiles1")),
+    smiles2: str = Query(..., description=get_text("param_smiles2")),
+    lang: str = Depends(get_lang),
 ):
     try:
         m1 = Molecule(smiles1).m
         m2 = Molecule(smiles2).m
 
         if m1 is None or m2 is None:
-            raise ValueError("One or both SMILES are invalid")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         fp1 = AllChem.GetMorganFingerprintAsBitVect(m1, 2, nBits=2048)
         fp2 = AllChem.GetMorganFingerprintAsBitVect(m2, 2, nBits=2048)
@@ -98,16 +100,19 @@ def calculate_similarity(
 
 
 @app.get("/api/get_3d_sdf")
-def get_3d_sdf(smiles: str = Query(..., description="SMILES of molecule")):
+def get_3d_sdf(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol_3d = Chem.AddHs(m.m)
         res = AllChem.EmbedMolecule(mol_3d, AllChem.ETKDG())
         if res == -1:
-            raise ValueError("Failed to embed molecule in 3D space")
+            raise ValueError(get_text("failed_to_embed_molecule", lang))
         AllChem.MMFFOptimizeMolecule(mol_3d)
 
         sdf_block = Chem.MolToMolBlock(mol_3d)
@@ -118,11 +123,12 @@ def get_3d_sdf(smiles: str = Query(..., description="SMILES of molecule")):
 
 @app.get("/api/get_name")
 def get_name(
-    smiles: str = Query(..., description="SMILES to name"),
+    smiles: str = Query(..., description=get_text("param_smiles_to_name")),
+    lang: str = Depends(get_lang),
     db: Session = Depends(get_db),
 ):
     if not smiles.strip():
-        raise HTTPException(status_code=400, detail="Empty SMILES")
+        raise HTTPException(status_code=400, detail=get_text("empty_smiles", lang))
 
     cached_record = db.query(CachedName).filter(CachedName.smiles == smiles).first()
     if cached_record:
@@ -158,21 +164,22 @@ def get_name(
     except urllib.error.HTTPError as e:
         db.rollback()
         if e.code == 404:
-            raise HTTPException(status_code=404, detail="Name not found")
+            raise HTTPException(status_code=404, detail=get_text("name_not_found", lang))
         raise HTTPException(status_code=e.code, detail=str(e))
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Proxy/Request error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{get_text('proxy_request_error', lang)}: {str(e)}")
 
 
 @app.get("/api/get_chiral")
 def getChiralCenters(
-    smiles: str = Query(..., description="SMILES - of molecule"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
 ):
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         centers = Chem.FindMolChiralCenters(m.m, includeUnassigned=True)
 
@@ -182,11 +189,14 @@ def getChiralCenters(
 
 
 @app.get("/api/get_properties")
-def get_properties(smiles: str = Query(..., description="SMILES of molecule")):
+def get_properties(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
     try:
         m = Molecule(smiles)
         if m.m is None:
-            raise ValueError("Invalid SMILES string")
+            raise ValueError(get_text("invalid_smiles", lang))
 
         mol = m.m
 
@@ -216,11 +226,14 @@ def get_properties(smiles: str = Query(..., description="SMILES of molecule")):
 
 
 @app.get("/api/convert")
-def convert_smiles(smiles: str = Query(..., description="SMILES to convert")):
+def convert_smiles(
+    smiles: str = Query(..., description=get_text("param_smiles_to_convert")),
+    lang: str = Depends(get_lang),
+):
     try:
         m = Molecule(smiles)
         if m.m is None:
-            return {"valid": False, "error": "Invalid SMILES structure"}
+            return {"valid": False, "error": get_text("invalid_smiles_structure", lang)}
 
         mol = m.m
         return {
@@ -236,15 +249,16 @@ def convert_smiles(smiles: str = Query(..., description="SMILES to convert")):
 
 @app.get("/api/substructure_search")
 def substructure_search(
-    target_smiles: str = Query(..., description="Target molecule SMILES"),
-    pattern_smarts: str = Query(..., description="SMARTS pattern to search for"),
+    target_smiles: str = Query(..., description=get_text("param_target_smiles")),
+    pattern_smarts: str = Query(..., description=get_text("param_pattern_smarts")),
+    lang: str = Depends(get_lang),
 ):
     try:
         target = Molecule(target_smiles)
         pattern = Chem.MolFromSmarts(pattern_smarts)
 
         if target.m is None or pattern is None:
-            raise ValueError("Invalid SMILES or SMARTS pattern")
+            raise ValueError(get_text("invalid_smiles_or_smarts", lang))
 
         has_substruct = target.m.HasSubstructMatch(pattern)
         matches = target.m.GetSubstructMatches(pattern)
@@ -260,9 +274,10 @@ def substructure_search(
 
 @app.get("/api/render")
 def render(
-    smiles: str = Query(..., description="SMILES - of molecule"),
-    draw_type: str = Query("just", description="Type: just, indexes, charges, chiral"),
-    highlight_chiral: bool = Query(False, description="Подсветить хиральные центры"),
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    draw_type: str = Query("just", description=get_text("param_draw_type")),
+    highlight_chiral: bool = Query(False, description=get_text("param_highlight_chiral")),
+    lang: str = Depends(get_lang),
 ):
     try:
         m = Molecule(smiles)
