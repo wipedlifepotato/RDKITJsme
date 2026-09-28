@@ -15,7 +15,7 @@ from Molecule import Molecule
 
 from rdkit import Chem
 from rdkit import DataStructs
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
+from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, Recap
 from rdkit.Chem import QED, Draw, inchi
 from rdkit.Chem import Lipinski, Crippen, MolSurf, GraphDescriptors
 from rdkit.Chem import rdchem
@@ -1292,60 +1292,19 @@ def assess_toxicity(smiles: str = Query(..., description="SMILES молекул�
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Ретросинтез
+# Ретросинтез (RDKit RECAP)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-# Типичные ретросинтетические разрывы
-RETROSYNTHETIC_DISCONNECTIONS = {
-    "ester_hydrolysis": {
-        "name": "Гидролиз сложного эфира",
-        "smarts": "[CX3](=O)[OX2H0][#6]>>[CX3](=O)[OX2H1].[OX2H0][#6]",
-        "description": "Разрыв сложноэфирной связи на карбоновую кислоту и спирт",
-    },
-    "amide_hydrolysis": {
-        "name": "Гидролиз амида",
-        "smarts": "[CX3](=O)[NX3]>>[CX3](=O)[OX2H1].[NX3]",
-        "description": "Разрыв амидной связи на карбоновую кислоту и амин",
-    },
-    "suzuki_coupling": {
-        "name": "Сочетание Сузуки",
-        "smarts": "[c,c][c,c]>>[c,c][B](O)O.[c,c][Cl,Br,I]",
-        "description": "Разрыв биарильной связи на бороновую кислоту и арилгалогенид",
-    },
-    "reductive_amination": {
-        "name": "Восстановительное аминирование",
-        "smarts": "[CX3](=O)[NX3]>>[CX3](=O)[OX2H1].[NX3]",
-        "description": "Разрыв связи C-N на карбонильное соединение и амин",
-    },
-    "michael_addition": {
-        "name": "Присоединение Михаэля",
-        "smarts": "[CX3](=O)[CX3]=[CX3]>>[CX3](=O)[CX3]=[CX3]",
-        "description": "Разрыв α,β-ненасыщенного карбонильного соединения",
-    },
-    "wittig_reaction": {
-        "name": "Реакция Виттига",
-        "smarts": "[CX3]=[CX3]>>[CX3](=O).[CX3]=[PX3]",
-        "description": "Разрыв двойной связи на карбонильное соединение и фосфониевый илид",
-    },
-    "grignard_addition": {
-        "name": "Присоединение реактива Гриньяра",
-        "smarts": "[CX3](=O)[#6]>>[CX3](=O)[OX2H1].[#6][Mg][Cl,Br]",
-        "description": "Разрыв связи C-C рядом с карбонильной группой",
-    },
-    "friedel_crafts": {
-        "name": "Реакция Фриделя-Крафтса",
-        "smarts": "[c][CX3](=O)[Cl]>>[c].[CX3](=O)[Cl]",
-        "description": "Разрыв связи арил-ацил на ароматическое соединение и ацилхлорид",
-    },
-}
-
-
-@router.get("/retrosynthesis", summary="Ретросинтетический анализ")
+@router.get("/retrosynthesis", summary="Ретросинтетический анализ (RECAP)")
 def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES целевой молекулы")):
     """
-    Ретросинтетический анализ молекулы.
-    Предлагает возможные разрывы связей для синтеза из коммерчески доступных прекурсоров.
+    Ретросинтетический анализ молекулы алгоритмом RECAP
+    (Retrosynthetic Combinatorial Analysis Procedure).
+
+    Разрывает связи по стандартным правилам (амиды, сложные эфиры,
+    простые эфиры, мочевины, сульфонамиды и т.д.) и возвращает конечные
+    фрагменты-прекурсоры — только листья иерархического дерева декомпозиции.
     """
     try:
         m = Molecule(smiles)
@@ -1353,41 +1312,48 @@ def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES цел�
             raise ValueError("Invalid SMILES")
 
         mol = m.m
-        suggestions = []
 
-        for key, info in RETROSYNTHETIC_DISCONNECTIONS.items():
-            rxn = AllChem.ReactionFromSmarts(info["smarts"])
-            if rxn is None:
+        # RecapDecompose возвращает корень иерархического дерева фрагментов
+        # (или None, если молекулу не удалось разобрать).
+        recap_tree = Recap.RecapDecompose(mol)
+        if recap_tree is None:
+            return {
+                "smiles": smiles,
+                "decomposable": False,
+                "fragments_count": 0,
+                "fragments": [],
+            }
+
+        # GetLeaves() — только конечные фрагменты (листья дерева).
+        # GetAllChildren() вернул бы ВСЕ узлы, включая промежуточные.
+        leaves = recap_tree.GetLeaves()
+
+        fragments = []
+        seen = set()
+        for leaf_smiles in leaves:
+            frag_mol = Chem.MolFromSmiles(leaf_smiles)
+            if frag_mol is None:
                 continue
-
-            # Прямая реакция (для проверки применимости)
-            products = rxn.RunReactants((mol,))
-            if products:
-                # Проверяем, что продукты осмысленны
-                valid_products = []
-                for product_set in products:
-                    for product in product_set:
-                        try:
-                            Chem.SanitizeMol(product)
-                            smi = Chem.MolToSmiles(product, canonical=True)
-                            if smi and "." not in smi:  # Только одиночные молекулы
-                                valid_products.append(smi)
-                        except Exception:
-                            continue
-
-                if valid_products:
-                    suggestions.append({
-                        "key": key,
-                        "name": info["name"],
-                        "description": info["description"],
-                        "smarts": info["smarts"],
-                        "possible_precursors": list(set(valid_products))[:5],  # До 5 вариантов
-                    })
+            # Канонизируем SMILES для единообразия и дедупликации
+            canon_smi = Chem.MolToSmiles(frag_mol)
+            if canon_smi in seen:
+                continue
+            seen.add(canon_smi)
+            fragments.append(
+                {
+                    "smiles": canon_smi,
+                    "formula": rdMolDescriptors.CalcMolFormula(frag_mol),
+                    "molecular_weight": round(Descriptors.MolWt(frag_mol), 4),
+                    "attachment_points": canon_smi.count("*"),
+                }
+            )
 
         return {
             "smiles": smiles,
-            "suggestions_count": len(suggestions),
-            "suggestions": suggestions,
+            "decomposable": bool(fragments),
+            "fragments_count": len(fragments),
+            "fragments": fragments,
+            "note": "(*) — точка присоединения, где был разорван связь",
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

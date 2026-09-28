@@ -1442,18 +1442,19 @@
             const res = await fetch(`${rdkit_api_h}rdkit/api/retrosynthesis?smiles=${encodeURIComponent(smiles)}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Retrosynthetic Analysis</b> — ${data.suggestions_count} suggestions<br><br>`;
-                data.suggestions.forEach((s, i) => {
-                    html += `<b>${i + 1}. ${s.name}</b><br>`;
-                    html += `&nbsp;&nbsp;${s.description}<br>`;
-                    if (s.possible_precursors.length > 0) {
-                        html += `&nbsp;&nbsp;Possible precursors:<br>`;
-                        s.possible_precursors.forEach(p => {
-                            html += `&nbsp;&nbsp;&nbsp;&nbsp;• ${p}<br>`;
-                        });
-                    }
-                    html += `<br>`;
-                });
+                let html = `<b>RECAP Retrosynthetic Analysis</b><br>`;
+                html += `<b>Building blocks:</b> ${data.fragments_count}<br><br>`;
+                if (data.fragments_count > 0) {
+                    html += `<table style="border-collapse: collapse; width: 100%;">`;
+                    html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">Fragment</th><th style="padding: 8px; text-align: left;">Formula</th><th style="padding: 8px; text-align: left;">MW</th><th style="padding: 8px; text-align: left;">Attachment Points</th></tr>`;
+                    data.fragments.forEach(f => {
+                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-family: monospace;">${f.smiles}</td><td style="padding: 8px;">${f.formula}</td><td style="padding: 8px;">${f.molecular_weight}</td><td style="padding: 8px;">${f.attachment_points}</td></tr>`;
+                    });
+                    html += `</table>`;
+                    html += `<p style="font-size: 0.85em; color: #777; margin-top: 4px;">${data.note || ''}</p>`;
+                } else {
+                    html += `<i>No RECAP-cleavable bonds (amides, esters, ethers, ureas, etc.)</i><br>`;
+                }
                 out.innerHTML = html;
             } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
