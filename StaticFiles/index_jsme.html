@@ -196,6 +196,94 @@
         .tab-content.active {
             display: block;
         }
+
+        /* Help Modal */
+        .help-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .help-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .help-content {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .help-header {
+            background: linear-gradient(135deg, #44bd32 0%, #4cd137 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+        }
+        .help-header h3 { margin: 0; font-size: 1.3rem; }
+        .help-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-close:hover { background: rgba(255,255,255,0.3); }
+        .help-body { padding: 25px; }
+        .help-section { margin-bottom: 25px; }
+        .help-section h4 {
+            color: #353b48;
+            border-bottom: 2px solid #f5f6fa;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .help-item {
+            background: #f8f9fa;
+            border-left: 4px solid #00a8ff;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 6px 6px 0;
+        }
+        .help-item strong { color: #2f3640; display: block; margin-bottom: 4px; }
+        .help-item p { margin: 0; color: #555; font-size: 0.95rem; line-height: 1.5; }
+        .help-item .formula {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .help-tip {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-top: 15px;
+        }
+        .help-tip strong { color: #856404; }
+        .help-tip p { color: #856404; margin: 5px 0 0 0; }
     </style>
 </head>
 <body>
@@ -205,6 +293,7 @@
         <h2 style="margin: 0;" data-i18n="title">SMILES Editor & Analysis Tools</h2>
         <div style="display: flex; gap: 5px; align-items: center;">
             <span class="badge badge-v2">v2.0</span>
+            <button onclick="openHelp()" style="padding: 4px 10px; font-size: 12px; background: #44bd32; color: #fff; border: none; border-radius: 4px; cursor: pointer;" data-i18n="help">Help</button>
             <button onclick="toggleLang()" style="padding: 4px 10px; font-size: 12px; background: #30363d; color: #fff; border: none; border-radius: 4px; cursor: pointer;" id="lang_btn">EN</button>
         </div>
     </div>
@@ -228,6 +317,11 @@
         <button class="tab-btn" onclick="switchTab('analysis')" data-i18n="analysis">Analysis <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('advanced')" data-i18n="advanced">Advanced <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('3d')" data-i18n="viewer3d">3D Viewer <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('nmr')" data-i18n="nmr">NMR <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('tox')" data-i18n="tox">Toxicity <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('retro')" data-i18n="retro">Retro <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('conf')" data-i18n="conf">Conformers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('export')" data-i18n="export">Export <span class="badge badge-new">NEW</span></button>
     </div>
 
     <!-- Basic Tools -->
@@ -308,6 +402,60 @@
         </div>
     </div>
 
+    <!-- NMR Tools -->
+    <div id="tab-nmr" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getNMR()" data-i18n="nmrBtn">Estimate NMR (1H & 13C)</button>
+            </div>
+            <div id="nmr_out" class="output-box">NMR predictions will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Toxicity Tools -->
+    <div id="tab-tox" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-adme" onclick="getToxicity()" data-i18n="toxBtn">Toxicity Assessment</button>
+            </div>
+            <div id="tox_out" class="output-box">Toxicity assessment will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Retrosynthesis Tools -->
+    <div id="tab-retro" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getRetrosynthesis()" data-i18n="retroBtn">Retrosynthetic Analysis</button>
+            </div>
+            <div id="retro_out" class="output-box">Retrosynthesis suggestions will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Conformers Tools -->
+    <div id="tab-conf" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getConformers()" data-i18n="confBtn">Generate Conformers</button>
+                <label style="font-size: 13px;">Count: <input type="number" id="conf_count" value="10" min="1" max="50" style="width: 60px; padding: 4px;"></label>
+            </div>
+            <div id="conf_out" class="output-box">Conformer generation results will appear here...</div>
+            <div id="conf_viewer" style="width: 100%; height: 300px; position: relative; border: 1px solid #dcdde1; border-radius: 4px; background: #fff; margin-top: 10px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Export Tools -->
+    <div id="tab-export" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="exportSVG()" data-i18n="svgBtn">Export SVG</button>
+                <button class="btn-tool" onclick="getMS()" data-i18n="msBtn">Mass Spectrometry</button>
+            </div>
+            <div id="export_out" class="output-box">Export results will appear here...</div>
+            <div id="svg_preview" style="margin-top: 10px; text-align: center; display: none;"></div>
+        </div>
+    </div>
+
     <!-- Render Controls -->
     <div class="controls">
         <div class="radios">
@@ -343,10 +491,144 @@
     </div>
 </div>
 
+<!-- Help Modal -->
+<div id="help_modal" class="help-modal">
+    <div class="help-content">
+        <div class="help-header">
+            <h3 data-i18n="helpTitle">Справка по дескрипторам</h3>
+            <button class="help-close" onclick="closeHelp()">&times;</button>
+        </div>
+        <div class="help-body">
+            <div class="help-section">
+                <h4 data-i18n="basicProps">Базовые свойства</h4>
+                
+                <div class="help-item">
+                    <strong>MW (Molecular Weight) — Молекулярная масса</strong>
+                    <p data-i18n="mwDesc">Масса молекулы в дальтонах (г/моль). Важна для определения дозировки и фармакокинетики. Лучше < 500 для лекарств.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>LogP (Коэффициент распределения)</strong>
+                    <p data-i18n="logpDesc">Показывает, насколько молекула «любит» жиры (липиды) по сравнению с водой. Высокий LogP = жирорастворимая, низкий = водорастворимая. Для лекарств оптимально 1-3.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>TPSA (Topological Polar Surface Area)</strong>
+                    <p data-i18n="tpsaDesc">Площадь полярной поверхности молекулы (Å²). Влияет на проникновение через мембраны. Меньше 140 Å² лучше для пероральных лекарств.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>HBD (H-Bond Donors) — Доноры водородных связей</strong>
+                    <p data-i18n="hbdDesc">Количество групп, которые могут отдать водород для связи (OH, NH). Влияет на растворимость и проникновение. Лучше ≤ 5.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>HBA (H-Bond Acceptors) — Акцепторы водородных связей</strong>
+                    <p data-i18n="hbaDesc">Количество атомов, которые могут принять водород (O, N). Влияет на связывание с мишенями. Лучше ≤ 10.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h4 data-i18n="drugLikeness">Лекарственность (Drug-likeness)</h4>
+                
+                <div class="help-item">
+                    <strong>QED (Quantitative Estimate of Drug-likeness)</strong>
+                    <p data-i18n="qedDesc">Оценка от 0 до 1 насколько молекула похожа на лекарство. Ближе к 1 = лучше. Учитывает множество свойств одновременно.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>SA Score (Synthetic Accessibility)</strong>
+                    <p data-i18n="saDesc">Оценка сложности синтеза от 1 (легко) до 10 (очень сложно). Ниже = проще синтезировать в лаборатории.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>Lipinski's Rule of Five</strong>
+                    <p data-i18n="lipinskiDesc">Набор правил для предсказания пероральной биодоступности: MW ≤ 500, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10. Нарушение ≤ 1 правила допустимо.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h4 data-i18n="structuralFeatures">Структурные особенности</h4>
+                
+                <div class="help-item">
+                    <strong>Rotatable Bonds — Вращающиеся связи</strong>
+                    <p data-i18n="rotbDesc">Количество одинарных связей, которые могут свободно вращаться. Влияет на гибкость молекулы. Меньше 10 лучше для пероральных лекарств.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>Rings / Aromatic Rings — Циклы / Ароматические циклы</strong>
+                    <p data-i18n="ringsDesc">Количество циклических структур. Ароматические циклы (бензол и др.) часто встречаются в лекарствах.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>Stereocenters — Стереоцентры</strong>
+                    <p data-i18n="stereoDesc">Атомы с четырьмя различными заместителями (хиральные центры). Важны для фармакологической активности — разные изомеры могут действовать по-разному.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>Fraction CSP3 — Доля sp³-углеродов</strong>
+                    <p data-i18n="csp3Desc">Отношение sp³-гибридизованных атомов углерода к общему числу атомов углерода. Выше = более «3D-подобная» молекула, часто лучше для селективности.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h4 data-i18n="analysisTools">Инструменты анализа</h4>
+                
+                <div class="help-item">
+                    <strong>pKa — Константа кислотности</strong>
+                    <p data-i18n="pkaDesc">Показывает, насколько легко молекуда отдаёт протон (H⁺). Влияет на заряд молекулы при физиологическом pH и её проникновение через мембраны.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>Tanimoto Similarity — Сходство Танимото</strong>
+                    <p data-i18n="tanimotoDesc">Мера сходства двух молекул от 0 до 1. 1 = идентичны, 0 = совершенно разные. Основана на сравнении фингерпринтов.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>SMARTS — Поиск подструктур</strong>
+                    <p data-i18n="smartsDesc">Язык для описания химических паттернов. Позволяет искать функциональные группы и фрагменты в молекулах. Например, <span class="formula">c1ccccc1</span> — бензольное кольцо.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>SMIRKS — Реакции</strong>
+                    <p data-i18n="smirksDesc">Язык для описания химических реакций. Показывает, какие атомы изменяются при превращении реагентов в продукты. Используется для моделирования реакций.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h4 data-i18n="formats">Форматы данных</h4>
+                
+                <div class="help-item">
+                    <strong>SMILES — Упрощённая запись молекул</strong>
+                    <p data-i18n="smilesDesc">Строковое представление молекулы. Например, <span class="formula">CCO</span> — этанол, <span class="formula">c1ccccc1</span> — бензол. Удобно для поиска и обмена данными.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>InChI / InChIKey — Идентификаторы</strong>
+                    <p data-i18n="inchiDesc">Стандартные идентификаторы химических веществ от IUPAC. InChIKey — короткая хэш-строка для быстрого поиска в базах данных.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>SDF — Файл структурных данных</strong>
+                    <p data-i18n="sdfDesc">Формат для хранения 3D-координат атомов и связей. Используется для обмена молекулярными структурами между программами.</p>
+                </div>
+            </div>
+
+            <div class="help-tip">
+                <strong data-i18n="tipTitle">Совет</strong>
+                <p data-i18n="tipText">Нажмите на кнопку «Справка» в любой момент, чтобы вернуться к этому руководству. Все термины объяснены простым языком для начинающих.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript" src="/StaticFiles/JSME_2024-04-29/jsme/jsme.nocache.js"></script>
 <script type="text/javascript" src="/StaticFiles/3Dmol-min.js"></script>
 <script>
-    const rdkit_api_h = `/rdkit/`;
+    // for nginx usage
+    //const rdkit_api_h = `/rdkit/`;
+    // for local usage
+    const rdkit_api_h = `/`;
 
     // --- i18n ---
     const I18N = {
@@ -413,7 +695,46 @@
             stereocenters: 'Стереоцентры',
             pinkSpheres: 'розовые сферы',
             loading: 'Загрузка...',
-            apiConnectionError: 'Ошибка подключения к API'
+            apiConnectionError: 'Ошибка подключения к API',
+            nmr: 'ЯМР',
+            nmrBtn: 'Оценка ЯМР (1H и 13C)',
+            tox: 'Токсичность',
+            toxBtn: 'Оценка токсичности',
+            retro: 'Ретро',
+            retroBtn: 'Ретросинтетический анализ',
+            conf: 'Конформеры',
+            confBtn: 'Генерация конформеров',
+            export: 'Экспорт',
+            svgBtn: 'Экспорт SVG',
+            msBtn: 'Масс-спектрометрия',
+            help: 'Справка',
+            helpTitle: 'Справка по дескрипторам',
+            basicProps: 'Базовые свойства',
+            mwDesc: 'Масса молекулы в дальтонах (г/моль). Важна для определения дозировки и фармакокинетики. Лучше < 500 для лекарств.',
+            logpDesc: 'Показывает, насколько молекула «любит» жиры (липиды) по сравнению с водой. Высокий LogP = жирорастворимая, низкий = водорастворимая. Для лекарств оптимально 1-3.',
+            tpsaDesc: 'Площадь полярной поверхности молекулы (Å²). Влияет на проникновение через мембраны. Меньше 140 Å² лучше для пероральных лекарств.',
+            hbdDesc: 'Количество групп, которые могут отдать водород для связи (OH, NH). Влияет на растворимость и проникновение. Лучше ≤ 5.',
+            hbaDesc: 'Количество атомов, которые могут принять водород (O, N). Влияет на связывание с мишенями. Лучше ≤ 10.',
+            drugLikeness: 'Лекарственность (Drug-likeness)',
+            qedDesc: 'Оценка от 0 до 1 насколько молекула похожа на лекарство. Ближе к 1 = лучше. Учитывает множество свойств одновременно.',
+            saDesc: 'Оценка сложности синтеза от 1 (легко) до 10 (очень сложно). Ниже = проще синтезировать в лаборатории.',
+            lipinskiDesc: 'Набор правил для предсказания пероральной биодоступности: MW ≤ 500, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10. Нарушение ≤ 1 правила допустимо.',
+            structuralFeatures: 'Структурные особенности',
+            rotbDesc: 'Количество одинарных связей, которые могут свободно вращаться. Влияет на гибкость молекулы. Меньше 10 лучше для пероральных лекарств.',
+            ringsDesc: 'Количество циклических структур. Ароматические циклы (бензол и др.) часто встречаются в лекарствах.',
+            stereoDesc: 'Атомы с четырьмя различными заместителями (хиральные центры). Важны для фармакологической активности — разные изомеры могут действовать по-разному.',
+            csp3Desc: 'Отношение sp³-гибридизованных атомов углерода к общему числу атомов углерода. Выше = более «3D-подобная» молекула, часто лучше для селективности.',
+            analysisTools: 'Инструменты анализа',
+            pkaDesc: 'Показывает, насколько легко молекула отдаёт протон (H⁺). Влияет на заряд молекулы при физиологическом pH и её проникновение через мембраны.',
+            tanimotoDesc: 'Мера сходства двух молекул от 0 до 1. 1 = идентичны, 0 = совершенно разные. Основана на сравнении фингерпринтов.',
+            smartsDesc: 'Язык для описания химических паттернов. Позволяет искать функциональные группы и фрагменты в молекулах. Например, c1ccccc1 — бензольное кольцо.',
+            smirksDesc: 'Язык для описания химических реакций. Показывает, какие атомы изменяются при превращении реагентов в продукты. Используется для моделирования реакций.',
+            formats: 'Форматы данных',
+            smilesDesc: 'Строковое представление молекулы. Например, CCO — этанол, c1ccccc1 — бензол. Удобно для поиска и обмена данными.',
+            inchiDesc: 'Стандартные идентификаторы химических веществ от IUPAC. InChIKey — короткая хэш-строка для быстрого поиска в базах данных.',
+            sdfDesc: 'Формат для хранения 3D-координат атомов и связей. Используется для обмена молекулярными структурами между программами.',
+            tipTitle: 'Совет',
+            tipText: 'Нажмите на кнопку «Справка» в любой момент, чтобы вернуться к этому руководству. Все термины объяснены простым языком для начинающих.'
         },
         en: {
             title: 'SMILES Editor & Analysis Tools',
@@ -478,7 +799,46 @@
             stereocenters: 'Stereocenters',
             pinkSpheres: 'pink spheres',
             loading: 'Loading...',
-            apiConnectionError: 'API Connection Error'
+            apiConnectionError: 'API Connection Error',
+            nmr: 'NMR',
+            nmrBtn: 'Estimate NMR (1H & 13C)',
+            tox: 'Toxicity',
+            toxBtn: 'Toxicity Assessment',
+            retro: 'Retro',
+            retroBtn: 'Retrosynthetic Analysis',
+            conf: 'Conformers',
+            confBtn: 'Generate Conformers',
+            export: 'Export',
+            svgBtn: 'Export SVG',
+            msBtn: 'Mass Spectrometry',
+            help: 'Help',
+            helpTitle: 'Descriptor Help Guide',
+            basicProps: 'Basic Properties',
+            mwDesc: 'Molecular mass in Daltons (g/mol). Important for dosing and pharmacokinetics. Better < 500 for drugs.',
+            logpDesc: 'Shows how much a molecule "loves" fats (lipids) vs water. High LogP = fat-soluble, low = water-soluble. Optimal 1-3 for drugs.',
+            tpsaDesc: 'Polar surface area of the molecule (Å²). Affects membrane penetration. Less than 140 Å² is better for oral drugs.',
+            hbdDesc: 'Number of groups that can donate hydrogen for bonding (OH, NH). Affects solubility and penetration. Better ≤ 5.',
+            hbaDesc: 'Number of atoms that can accept hydrogen (O, N). Affects target binding. Better ≤ 10.',
+            drugLikeness: 'Drug-likeness',
+            qedDesc: 'Score from 0 to 1 of how drug-like a molecule is. Closer to 1 = better. Considers multiple properties simultaneously.',
+            saDesc: 'Synthetic complexity score from 1 (easy) to 10 (very hard). Lower = easier to synthesize in lab.',
+            lipinskiDesc: 'Set of rules for predicting oral bioavailability: MW ≤ 500, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10. ≤ 1 violation acceptable.',
+            structuralFeatures: 'Structural Features',
+            rotbDesc: 'Number of single bonds that can freely rotate. Affects molecular flexibility. Less than 10 is better for oral drugs.',
+            ringsDesc: 'Number of cyclic structures. Aromatic rings (benzene etc.) are common in drugs.',
+            stereoDesc: 'Atoms with four different substituents (chiral centers). Important for pharmacological activity — different isomers may act differently.',
+            csp3Desc: 'Ratio of sp³-hybridized carbon atoms to total carbon atoms. Higher = more "3D-like" molecule, often better for selectivity.',
+            analysisTools: 'Analysis Tools',
+            pkaDesc: 'Shows how easily a molecule donates a proton (H⁺). Affects molecular charge at physiological pH and membrane penetration.',
+            tanimotoDesc: 'Similarity measure between two molecules from 0 to 1. 1 = identical, 0 = completely different. Based on fingerprint comparison.',
+            smartsDesc: 'Language for describing chemical patterns. Allows searching for functional groups and fragments in molecules. E.g., c1ccccc1 — benzene ring.',
+            smirksDesc: 'Language for describing chemical reactions. Shows which atoms change during transformation of reactants to products. Used for reaction modeling.',
+            formats: 'Data Formats',
+            smilesDesc: 'String representation of a molecule. E.g., CCO — ethanol, c1ccccc1 — benzene. Convenient for searching and data exchange.',
+            inchiDesc: 'Standard chemical identifiers from IUPAC. InChIKey — short hash string for fast database searching.',
+            sdfDesc: 'Format for storing 3D atom coordinates and bonds. Used for exchanging molecular structures between programs.',
+            tipTitle: 'Tip',
+            tipText: 'Click the "Help" button at any time to return to this guide. All terms are explained in simple language for beginners.'
         }
     };
     let currentLang = localStorage.getItem('lang') || 'ru';
@@ -497,6 +857,23 @@
         localStorage.setItem('lang', currentLang);
         applyI18n();
     }
+
+    // --- Help Modal ---
+    function openHelp() {
+        document.getElementById('help_modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeHelp() {
+        document.getElementById('help_modal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    document.getElementById('help_modal').addEventListener('click', function(e) {
+        if (e.target === this) closeHelp();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeHelp();
+    });
+
     applyI18n();
     let jsmeApplet = null;
     let baseMoleculeImage = new Image();
@@ -992,6 +1369,195 @@
         if (!viewer3D) return;
         isSpinning = !isSpinning;
         viewer3D.spin(isSpinning ? 'y' : false);
+    }
+
+    // --- NMR Endpoints ---
+
+    async function getNMR() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('nmr_out');
+        if (!smiles) return;
+        out.innerHTML = "Estimating NMR shifts...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/nmr?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>NMR Prediction</b><br>`;
+                html += `<b>1H NMR (${data.proton_nmr.shifts.length} signals):</b><br>`;
+                html += `<table style="border-collapse: collapse; width: 100%;">`;
+                html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">Group</th><th style="padding: 8px; text-align: left;">Shift (ppm)</th><th style="padding: 8px; text-align: left;">Description</th><th style="padding: 8px; text-align: left;">Mult.</th><th style="padding: 8px; text-align: left;">Int.</th></tr>`;
+                data.proton_nmr.shifts.forEach(s => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${s.group}</td><td style="padding: 8px;">${s.shift_range[0]}-${s.shift_range[1]}</td><td style="padding: 8px;">${s.description}</td><td style="padding: 8px;">${s.multiplicity}</td><td style="padding: 8px;">${s.integration}</td></tr>`;
+                });
+                html += `</table>`;
+                html += `<br><b>13C NMR (${data.carbon_nmr.shifts.length} signals):</b><br>`;
+                html += `<table style="border-collapse: collapse; width: 100%;">`;
+                html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">Atom</th><th style="padding: 8px; text-align: left;">Shift (ppm)</th><th style="padding: 8px; text-align: left;">Description</th></tr>`;
+                data.carbon_nmr.shifts.forEach(s => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">C-${s.atom_idx}</td><td style="padding: 8px;">${s.shift_range[0]}-${s.shift_range[1]}</td><td style="padding: 8px;">${s.description}</td></tr>`;
+                });
+                html += `</table>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Toxicity Endpoints ---
+
+    async function getToxicity() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('tox_out');
+        if (!smiles) return;
+        out.innerHTML = "Assessing toxicity...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/toxicity?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Toxicity Assessment</b> — Overall Risk: <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${data.overall_risk}</b><br><br>`;
+                for (const [key, assessment] of Object.entries(data.assessments)) {
+                    html += `<b>${assessment.name}</b> (${assessment.risk_level})<br>`;
+                    html += `&nbsp;&nbsp;${assessment.description}<br>`;
+                    if (assessment.alerts_found > 0) {
+                        assessment.matches.forEach(m => {
+                            html += `&nbsp;&nbsp;⚠️ ${m.description} (${m.count}x)<br>`;
+                        });
+                    } else {
+                        html += `&nbsp;&nbsp;✅ No alerts<br>`;
+                    }
+                    html += `<br>`;
+                }
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Retrosynthesis Endpoints ---
+
+    async function getRetrosynthesis() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('retro_out');
+        if (!smiles) return;
+        out.innerHTML = "Analyzing retrosynthetic pathways...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/retrosynthesis?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Retrosynthetic Analysis</b> — ${data.suggestions_count} suggestions<br><br>`;
+                data.suggestions.forEach((s, i) => {
+                    html += `<b>${i + 1}. ${s.name}</b><br>`;
+                    html += `&nbsp;&nbsp;${s.description}<br>`;
+                    if (s.possible_precursors.length > 0) {
+                        html += `&nbsp;&nbsp;Possible precursors:<br>`;
+                        s.possible_precursors.forEach(p => {
+                            html += `&nbsp;&nbsp;&nbsp;&nbsp;• ${p}<br>`;
+                        });
+                    }
+                    html += `<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Conformers Endpoints ---
+
+    async function getConformers() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const count = document.getElementById('conf_count').value || 10;
+        const out = document.getElementById('conf_out');
+        const viewer = document.getElementById('conf_viewer');
+        if (!smiles) return;
+        out.innerHTML = `Generating ${count} conformers...`;
+        viewer.style.display = 'none';
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/conformers?smiles=${encodeURIComponent(smiles)}&num_conformers=${count}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Conformers Generated:</b> ${data.total_conformers}<br><br>`;
+                data.conformers.forEach(c => {
+                    html += `<b>Rank ${c.rank}</b> (Conf ${c.conf_id}): Energy = ${c.energy} kcal/mol<br>`;
+                });
+                out.innerHTML = html;
+
+                // Show first conformer in viewer
+                if (data.conformers.length > 0) {
+                    viewer.style.display = 'block';
+                    if (!viewer3D) {
+                        viewer3D = $3Dmol.createViewer('conf_viewer', { backgroundColor: 'white' });
+                    }
+                    viewer3D.clear();
+                    viewer3D.addModel(data.conformers[0].sdf, 'sdf');
+                    viewer3D.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
+                    viewer3D.zoomTo();
+                    viewer3D.render();
+                }
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Export Endpoints ---
+
+    async function exportSVG() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('export_out');
+        const preview = document.getElementById('svg_preview');
+        if (!smiles) return;
+        out.innerHTML = "Generating SVG...";
+        preview.style.display = 'none';
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/export_svg?smiles=${encodeURIComponent(smiles)}&width=400&height=400`);
+            if (res.ok) {
+                const svgText = await res.text();
+                out.innerHTML = `<b>SVG Generated!</b> ✅<br><br>`;
+                preview.innerHTML = svgText;
+                preview.style.display = 'block';
+
+                // Download link
+                const blob = new Blob([svgText], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = smiles.replace(/[^a-zA-Z0-9]/g, '_') + '.svg';
+                a.textContent = 'Download SVG';
+                a.style.display = 'block';
+                a.style.marginTop = '10px';
+                a.style.padding = '8px 16px';
+                a.style.background = '#44bd32';
+                a.style.color = 'white';
+                a.style.borderRadius = '4px';
+                a.style.textDecoration = 'none';
+                a.style.cursor = 'pointer';
+                out.appendChild(a);
+            } else {
+                const data = await res.json();
+                out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            }
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getMS() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('export_out');
+        if (!smiles) return;
+        out.innerHTML = "Calculating mass spectrum...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/ms?smiles=${encodeURIComponent(smiles)}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Mass Spectrometry</b><br>`;
+                html += `<b>SMILES:</b> ${data.smiles}<br>`;
+                html += `<b>Formula:</b> ${data.molecular_formula}<br>`;
+                html += `<b>Exact Mass:</b> ${data.exact_mass} Da<br><br>`;
+                html += `<b>Isotope Pattern:</b><br>`;
+                html += `<table style="border-collapse: collapse; width: 100%;">`;
+                html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">m/z</th><th style="padding: 8px; text-align: left;">Intensity (%)</th></tr>`;
+                data.isotope_pattern.forEach((p, i) => {
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i}</td><td style="padding: 8px;">${p.m_z}</td><td style="padding: 8px;">${p.intensity_percent}</td></tr>`;
+                });
+                html += `</table>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 </script>
 </body>

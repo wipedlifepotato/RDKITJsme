@@ -968,3 +968,665 @@ def render_highlighted(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ЯМР (1H и 13C) — эвристическая оценка
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# Таблицы химических сдвигов для 1H ЯМР (ppm)
+NMR_1H_SHIFTS = {
+    "methyl": {"range": (0.8, 1.2), "desc": "CH3 (метил)"},
+    "methylene": {"range": (1.2, 1.5), "desc": "CH2 (метилен)"},
+    "methine": {"range": (1.4, 1.7), "desc": "CH (метин)"},
+    "allylic": {"range": (1.6, 2.6), "desc": "Аллильный CH"},
+    "alpha_to_carbonyl": {"range": (2.0, 2.5), "desc": "CH рядом с C=O"},
+    "alkyne": {"range": (2.0, 3.0), "desc": "Ацетиленовый CH"},
+    "methoxy": {"range": (3.3, 4.0), "desc": "OCH3 (метокси)"},
+    "alpha_to_oxygen": {"range": (3.3, 4.5), "desc": "CH рядом с O"},
+    "alkene": {"range": (4.5, 6.5), "desc": "Алкеновый CH"},
+    "aromatic": {"range": (6.5, 8.5), "desc": "Ароматический CH"},
+    "aldehyde": {"range": (9.0, 10.0), "desc": "Альдегидный CH"},
+    "carboxylic_acid": {"range": (10.0, 13.0), "desc": "COOH (карбоновая кислота)"},
+    "phenol": {"range": (4.5, 7.0), "desc": "OH (фенол)"},
+    "amine": {"range": (1.0, 5.0), "desc": "NH (амин)"},
+}
+
+# Таблицы химических сдвигов для 13C ЯМР (ppm)
+NMR_13C_SHIFTS = {
+    "methyl": {"range": (5, 30), "desc": "CH3 (метил)"},
+    "methylene": {"range": (15, 45), "desc": "CH2 (метилен)"},
+    "methine": {"range": (25, 50), "desc": "CH (метин)"},
+    "alkyne": {"range": (65, 90), "desc": "C≡C (ацетилен)"},
+    "alkene": {"range": (100, 150), "desc": "C=C (алкен)"},
+    "aromatic": {"range": (110, 160), "desc": "Ароматический C"},
+    "carbonyl_ester": {"range": (160, 175), "desc": "C=O (сложный эфир)"},
+    "carbonyl_amide": {"range": (160, 180), "desc": "C=O (амид)"},
+    "carbonyl_ketone": {"range": (190, 220), "desc": "C=O (кетон, альдегид)"},
+    "nitrile": {"range": (115, 125), "desc": "C≡N (нитрил)"},
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ЯМР (1H и 13C) — улучшенная эвристическая оценка
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/nmr", summary="Оценка химических сдвигов ЯМР (1H и 13C)")
+def estimate_nmr(smiles: str = Query(..., description="SMILES молекулы")):
+    """
+    Эвристическая оценка химических сдвигов ЯМР с учетом химического окружения.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = Chem.AddHs(m.m)
+
+        # 1H ЯМР: анализ по функциональным центрам и метильным/метиленовым группам
+        proton_shifts = []
+        
+        # 1. Поиск карбоновых кислот (-COOH)
+        acid_pattern = Chem.MolFromSmarts("[CX3](=O)[OX2H1]")
+        if acid_pattern:
+            for match in mol.GetSubstructMatches(acid_pattern):
+                h_idx = match[2] # Индекс протона у кислорода в базовом патерне или найдем через соседи
+                oxy_atom = mol.GetAtomWithIdx(match[2])
+                for n in oxy_atom.GetNeighbors():
+                    if n.GetAtomicNum() == 1:
+                        proton_shifts.append({
+                            "group": "COOH",
+                            "shift_range": [10.5, 12.5],
+                            "description": "COOH (карбоновая кислота)",
+                            "multiplicity": "s",
+                            "integration": 1
+                        })
+
+        # 2. Поиск метильных групп (-CH3)
+        methyl_pattern = Chem.MolFromSmarts("[CX4H3]")
+        if methyl_pattern:
+            for match in mol.GetSubstructMatches(methyl_pattern):
+                c_atom = mol.GetAtomWithIdx(match[0])
+                # Проверим, примыкает ли к карбонилу (например, ацетаты/уксусная кислота)
+                is_near_carbonyl = False
+                for n in c_atom.GetNeighbors():
+                    if n.GetAtomicNum() == 6:
+                        for nn in n.GetNeighbors():
+                            if nn.GetAtomicNum() == 8 and mol.GetBondBetweenAtoms(n.GetIdx(), nn.GetIdx()).GetBondType() == Chem.BondType.DOUBLE:
+                                is_near_carbonyl = True
+                
+                if is_near_carbonyl:
+                    shift_range = [2.0, 2.3]
+                    desc = "CH3 соседний с C=O (ацетил/уксусная кислота)"
+                else:
+                    shift_range = [0.8, 1.2]
+                    desc = "CH3 (алифатический метил)"
+
+                # Собираем сами атомы водорода для этого метила
+                h_count = sum(1 for n in c_atom.GetNeighbors() if n.GetAtomicNum() == 1)
+                if h_count > 0:
+                    proton_shifts.append({
+                        "group": "CH3",
+                        "shift_range": shift_range,
+                        "description": desc,
+                        "multiplicity": "s" if is_near_carbonyl else "t",
+                        "integration": h_count
+                    })
+
+        # 13C ЯМР
+        carbon_shifts = []
+        for atom in mol.GetAtoms():
+            if atom.GetAtomicNum() == 6:  # Углерод
+                c_shift = _estimate_13c_shift_improved(mol, atom)
+                if c_shift:
+                    carbon_shifts.append({
+                        "atom_idx": atom.GetIdx(),
+                        "shift_range": c_shift["range"],
+                        "description": c_shift["desc"],
+                    })
+
+        return {
+            "smiles": smiles,
+            "proton_nmr": {
+                "shifts": proton_shifts,
+            },
+            "carbon_nmr": {
+                "shifts": carbon_shifts,
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+def _estimate_13c_shift_improved(mol, c_atom):
+    """Точная оценка сдвига для 13C ЯМР."""
+    c_idx = c_atom.GetIdx()
+    
+    # Проверяем карбонильные группы
+    for neighbor in c_atom.GetNeighbors():
+        if neighbor.GetAtomicNum() == 8 and mol.GetBondBetweenAtoms(c_idx, neighbor.GetIdx()).GetBondType() == Chem.BondType.DOUBLE:
+            # Проверяем, кислота ли это / сложный эфир / кетон
+            is_acid_or_ester = False
+            for n2 in c_atom.GetNeighbors():
+                if n2.GetAtomicNum() == 8 and n2.GetIdx() != neighbor.GetIdx():
+                    is_acid_or_ester = True
+            if is_acid_or_ester:
+                return {"range": [165, 185], "desc": "C=O (карбоновая кислота / сложный эфир)"}
+            return {"range": [190, 220], "desc": "C=O (кетон / альдегид)"}
+
+    # Ароматические углероды
+    if c_atom.GetIsAromatic():
+        return {"range": [110, 160], "desc": "Ароматический C"}
+
+    # Алифатические углероды по количеству водородов
+    num_h = sum(1 for n in c_atom.GetNeighbors() if n.GetAtomicNum() == 1)
+    if num_h >= 3:
+        return {"range": [10, 30], "desc": "CH3 (метил)"}
+    elif num_h == 2:
+        return {"range": [15, 45], "desc": "CH2 (метилен)"}
+    else:
+        return {"range": [25, 60], "desc": "CH (метин) или четвертичный углерод"}
+
+def _estimate_1h_shift(mol, h_atom, heavy_atom):
+    """Оценка химического сдвига протона."""
+    heavy_sym = heavy_atom.GetSymbol()
+    heavy_idx = heavy_atom.GetIdx()
+
+    # Проверяем окружение тяжёлого атома
+    if heavy_sym == "C":
+        # Проверяем, является ли углерод карбонильным
+        for neighbor in heavy_atom.GetNeighbors():
+            if neighbor.GetAtomicNum() == 8 and mol.GetBondBetweenAtoms(
+                heavy_idx, neighbor.GetIdx()
+            ).GetBondType() == Chem.BondType.DOUBLE:
+                return NMR_1H_SHIFTS["alpha_to_carbonyl"]
+
+        # Проверяем ароматичность
+        if heavy_atom.GetIsAromatic():
+            return NMR_1H_SHIFTS["aromatic"]
+
+        # Проверяем алкены
+        for neighbor in heavy_atom.GetNeighbors():
+            if mol.GetBondBetweenAtoms(
+                heavy_idx, neighbor.GetIdx()
+            ).GetBondType() == Chem.BondType.DOUBLE:
+                return NMR_1H_SHIFTS["alkene"]
+
+        # Определяем тип углерода по числу соседей
+        num_h_neighbors = sum(1 for n in heavy_atom.GetNeighbors() if n.GetAtomicNum() == 1)
+        if num_h_neighbors >= 3:
+            return NMR_1H_SHIFTS["methyl"]
+        elif num_h_neighbors == 2:
+            return NMR_1H_SHIFTS["methylene"]
+        else:
+            return NMR_1H_SHIFTS["methine"]
+
+    elif heavy_sym == "O":
+        # Проверяем, является ли кислород частью карбоновой кислоты
+        for neighbor in heavy_atom.GetNeighbors():
+            if neighbor.GetAtomicNum() == 6:
+                for n2 in neighbor.GetNeighbors():
+                    if n2.GetAtomicNum() == 8 and mol.GetBondBetweenAtoms(
+                        neighbor.GetIdx(), n2.GetIdx()
+                    ).GetBondType() == Chem.BondType.DOUBLE:
+                        return NMR_1H_SHIFTS["carboxylic_acid"]
+        # Проверяем фенол
+        if heavy_atom.GetIsAromatic():
+            return NMR_1H_SHIFTS["phenol"]
+        return NMR_1H_SHIFTS["phenol"]
+
+    elif heavy_sym == "N":
+        return NMR_1H_SHIFTS["amine"]
+
+    return None
+
+def _estimate_multiplicity(h_atom, heavy_atom):
+    """Оценка мультиплетности (n+1 правило)."""
+    # Считаем соседние протоны на соседних атомах
+    n_protons = 0
+    for neighbor in heavy_atom.GetNeighbors():
+        if neighbor.GetIdx() == h_atom.GetIdx():
+            continue
+        if neighbor.GetAtomicNum() == 1:
+            n_protons += 1
+        elif neighbor.GetAtomicNum() == 6:
+            # Считаем протоны на соседнем углероде
+            for n2 in neighbor.GetNeighbors():
+                if n2.GetAtomicNum() == 1:
+                    n_protons += 1
+
+    if n_protons == 0:
+        return "s"  # Синглет
+    elif n_protons == 1:
+        return "d"  # Дублет
+    elif n_protons == 2:
+        return "t"  # Триплет
+    elif n_protons == 3:
+        return "q"  # Квартет
+    else:
+        return "m"  # Мультиплет
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Токсичность (ADMET)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# Структуры, связанные с токсичностью
+TOXICITY_ALERTS = {
+    "hERG": {
+        "name": "hERG Channel Blockade",
+        "description": "Блокирование калиевых каналов hERG — кардиотоксичность",
+        "smarts": [
+            {"pattern": "[NX3;H2,H1;!$(NC=O)]", "desc": "Основные амины"},
+            {"pattern": "[NX3;H2,H1]c1ccccc1", "desc": "Анилины"},
+            {"pattern": "c1ccc2c(c1)ccc2", "desc": "Полициклические ароматические углеводороды"},
+        ],
+        "risk": "Высокий риск удлинения интервала QT",
+    },
+    "ames": {
+        "name": "Ames Test (Mutagenicity)",
+        "description": "Мутагенность — повреждение ДНК",
+        "smarts": [
+            {"pattern": "[NX2]=[NX2]=[NX1]", "desc": "Азиды"},
+            {"pattern": "[NX3](=[OX1])(=[OX1])", "desc": "Нитросоединения"},
+            {"pattern": "[CX3](=O)[NX2][CX3](=O)", "desc": "Диамиды"},
+            {"pattern": "[SX4](=[OX1])(=[OX1])[OX2H1]", "desc": "Сульфоновые кислоты"},
+            {"pattern": "[Cl,Br,I][CX4]", "desc": "Галогеналканы"},
+        ],
+        "risk": "Потенциальные мутагены",
+    },
+    "hepatotoxicity": {
+        "name": "Hepatotoxicity",
+        "description": "Токсичность для печени",
+        "smarts": [
+            {"pattern": "[NX3;H2]c1ccccc1", "desc": "Анилины"},
+            {"pattern": "[CX3](=O)[NX2][CX3](=O)", "desc": "Диамиды"},
+            {"pattern": "[SX4](=[OX1])(=[OX1])[NX3]", "desc": "Сульфонамиды"},
+            {"pattern": "[PX4](=[OX1])([OX2])[OX2]", "desc": "Фосфаты"},
+        ],
+        "risk": "Потенциальная гепатотоксичность",
+    },
+}
+
+
+@router.get("/toxicity", summary="Оценка токсичности (hERG, Ames, гепатотоксичность)")
+def assess_toxicity(smiles: str = Query(..., description="SMILES молекулы")):
+    """
+    Оценка потенциальной токсичности молекулы:
+    - hERG (кардиотоксичность)
+    - Ames test (мутагенность)
+    - Гепатотоксичность
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = m.m
+        alerts = {}
+
+        for tox_type, info in TOXICITY_ALERTS.items():
+            matches = []
+            for smarts_info in info["smarts"]:
+                pattern = Chem.MolFromSmarts(smarts_info["pattern"])
+                if pattern:
+                    found = mol.GetSubstructMatches(pattern)
+                    if found:
+                        matches.append({
+                            "pattern": smarts_info["pattern"],
+                            "description": smarts_info["desc"],
+                            "count": len(found),
+                        })
+
+            alerts[tox_type] = {
+                "name": info["name"],
+                "description": info["description"],
+                "risk": info["risk"],
+                "alerts_found": len(matches),
+                "matches": matches,
+                "risk_level": "HIGH" if len(matches) >= 2 else "MEDIUM" if len(matches) == 1 else "LOW",
+            }
+
+        # Общая оценка
+        total_alerts = sum(a["alerts_found"] for a in alerts.values())
+        overall_risk = "HIGH" if total_alerts >= 4 else "MEDIUM" if total_alerts >= 2 else "LOW"
+
+        return {
+            "smiles": smiles,
+            "overall_risk": overall_risk,
+            "total_alerts": total_alerts,
+            "assessments": alerts,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Ретросинтез
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# Типичные ретросинтетические разрывы
+RETROSYNTHETIC_DISCONNECTIONS = {
+    "ester_hydrolysis": {
+        "name": "Гидролиз сложного эфира",
+        "smarts": "[CX3](=O)[OX2H0][#6]>>[CX3](=O)[OX2H1].[OX2H0][#6]",
+        "description": "Разрыв сложноэфирной связи на карбоновую кислоту и спирт",
+    },
+    "amide_hydrolysis": {
+        "name": "Гидролиз амида",
+        "smarts": "[CX3](=O)[NX3]>>[CX3](=O)[OX2H1].[NX3]",
+        "description": "Разрыв амидной связи на карбоновую кислоту и амин",
+    },
+    "suzuki_coupling": {
+        "name": "Сочетание Сузуки",
+        "smarts": "[c,c][c,c]>>[c,c][B](O)O.[c,c][Cl,Br,I]",
+        "description": "Разрыв биарильной связи на бороновую кислоту и арилгалогенид",
+    },
+    "reductive_amination": {
+        "name": "Восстановительное аминирование",
+        "smarts": "[CX3](=O)[NX3]>>[CX3](=O)[OX2H1].[NX3]",
+        "description": "Разрыв связи C-N на карбонильное соединение и амин",
+    },
+    "michael_addition": {
+        "name": "Присоединение Михаэля",
+        "smarts": "[CX3](=O)[CX3]=[CX3]>>[CX3](=O)[CX3]=[CX3]",
+        "description": "Разрыв α,β-ненасыщенного карбонильного соединения",
+    },
+    "wittig_reaction": {
+        "name": "Реакция Виттига",
+        "smarts": "[CX3]=[CX3]>>[CX3](=O).[CX3]=[PX3]",
+        "description": "Разрыв двойной связи на карбонильное соединение и фосфониевый илид",
+    },
+    "grignard_addition": {
+        "name": "Присоединение реактива Гриньяра",
+        "smarts": "[CX3](=O)[#6]>>[CX3](=O)[OX2H1].[#6][Mg][Cl,Br]",
+        "description": "Разрыв связи C-C рядом с карбонильной группой",
+    },
+    "friedel_crafts": {
+        "name": "Реакция Фриделя-Крафтса",
+        "smarts": "[c][CX3](=O)[Cl]>>[c].[CX3](=O)[Cl]",
+        "description": "Разрыв связи арил-ацил на ароматическое соединение и ацилхлорид",
+    },
+}
+
+
+@router.get("/retrosynthesis", summary="Ретросинтетический анализ")
+def retrosynthetic_analysis(smiles: str = Query(..., description="SMILES целевой молекулы")):
+    """
+    Ретросинтетический анализ молекулы.
+    Предлагает возможные разрывы связей для синтеза из коммерчески доступных прекурсоров.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = m.m
+        suggestions = []
+
+        for key, info in RETROSYNTHETIC_DISCONNECTIONS.items():
+            rxn = AllChem.ReactionFromSmarts(info["smarts"])
+            if rxn is None:
+                continue
+
+            # Прямая реакция (для проверки применимости)
+            products = rxn.RunReactants((mol,))
+            if products:
+                # Проверяем, что продукты осмысленны
+                valid_products = []
+                for product_set in products:
+                    for product in product_set:
+                        try:
+                            Chem.SanitizeMol(product)
+                            smi = Chem.MolToSmiles(product, canonical=True)
+                            if smi and "." not in smi:  # Только одиночные молекулы
+                                valid_products.append(smi)
+                        except Exception:
+                            continue
+
+                if valid_products:
+                    suggestions.append({
+                        "key": key,
+                        "name": info["name"],
+                        "description": info["description"],
+                        "smarts": info["smarts"],
+                        "possible_precursors": list(set(valid_products))[:5],  # До 5 вариантов
+                    })
+
+        return {
+            "smiles": smiles,
+            "suggestions_count": len(suggestions),
+            "suggestions": suggestions,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Конформеры
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/conformers", summary="Генерация конформеров молекулы")
+def generate_conformers(
+    smiles: str = Query(..., description="SMILES молекулы"),
+    num_conformers: int = Query(10, ge=1, le=50, description="Количество конформеров"),
+):
+    """
+    Генерирует несколько энергетически выгодных конформеров молекулы.
+    Использует ETKDG для генерации и MMFF для оптимизации.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = Chem.AddHs(m.m)
+
+        # Генерация конформеров с ETKDG
+        params = AllChem.ETKDGv3()
+        params.numThreads = 0  # Использовать все доступные потоки
+        cids = AllChem.EmbedMultipleConfs(mol, numConfs=num_conformers, params=params)
+
+        if len(cids) == 0:
+            raise ValueError("Failed to generate conformers")
+
+        # Оптимизация каждого конформера
+        results = []
+        for cid in cids:
+            try:
+                AllChem.MMFFOptimizeMolecule(mol, confId=cid)
+                energy = AllChem.MMFFGetMoleculeForceField(mol, confId=cid).CalcEnergy()
+                results.append({
+                    "conf_id": int(cid),
+                    "energy": round(energy, 4),
+                })
+            except Exception:
+                continue
+
+        # Сортировка по энергии
+        results.sort(key=lambda x: x["energy"])
+
+        # Генерация SDF для каждого конформера
+        conformers_sdf = []
+        for i, r in enumerate(results):
+            conf_mol = Chem.Mol(mol)
+            conf_mol.RemoveAllConformers()
+            conf_mol.AddConformer(mol.GetConformer(r["conf_id"]))
+            sdf_block = Chem.MolToMolBlock(conf_mol)
+            conformers_sdf.append({
+                "rank": i + 1,
+                "conf_id": r["conf_id"],
+                "energy": r["energy"],
+                "sdf": sdf_block,
+            })
+
+        return {
+            "smiles": smiles,
+            "total_conformers": len(results),
+            "conformers": conformers_sdf,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Экспорт в SVG
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/export_svg", summary="Экспорт 2D-структуры в SVG")
+def export_svg(
+    smiles: str = Query(..., description="SMILES молекулы"),
+    width: int = Query(400, ge=100, le=2000, description="Ширина в пикселях"),
+    height: int = Query(400, ge=100, le=2000, description="Высота в пикселях"),
+):
+    """
+    Экспортирует 2D-структуру молекулы в формате SVG.
+    Подходит для вставки в научные публикации.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = m.m
+
+        # Генерация 2D-координат
+        AllChem.Compute2DCoords(mol)
+
+        # Рендеринг в SVG
+        drawer = Draw.rdMolDraw2D.MolDraw2DSVG(width, height)
+        drawer.DrawMolecule(mol)
+        drawer.FinishDrawing()
+        svg = drawer.GetDrawingText()
+
+        return Response(content=svg, media_type="image/svg+xml")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Масс-спектрометрия (изотопное распределение)
+# ─────────────────────────────────────────────────────────────────────────────
+@router.get("/ms", summary="Масс-спектрометрия (изотопное распределение)")
+def mass_spectrometry(smiles: str = Query(..., description="SMILES молекулы")):
+    """
+    Расчёт ожидаемого масс-спектра и изотопного распределения через pyOpenMS.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError("Invalid SMILES")
+
+        mol = m.m
+        exact_mass = Descriptors.ExactMolWt(mol)
+        formula_str = rdMolDescriptors.CalcMolFormula(mol)
+
+        import pyopenms as oms
+
+        # Создаем формулу напрямую из корректной строки RDKit
+        formula = oms.EmpiricalFormula(formula_str)
+
+        # Генератор изотопных паттернов (4 пика)
+        generator = oms.CoarseIsotopePatternGenerator(4)
+        isotope_distribution = formula.getIsotopeDistribution(generator)
+
+        # Извлекаем пики (переводим интенсивность в проценты для наглядности)
+        peaks = []
+        for peak in isotope_distribution.getContainer():
+            peaks.append({
+                "m_z": round(peak.getMZ(), 4),
+                "intensity_percent": round(peak.getIntensity() * 100, 4)
+            })
+
+        return {
+            "smiles": smiles,
+            "exact_mass": round(exact_mass, 6),
+            "molecular_formula": formula_str,
+            "isotope_pattern": peaks,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+def _calculate_isotope_pattern(atom_counts, exact_mass):
+    """Расчёт изотопного распределения с использованием pyOpenMS."""
+    try:
+        import pyopenms as oms
+
+        # Формируем формулу строкой
+        formula_str = ""
+        for elem, count in sorted(atom_counts.items()):
+            if count > 0:
+                formula_str += elem
+                if count > 1:
+                    formula_str += str(count)
+
+        # Создаём формулу
+        formula = oms.EmpiricalFormula(formula_str)
+
+        # Генератор изотопных паттернов (4 пика)
+        generator = oms.CoarseIsotopePatternGenerator(4)
+        isotope_distribution = formula.getIsotopeDistribution(generator)
+
+        # Извлекаем пики
+        peaks = []
+        for peak in isotope_distribution.getContainer():
+            peaks.append((round(peak.getMZ(), 4), round(peak.getIntensity(), 6)))
+
+        # Сортировка по интенсивности
+        peaks.sort(key=lambda x: x[1], reverse=True)
+
+        # Нормализация к максимуму
+        if peaks:
+            max_intensity = peaks[0][1]
+            peaks = [(m, round(i / max_intensity, 4)) for m, i in peaks]
+
+        return peaks
+
+    except ImportError:
+        # Fallback на упрощённый расчёт, если pyOpenMS недоступен
+        return _calculate_isotope_pattern_fallback(atom_counts, exact_mass)
+
+
+def _calculate_isotope_pattern_fallback(atom_counts, exact_mass):
+    """Упрощённый расчёт изотопного распределения (fallback)."""
+    isotopes = {
+        "C": [(12.0, 0.989), (13.003, 0.011)],
+        "H": [(1.008, 0.9998), (2.014, 0.0002)],
+        "N": [(14.003, 0.996), (15.000, 0.004)],
+        "O": [(15.995, 0.998), (17.999, 0.002)],
+        "S": [(31.972, 0.95), (33.968, 0.04)],
+        "Cl": [(34.969, 0.75), (36.966, 0.25)],
+        "Br": [(78.918, 0.50), (80.916, 0.50)],
+    }
+
+    peaks = [(round(exact_mass, 4), 1.0)]
+
+    for elem, count in atom_counts.items():
+        if elem not in isotopes:
+            continue
+        elem_isotopes = isotopes[elem]
+        if len(elem_isotopes) < 2:
+            continue
+
+        new_peaks = []
+        for mass, intensity in peaks:
+            new_peaks.append((mass, intensity * elem_isotopes[0][1] ** count))
+            if count >= 1:
+                delta_mass = elem_isotopes[1][0] - elem_isotopes[0][0]
+                new_peaks.append((
+                    round(mass + delta_mass * count, 4),
+                    intensity * elem_isotopes[1][1] * count
+                ))
+        peaks = new_peaks
+
+    peaks.sort(key=lambda x: x[1], reverse=True)
+
+    max_intensity = peaks[0][1] if peaks else 1.0
+    normalized = [(m, round(i / max_intensity, 4)) for m, i in peaks[:10]]
+
+    return normalized

@@ -1,6 +1,7 @@
 import os
 import urllib.parse
 import urllib.request
+import urllib.error
 from fastapi import FastAPI, HTTPException, Query, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -13,10 +14,10 @@ from rdkit_router import router as rdkit_router, set_proxy as set_rdkit_proxy
 
 from rdkit import Chem
 from rdkit import DataStructs
-
 from rdkit.Chem import AllChem, Draw
 from rdkit.Chem import Descriptors
 from rdkit.Chem import rdMolDescriptors
+from rdkit.Chem import inchi  # ИСПРАВЛЕНИЕ: Отдельный импорт для генерации InChI
 
 app = FastAPI(
     title="SMILES API Rdkit",
@@ -27,9 +28,12 @@ app = FastAPI(
 )
 
 # Подключаем расширенный RDKit роутер
-# include_router не работает — добавляем маршруты вручную
+# include_router не работает с текущей версией FastAPI — добавляем маршруты вручную
 for route in rdkit_router.routes:
     app.routes.append(route)
+
+# ИСПРАВЛЕНИЕ: Создаем директорию, чтобы FastAPI не падал при старте, если ее нет
+os.makedirs("StaticFiles", exist_ok=True)
 
 # Раздаём статические файлы из StaticFiles (JSME и др.)
 app.mount(
@@ -64,6 +68,7 @@ PROXY_ADDRESS = "127.0.0.1:9050"
 def set_proxy(proxy: str):
     global PROXY_ADDRESS
     PROXY_ADDRESS = proxy
+    set_rdkit_proxy(proxy)
 
 
 @app.get("/api/similarity")
@@ -100,7 +105,9 @@ def get_3d_sdf(smiles: str = Query(..., description="SMILES of molecule")):
             raise ValueError("Invalid SMILES")
 
         mol_3d = Chem.AddHs(m.m)
-        AllChem.EmbedMolecule(mol_3d, AllChem.ETKDG())
+        res = AllChem.EmbedMolecule(mol_3d, AllChem.ETKDG())
+        if res == -1:
+            raise ValueError("Failed to embed molecule in 3D space")
         AllChem.MMFFOptimizeMolecule(mol_3d)
 
         sdf_block = Chem.MolToMolBlock(mol_3d)
@@ -114,7 +121,6 @@ def get_name(
     smiles: str = Query(..., description="SMILES to name"),
     db: Session = Depends(get_db),
 ):
-    global PROXY_ADDRESS
     if not smiles.strip():
         raise HTTPException(status_code=400, detail="Empty SMILES")
 
@@ -145,7 +151,7 @@ def get_name(
                 db.add(new_cache)
                 db.commit()
             except IntegrityError:
-                db.rollback()  # Если параллельный поток успел записать раньше — откатываем и не падаем
+                db.rollback()  # Если параллельный поток успел записать раньше — откатываем
 
             return {"smiles": smiles, "name": name}
 
@@ -165,10 +171,9 @@ def getChiralCenters(
 ):
     try:
         m = Molecule(smiles)
-        if m.m is None:  # Небольшая проверка на валидность SMILES
+        if m.m is None:
             raise ValueError("Invalid SMILES string")
 
-        # 2. Используем m.m вместо несуществующего mol
         centers = Chem.FindMolChiralCenters(m.m, includeUnassigned=True)
 
         return {"centers": centers, "centers_count": len(centers)}
@@ -184,14 +189,26 @@ def get_properties(smiles: str = Query(..., description="SMILES of molecule")):
             raise ValueError("Invalid SMILES string")
 
         mol = m.m
+
+        # Точная масса через pyOpenMS
+        exact_mass = None
+        try:
+            import pyopenms as oms
+            formula = rdMolDescriptors.CalcMolFormula(mol)
+            ef = oms.EmpiricalFormula(formula)
+            exact_mass = ef.getMonoWeight()
+        except Exception:
+            pass
+
         return {
             "smiles": smiles,
             "formula": rdMolDescriptors.CalcMolFormula(mol),
             "molecular_weight": Descriptors.MolWt(mol),
-            "logp": Descriptors.MolLogP(mol),  # Коэффициент липофильности
-            "hbd": Descriptors.NumHDonors(mol),  # Доноры водородных связей
-            "hba": Descriptors.NumHAcceptors(mol),  # Акцепторы
-            "tpsa": Descriptors.TPSA(mol),  # Полярная площадь поверхности
+            "exact_mass": exact_mass,
+            "logp": Descriptors.MolLogP(mol),
+            "hbd": Descriptors.NumHDonors(mol),
+            "hba": Descriptors.NumHAcceptors(mol),
+            "tpsa": Descriptors.TPSA(mol),
             "rotatable_bonds": Descriptors.NumRotatableBonds(mol),
         }
     except Exception as e:
@@ -210,8 +227,8 @@ def convert_smiles(smiles: str = Query(..., description="SMILES to convert")):
             "valid": True,
             "canonical_smiles": Chem.MolToSmiles(mol, canonical=True),
             "isomeric_smiles": Chem.MolToSmiles(mol, isomericSmiles=True),
-            "inchi": Chem.MolToInchi(mol),
-            "inchikey": Chem.MolToInchiKey(mol),
+            "inchi": inchi.MolToInchi(mol),        # ИСПРАВЛЕНИЕ: Использование подмодуля inchi
+            "inchikey": inchi.MolToInchiKey(mol),  # ИСПРАВЛЕНИЕ: Использование подмодуля inchi
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -230,7 +247,7 @@ def substructure_search(
             raise ValueError("Invalid SMILES or SMARTS pattern")
 
         has_substruct = target.m.HasSubstructMatch(pattern)
-        matches = target.m.GetSubstructMatches(pattern)  # Индексы совпавших атомов
+        matches = target.m.GetSubstructMatches(pattern)
 
         return {
             "has_match": has_substruct,
@@ -257,7 +274,6 @@ def render(
         selected_type = type_map.get(draw_type.lower(), Molecule.DrawType.JUST)
         mol_obj = m.Get(selected_type)
 
-        # Подсветка хиральных центров
         highlight_atoms = []
         if highlight_chiral or draw_type.lower() == "chiral":
             chiral_centers = Chem.FindMolChiralCenters(m.m, includeUnassigned=True)
