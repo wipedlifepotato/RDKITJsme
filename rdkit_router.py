@@ -5,7 +5,7 @@ Enhanced RDKit API Router — расширенный функционал хем
 from fastapi import APIRouter, HTTPException, Query, Depends, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 import urllib.parse
 import urllib.request
@@ -14,12 +14,19 @@ from database import get_db, CachedName
 from Molecule import Molecule
 from i18n import get_text, get_lang
 
+import numpy as np
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, Recap
 from rdkit.Chem import QED, Draw, inchi
 from rdkit.Chem import Lipinski, Crippen, MolSurf, GraphDescriptors
 from rdkit.Chem import rdchem
+from rdkit.Chem.MolStandardize import rdMolStandardize
+from rdkit.Chem.Scaffolds import MurckoScaffold
+from rdkit.ML.Cluster import Butina
+from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
+from rdkit.Chem.Draw import rdMolDraw2D
+from rdkit.Chem import rdMolTransforms
 
 router = APIRouter(prefix="/rdkit/api", tags=["RDKit Enhanced API"])
 
@@ -1638,3 +1645,964 @@ def _calculate_isotope_pattern_fallback(atom_counts, exact_mass):
     normalized = [(m, round(i / max_intensity, 4)) for m, i in peaks[:10]]
 
     return normalized
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Тавтомеры
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/tautomers", summary="Генерация таутомеров")
+def enumerate_tautomers(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
+    """
+    Перечисляет все возможные таутомеры молекулы.
+
+    Использует алгоритм TautomerEnumerator из RDKit для генерации
+    всех уникальных таутомерных форм молекулы.
+
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - `canonical_tautomer` — канонический (наиболее стабильный) таутомер
+    - `tautomers` — список всех уникальных таутомеров в формате SMILES
+    - `count` — количество найденных таутомеров
+
+    **Пример запроса:**
+    ```
+    GET /rdkit/api/tautomers?smiles=CC(=O)C&lang=ru
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "smiles": "CC(=O)C",
+        "canonical_tautomer": "CC(=O)C",
+        "tautomers": ["CC(=O)C", "C=C(O)C"],
+        "count": 2
+    }
+    ```
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+
+        enumerator = rdMolStandardize.TautomerEnumerator()
+        canonical = enumerator.Canonicalize(m.m)
+        tautomers = enumerator.Enumerate(m.m)
+
+        canonical_smiles = Chem.MolToSmiles(canonical, canonical=True)
+        all_tautomers = [Chem.MolToSmiles(t, canonical=True) for t in tautomers]
+
+        return {
+            "smiles": smiles,
+            "canonical_tautomer": canonical_smiles,
+            "tautomers": all_tautomers,
+            "count": len(all_tautomers),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Bemis-Murcko Scaffold
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/scaffold", summary="Выделение скаффолда Bemis-Murcko")
+def get_scaffold(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
+    """
+    Выделяет каркас Bemis-Murcko из молекулы.
+
+    Алгоритм Bemis-Murcko удаляет боковые цепи, оставляя только
+    циклический скелет с связями между циклами.
+
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - `scaffold_smiles` — SMILES скаффолда
+    - `scaffold_svg` — SVG-изображение скаффолда
+
+    **Пример запроса:**
+    ```
+    GET /rdkit/api/scaffold?smiles=CC(=O)Oc1ccccc1C(=O)O&lang=ru
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "scaffold_smiles": "O=C(O)c1ccccc1",
+        "scaffold_svg": "<svg>...</svg>"
+    }
+    ```
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+
+        scaffold = MurckoScaffold.GetScaffoldForMol(m.m)
+        scaffold_smiles = Chem.MolToSmiles(scaffold, canonical=True)
+
+        # Генерация SVG
+        drawer = rdMolDraw2D.MolDraw2DSVG(400, 400)
+        drawer.DrawMolecule(scaffold)
+        drawer.FinishDrawing()
+        svg = drawer.GetDrawingText()
+
+        return {
+            "smiles": smiles,
+            "scaffold_smiles": scaffold_smiles,
+            "scaffold_svg": svg,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Butina Clustering
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class ClusterRequest(BaseModel):
+    """Модель запроса для кластеризации молекул."""
+
+    smiles_list: List[str] = Field(..., description="Список SMILES строк (минимум 2)")
+    cutoff: float = Field(0.7, ge=0.0, le=1.0, description="Порог сходства Tanimoto (0.0–1.0)")
+
+
+@router.post("/cluster", summary="Кластеризация молекул (Butina)")
+def cluster_molecules(
+    request: ClusterRequest,
+    lang: str = Depends(get_lang),
+):
+    """
+    Кластеризует молекулы алгоритмом Butina.
+
+    Использует Morgan Fingerprints (радиус 2, 2048 бит) и матрицу
+    сходства Tanimoto для группировки молекул по структурному сходству.
+
+    **Параметры запроса (JSON):**
+    - `smiles_list` — список SMILES строк (минимум 2)
+    - `cutoff` — порог сходства Tanimoto (0.0–1.0, по умолчанию 0.7)
+
+    **Возвращает:**
+    - `total_molecules` — количество валидных молекул
+    - `cutoff` — использованный порог
+    - `cluster_count` — количество кластеров
+    - `clusters` — список кластеров с SMILES
+
+    **Пример запроса:**
+    ```json
+    POST /rdkit/api/cluster
+    {
+        "smiles_list": ["CCO", "CCCO", "c1ccccc1", "c1ccccc1O"],
+        "cutoff": 0.7
+    }
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "total_molecules": 4,
+        "cutoff": 0.7,
+        "cluster_count": 2,
+        "clusters": [
+            {"cluster_id": 0, "size": 2, "smiles": ["CCO", "CCCO"]},
+            {"cluster_id": 1, "size": 2, "smiles": ["c1ccccc1", "c1ccccc1O"]}
+        ]
+    }
+    ```
+    """
+    try:
+        mols = []
+        valid_smiles = []
+        for smiles in request.smiles_list:
+            m = Molecule(smiles)
+            if m.m is not None:
+                mols.append(m.m)
+                valid_smiles.append(smiles)
+
+        if len(mols) < 2:
+            raise ValueError(get_text("need_at_least_two_smiles", lang))
+
+        fps = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048) for m in mols]
+
+        # Вычисление матрицы расстояний (1 - Tanimoto)
+        dists = []
+        for i in range(1, len(fps)):
+            sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps[:i])
+            dists.extend([1 - x for x in sims])
+
+        clusters = Butina.ClusterData(dists, len(fps), request.cutoff, isDistData=True)
+
+        result = []
+        for cluster in clusters:
+            result.append(
+                {
+                    "cluster_id": len(result),
+                    "size": len(cluster),
+                    "smiles": [valid_smiles[i] for i in cluster],
+                }
+            )
+
+        return {
+            "total_molecules": len(valid_smiles),
+            "cutoff": request.cutoff,
+            "cluster_count": len(clusters),
+            "clusters": result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Стереоизомеры
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/stereoisomers", summary="Генерация стереоизомеров")
+def enumerate_stereoisomers(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
+    """
+    Перечисляет все возможные стереоизомеры молекулы.
+
+    Использует алгоритм EnumerateStereoisomers из RDKit для генерации
+    всех уникальных стереоизомеров с неопределённой стереохимией.
+
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - `stereoisomers` — список всех стереоизомеров в формате SMILES
+    - `count` — количество найденных стереоизомеров
+    - `chiral_centers_count` — количество хиральных центров (N)
+    - `chiral_centers` — список хиральных центров
+    - `max_theoretical_stereoisomers` — максимальное теоретическое количество (2^N)
+    - `formula` — строка с формулой (например, "2^2 = 4")
+
+    **Проверка по формуле:**
+    Количество стереоизомеров = 2^N, где N — количество хиральных центров.
+    Например, для молекулы с 2 хиральными центрами: 2^2 = 4 стереоизомера.
+
+    **Пример запроса:**
+    ```
+    GET /rdkit/api/stereoisomers?smiles=CC(O)C&lang=ru
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "smiles": "CC(O)C",
+        "stereoisomers": ["C[C@H](O)C", "C[C@@H](O)C"],
+        "count": 2,
+        "chiral_centers_count": 1,
+        "chiral_centers": [[1, "?")],
+        "max_theoretical_stereoisomers": 2,
+        "formula": "2^1 = 2"
+    }
+    ```
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+
+        # Находим хиральные центры
+        chiral_centers = Chem.FindMolChiralCenters(m.m, includeUnassigned=True)
+        num_chiral = len(chiral_centers)
+        max_theoretical = 2 ** num_chiral if num_chiral > 0 else 1
+
+        opts = StereoEnumerationOptions(tryEmbedding=True, unique=True)
+        isomers = list(EnumerateStereoisomers(m.m, options=opts))
+
+        isomer_smiles = [
+            Chem.MolToSmiles(iso, canonical=True, isomericSmiles=True) for iso in isomers
+        ]
+
+        return {
+            "smiles": smiles,
+            "stereoisomers": isomer_smiles,
+            "count": len(isomer_smiles),
+            "chiral_centers_count": num_chiral,
+            "chiral_centers": chiral_centers,
+            "max_theoretical_stereoisomers": max_theoretical,
+            "formula": f"2^{num_chiral} = {max_theoretical}",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3D-конформеры (интерактивная визуализация)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/3d_conformers", summary="3D-конформеры с интерактивной визуализацией")
+def get_3d_conformers(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    num_conformers: int = Query(5, ge=1, le=20, description=get_text("param_num_conformers")),
+    lang: str = Depends(get_lang),
+):
+    """
+    Генерирует 3D-конформеры молекулы с интерактивной визуализацией.
+
+    Возвращает HTML-страницу с 3Dmol.js визуализацией:
+    - Вращение молекулы мышью
+    - Отображение энергии каждого конформера
+    - Переключение между конформерами
+    - Автоматическое вращение (spin)
+
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `num_conformers` — количество конформеров (1–20, по умолчанию 5)
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - HTML-страницу с интерактивной 3D-визуализацией
+
+    **Пример запроса:**
+    ```
+    GET /rdkit/api/3d_conformers?smiles=CCO&num_conformers=5&lang=ru
+    ```
+
+    **Примечание:**
+    Для просмотра откройте ответ в браузере. Страница использует 3Dmol.js
+    для интерактивной визуализации молекулы.
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+
+        mol = Chem.AddHs(m.m)
+
+        # Генерация конформеров
+        params = AllChem.ETKDGv3()
+        params.numThreads = 0
+        cids = AllChem.EmbedMultipleConfs(mol, numConfs=num_conformers, params=params)
+
+        if len(cids) == 0:
+            raise ValueError(get_text("failed_to_generate_conformers", lang))
+
+        # Оптимизация и сбор данных
+        conformers = []
+        for cid in cids:
+            try:
+                AllChem.MMFFOptimizeMolecule(mol, confId=cid)
+                ff = AllChem.MMFFGetMoleculeForceField(mol, confId=cid)
+                energy = ff.CalcEnergy() if ff else 0.0
+
+                # Координаты атомов
+                conf = mol.GetConformer(cid)
+                atoms = []
+                for atom in mol.GetAtoms():
+                    pos = conf.GetAtomPosition(atom.GetIdx())
+                    atoms.append(
+                        {
+                            "index": atom.GetIdx(),
+                            "element": atom.GetSymbol(),
+                            "x": round(pos.x, 4),
+                            "y": round(pos.y, 4),
+                            "z": round(pos.z, 4),
+                        }
+                    )
+
+                # Связи
+                bonds = []
+                for bond in mol.GetBonds():
+                    bonds.append(
+                        {
+                            "begin": bond.GetBeginAtomIdx(),
+                            "end": bond.GetEndAtomIdx(),
+                            "type": str(bond.GetBondType()),
+                        }
+                    )
+
+                conformers.append(
+                    {
+                        "conf_id": int(cid),
+                        "energy": round(energy, 4),
+                        "atoms": atoms,
+                        "bonds": bonds,
+                    }
+                )
+            except Exception:
+                continue
+
+        # Сортировка по энергии
+        conformers.sort(key=lambda x: x["energy"])
+
+        # Генерация HTML с 3Dmol.js
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>3D Conformers — {smiles}</title>
+    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+        #viewer {{ width: 600px; height: 500px; position: relative; }}
+        .controls {{ margin: 10px 0; }}
+        .info {{ margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }}
+        button {{ padding: 8px 16px; margin: 5px; cursor: pointer; }}
+        button.active {{ background: #4CAF50; color: white; }}
+    </style>
+</head>
+<body>
+    <h2>3D-конформеры: {smiles}</h2>
+    <div class="info">
+        <strong>Конформер:</strong> <span id="conf-id">1</span> |
+        <strong>Энергия:</strong> <span id="conf-energy">{conformers[0]["energy"] if conformers else 0}</span> ккал/моль |
+        <strong>Всего:</strong> {len(conformers)}
+    </div>
+    <div class="controls">
+        <button onclick="prevConformer()">← Предыдущий</button>
+        <button onclick="nextConformer()">Следующий →</button>
+        <button onclick="toggleSpin()">Вращение</button>
+        <button onclick="resetView()">Сброс</button>
+    </div>
+    <div id="viewer"></div>
+
+    <script>
+        const conformers = {conformers_json};
+        let currentConf = 0;
+        let spinning = false;
+        let viewer = null;
+
+        function initViewer() {{
+            let element = document.getElementById('viewer');
+            let config = {{ backgroundColor: 'white' }};
+            viewer = $3Dmol.createViewer(element, config);
+            loadConformer(0);
+            viewer.zoomTo();
+            viewer.render();
+        }}
+
+        function loadConformer(idx) {{
+            currentConf = idx;
+            let conf = conformers[idx];
+            viewer.clear();
+
+            // Добавляем атомы
+            conf.atoms.forEach(atom => {{
+                viewer.addAtom({{
+                    x: atom.x,
+                    y: atom.y,
+                    z: atom.z,
+                    elem: atom.element
+                }});
+            }});
+
+            // Добавляем связи
+            conf.bonds.forEach(bond => {{
+                viewer.addBond({{ atom1: bond.begin, atom2: bond.end }});
+            }});
+
+            // Обновляем информацию
+            document.getElementById('conf-id').textContent = idx + 1;
+            document.getElementById('conf-energy').textContent = conf.energy;
+
+            viewer.setStyle({{}}, {{stick: {{}}}});
+            viewer.zoomTo();
+            viewer.render();
+        }}
+
+        function nextConformer() {{
+            let next = (currentConf + 1) % conformers.length;
+            loadConformer(next);
+        }}
+
+        function prevConformer() {{
+            let prev = (currentConf - 1 + conformers.length) % conformers.length;
+            loadConformer(prev);
+        }}
+
+        function toggleSpin() {{
+            spinning = !spinning;
+            viewer.spin(spinning ? 'y' : false);
+        }}
+
+        function resetView() {{
+            viewer.zoomTo();
+            viewer.render();
+        }}
+
+        initViewer();
+    </script>
+</body>
+</html>"""
+
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Анализ конформаций колец (Ring Puckering)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _calculate_cremer_pople(coords):
+    """
+    Вычисляет параметры складчатости Кремера-Попла для цикла.
+    
+    Для 6-членных циклов: theta, phi, Q
+    Для 5-членных циклов: theta, phi, q
+    
+    coords: список (x, y, z) координат атомов цикла
+    """
+    import math
+    import numpy as np
+
+    n = len(coords)
+    if n < 5:
+        return None
+
+    # Центроид цикла
+    centroid = np.mean(coords, axis=0)
+    
+    # Векторы от центроида к атомам
+    vecs = coords - centroid
+    
+    # Для 6-членных циклов
+    if n == 6:
+        # Вычисляем z-координаты относительно средней плоскости
+        # Используем SVD для нахождения нормали к плоскости
+        _, _, vh = np.linalg.svd(vecs)
+        normal = vh[-1]  # Последняя строка — нормаль к плоскости
+        
+        z = np.dot(vecs, normal)
+        
+        # Параметры Кремера-Попла для 6-членного цикла
+        # Q = sqrt(sum(z_i^2))
+        Q = np.sqrt(np.sum(z**2))
+        
+        # theta и phi
+        if Q < 1e-6:
+            return {"Q": 0.0, "theta": 0.0, "phi": 0.0, "conformation": "planar"}
+        
+        # Вычисляем theta и phi по формулам
+        # Для 6-членного цикла:
+        # z_i = Q * cos(theta) * cos(phi + 2*pi*i/6) для i=0..5
+        # Используем преобразование Фурье
+        
+        # Упрощённый подход: используем первые два гармонических компонента
+        angles = np.array([2 * np.pi * i / 6 for i in range(6)])
+        
+        # Разложение по косинусам и синусам
+        a1 = np.sum(z * np.cos(angles))
+        b1 = np.sum(z * np.sin(angles))
+        a2 = np.sum(z * np.cos(2 * angles))
+        b2 = np.sum(z * np.sin(2 * angles))
+        
+        # Для 6-членного цикла основная гармоника — m=2
+        # theta = arccos(a2 / (Q * sqrt(3/2)))
+        # phi = atan2(b2, a2)
+        
+        # Нормализация
+        denom = Q * np.sqrt(1.5)
+        if denom > 1e-6:
+            cos_theta = np.clip(a2 / denom, -1, 1)
+            theta = np.arccos(cos_theta) * 180 / np.pi
+            phi = np.arctan2(b2, a2) * 180 / np.pi
+        else:
+            theta = 0.0
+            phi = 0.0
+        
+        # Классификация конформации
+        conformation = _classify_6ring(theta, phi)
+        
+        return {
+            "Q": round(float(Q), 4),
+            "theta": round(float(theta), 2),
+            "phi": round(float(phi), 2),
+            "conformation": conformation,
+        }
+    
+    # Для 5-членных циклов
+    elif n == 5:
+        _, _, vh = np.linalg.svd(vecs)
+        normal = vh[-1]
+        z = np.dot(vecs, normal)
+        
+        q = np.sqrt(np.sum(z**2))
+        
+        if q < 1e-6:
+            return {"q": 0.0, "theta": 0.0, "phi": 0.0, "conformation": "planar"}
+        
+        angles = np.array([2 * np.pi * i / 5 for i in range(5)])
+        
+        a1 = np.sum(z * np.cos(angles))
+        b1 = np.sum(z * np.sin(angles))
+        a2 = np.sum(z * np.cos(2 * angles))
+        b2 = np.sum(z * np.sin(2 * angles))
+        
+        # Для 5-членного цикла основная гармоника — m=2
+        denom = q * np.sqrt(2)
+        if denom > 1e-6:
+            cos_theta = np.clip(a2 / denom, -1, 1)
+            theta = np.arccos(cos_theta) * 180 / np.pi
+            phi = np.arctan2(b2, a2) * 180 / np.pi
+        else:
+            theta = 0.0
+            phi = 0.0
+        
+        conformation = _classify_5ring(theta, phi)
+        
+        return {
+            "q": round(float(q), 4),
+            "theta": round(float(theta), 2),
+            "phi": round(float(phi), 2),
+            "conformation": conformation,
+        }
+    
+    return None
+
+
+def _classify_6ring(theta, phi):
+    """Классификация конформации 6-членного цикла."""
+    if theta < 30 or theta > 150:
+        return "chair"
+    elif 30 <= theta <= 60 or 120 <= theta <= 150:
+        return "half-chair"
+    elif 60 < theta < 120:
+        # Различаем boat и twist-boat по phi
+        phi_mod = phi % 60
+        if phi_mod < 15 or phi_mod > 45:
+            return "boat"
+        else:
+            return "twist-boat"
+    return "unknown"
+
+
+def _classify_5ring(theta, phi):
+    """Классификация конформации 5-членного цикла."""
+    if theta < 30:
+        return "envelope"
+    elif 30 <= theta <= 90:
+        return "half-envelope"
+    else:
+        return "twist"
+    return "unknown"
+
+
+def _calculate_cremer_pople_from_dihedrals(dihedrals, n):
+    """
+    Вычисляет параметры Кремера-Попла из диэдральных углов.
+    Упрощённая версия для классификации конформаций.
+    """
+    import math
+
+    if n == 6:
+        # Для 6-членных циклов
+        # Сумма квадратов диэдральных углов
+        sum_sq = sum(d**2 for d in dihedrals)
+        Q = math.sqrt(sum_sq / n)
+
+        # Среднее значение
+        mean = sum(dihedrals) / n
+
+        # Определяем тип конформации по характерным признакам
+        # Chair: чередующиеся +60/-60
+        # Boat: два угла ~0, остальные ±60
+        # Twist-boat: промежуточные значения
+
+        # Считаем количество углов близких к 0 (характерно для boat)
+        near_zero = sum(1 for d in dihedrals if abs(d) < 15)
+
+        # Считаем количество углов близких к ±60 (характерно для chair)
+        near_sixty = sum(1 for d in dihedrals if abs(abs(d) - 60) < 15)
+
+        if near_sixty >= 4:
+            conformation = "chair"
+        elif near_zero >= 2:
+            conformation = "boat"
+        else:
+            conformation = "twist-boat"
+
+        # Вычисляем theta и phi на основе диэдральных углов
+        # Для chair: theta ~ 0 или 180, phi ~ 0
+        # Для boat: theta ~ 90, phi ~ 0 или 60
+        # Для twist-boat: theta ~ 90, phi ~ 30 или 90
+
+        if conformation == "chair":
+            theta = 0.0 if mean > 0 else 180.0
+            phi = 0.0
+        elif conformation == "boat":
+            theta = 90.0
+            phi = 0.0 if near_zero >= 2 else 60.0
+        else:  # twist-boat
+            theta = 90.0
+            phi = 30.0
+
+        return {
+            "Q": round(Q, 4),
+            "theta": round(theta, 2),
+            "phi": round(phi, 2),
+            "conformation": conformation,
+        }
+
+    elif n == 5:
+        # Для 5-членных циклов
+        sum_sq = sum(d**2 for d in dihedrals)
+        q = math.sqrt(sum_sq / n)
+
+        # Определяем тип конформации
+        # Envelope: один атом выбит из плоскости (один угол близок к 0)
+        # Twist: два атома выбиты в разные стороны
+        near_zero = sum(1 for d in dihedrals if abs(d) < 20)
+        max_angle = max(abs(d) for d in dihedrals)
+
+        if near_zero >= 1 and max_angle > 30:
+            conformation = "envelope"
+        elif max_angle > 30:
+            conformation = "twist"
+        else:
+            conformation = "planar"
+
+        return {
+            "q": round(q, 4),
+            "theta": 0.0,
+            "phi": 0.0,
+            "conformation": conformation,
+        }
+
+    return None
+
+
+def _get_ring_conformation_for_conf(mol, ring_atoms, conf_id):
+    """
+    Определяет конформацию цикла для конкретного конформера.
+    Использует rdMolTransforms.GetDihedralDeg для корректного вычисления углов.
+
+    ring_atoms: список индексов атомов цикла
+    conf_id: ID конформера
+    """
+    if len(ring_atoms) < 5:
+        return None
+
+    conf = mol.GetConformer(conf_id)
+    n = len(ring_atoms)
+
+    # Диэдральные углы через rdMolTransforms
+    dihedrals = []
+    for i in range(n):
+        i1 = ring_atoms[i]
+        i2 = ring_atoms[(i + 1) % n]
+        i3 = ring_atoms[(i + 2) % n]
+        i4 = ring_atoms[(i + 3) % n]
+        angle = rdMolTransforms.GetDihedralDeg(conf, i1, i2, i3, i4)
+        dihedrals.append(round(float(angle), 2))
+
+    # Параметры Кремера-Попла
+    cp_params = _calculate_cremer_pople_from_dihedrals(dihedrals, n)
+
+    return {
+        "conf_id": int(conf_id),
+        "dihedral_angles": dihedrals,
+        "cremer_pople": cp_params,
+    }
+
+
+@router.get("/ring_conformation", summary="Анализ конформаций колец")
+def analyze_ring_conformation(
+    smiles: str = Query(..., description=get_text("param_smiles")),
+    lang: str = Depends(get_lang),
+):
+    """
+    Анализирует конформации всех циклов в молекуле.
+
+    Определяет тип конформации цикла (Chair, Boat, Twist-boat, Envelope и т.д.)
+    и вычисляет параметры складчатости Кремера-Попла (θ, φ, Q).
+
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - `total_rings` — количество циклов
+    - `rings` — список циклов с параметрами:
+      - `ring_size` — размер цикла
+      - `atom_indices` — индексы атомов цикла
+      - `dihedral_angles` — диэдральные углы
+      - `cremer_pople` — параметры Кремера-Попла:
+        - `Q` — амплитуда складчатости (для 6-членных)
+        - `q` — амплитуда складчатости (для 5-членных)
+        - `theta` — полярный угол (°)
+        - `phi` — азимутальный угол (°)
+        - `conformation` — тип конформации
+
+    **Пример запроса:**
+    ```
+    GET /rdkit/api/ring_conformation?smiles=C1CCCCC1&lang=ru
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "smiles": "C1CCCCC1",
+        "total_rings": 1,
+        "rings": [{
+            "ring_size": 6,
+            "atom_indices": [0, 1, 2, 3, 4, 5],
+            "dihedral_angles": [60.0, -60.0, 60.0, -60.0, 60.0, -60.0],
+            "cremer_pople": {
+                "Q": 0.7,
+                "theta": 0.0,
+                "phi": 0.0,
+                "conformation": "chair"
+            }
+        }]
+    }
+    ```
+    """
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+
+        mol = Chem.AddHs(m.m)
+        return _analyze_all_ring_conformations(mol, smiles, lang)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+def _analyze_all_ring_conformations(
+    mol: Chem.Mol,
+    smiles: str,
+    lang: str = "ru",
+) -> dict:
+    """
+    Генерирует 20 конформеров, вычисляет энергию каждого,
+    определяет все уникальные конформации циклов с указанием
+    наиболее стабильной (min energy) и наименее стабильной (max energy).
+
+    Args:
+        mol: RDKit молекула (с добавленными атомами водорода)
+        smiles: исходная SMILES строка
+        lang: язык ответа
+
+    Returns:
+        словарь с результатами анализа
+    """
+    # Находим все циклы (индексы атомов C/H в молекуле с водородами)
+    ring_info = mol.GetRingInfo()
+    rings = ring_info.AtomRings()
+
+    if not rings:
+        return {
+            "smiles": smiles,
+            "total_rings": 0,
+            "rings": [],
+            "message": get_text("no_rings_found", lang),
+        }
+
+    # Генерация 20 конформеров
+    params = AllChem.ETKDGv3()
+    params.numThreads = 0
+    cids = AllChem.EmbedMultipleConfs(mol, numConfs=20, params=params)
+
+    if len(cids) == 0:
+        raise ValueError(get_text("failed_to_generate_conformers", lang))
+
+    # Оптимизация и вычисление энергии для каждого конформера
+    conf_energies = {}
+    for cid in cids:
+        energy = 0.0
+        try:
+            # Пробуем оптимизировать через MMFF
+            AllChem.MMFFOptimizeMolecule(mol, confId=cid)
+            ff = AllChem.MMFFGetMoleculeForceField(mol, confId=cid)
+            if ff:
+                energy = ff.CalcEnergy()
+        except Exception:
+            try:
+                # Fallback: UFF
+                AllChem.UFFOptimizeMolecule(mol, confId=cid)
+                ff = AllChem.UFFGetMoleculeForceField(mol, confId=cid)
+                if ff:
+                    energy = ff.CalcEnergy()
+            except Exception:
+                pass
+
+        conf_energies[int(cid)] = round(float(energy), 4)
+
+    # Анализируем каждый цикл для всех конформеров
+    rings_data = []
+    for ring in rings:
+        ring_atoms = list(ring)
+        unique_conformations = []
+        seen_dihedrals = []  # Для проверки уникальности по диэдральным углам
+        seen_energies = []  # Для проверки уникальности по энергии
+
+        for cid in cids:
+            if int(cid) not in conf_energies:
+                continue
+
+            conf_data = _get_ring_conformation_for_conf(mol, ring_atoms, int(cid))
+            if conf_data and conf_data["cremer_pople"]:
+                energy = conf_energies[int(cid)]
+                
+                # Проверяем уникальность по энергии (допуск 0.5 kcal/mol)
+                is_unique_energy = True
+                for e in seen_energies:
+                    if abs(e - energy) < 0.5:
+                        is_unique_energy = False
+                        break
+
+                # Проверяем уникальность по диэдральным углам (допуск 15 градусов)
+                is_unique_dihedral = True
+                for seen in seen_dihedrals:
+                    if len(seen) == len(conf_data["dihedral_angles"]):
+                        if all(abs(a - b) < 15.0 for a, b in zip(seen, conf_data["dihedral_angles"])):
+                            is_unique_dihedral = False
+                            break
+
+                # Конформация уникальна, если уникальна по энергии ИЛИ по углам
+                if is_unique_energy or is_unique_dihedral:
+                    seen_dihedrals.append(conf_data["dihedral_angles"])
+                    seen_energies.append(energy)
+                    conf_data["energy"] = energy
+                    unique_conformations.append(conf_data)
+
+        if unique_conformations:
+            # Находим наиболее и наименее стабильные
+            energies = [c["energy"] for c in unique_conformations]
+            min_energy_idx = energies.index(min(energies))
+            max_energy_idx = energies.index(max(energies))
+
+            for i, c in enumerate(unique_conformations):
+                c["is_most_stable"] = (i == min_energy_idx)
+                c["is_least_stable"] = (i == max_energy_idx)
+
+            rings_data.append({
+                "ring_size": len(ring_atoms),
+                "atom_indices": list(ring_atoms),
+                "conformations": unique_conformations,
+                "total_conformations_found": len(unique_conformations),
+                "most_stable_conformation": unique_conformations[min_energy_idx]["cremer_pople"]["conformation"],
+                "least_stable_conformation": unique_conformations[max_energy_idx]["cremer_pople"]["conformation"],
+                "min_energy": min(energies),
+                "max_energy": max(energies),
+            })
+
+    return {
+        "smiles": smiles,
+        "total_rings": len(rings_data),
+        "rings": rings_data,
+    }

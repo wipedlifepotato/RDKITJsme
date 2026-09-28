@@ -1,4 +1,5 @@
 import os
+import json
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -8,7 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from database import get_db, CachedName
+from database import get_db, CachedName, NameToSmilesCache
 from Molecule import Molecule
 from rdkit_router import router as rdkit_router, set_proxy as set_rdkit_proxy
 from i18n import get_text, get_lang
@@ -27,6 +28,10 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Инициализация БД (создание таблиц при первом запуске)
+from database import init_db
+init_db("sqlite:///./chem.db")
 
 # Подключаем расширенный RDKit роутер
 # include_router не работает с текущей версией FastAPI — добавляем маршруты вручную
@@ -321,3 +326,118 @@ def render(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/name_to_smiles")
+def name_to_smiles(
+    name: str = Query(..., description="Название молекулы (IUPAC или тривиальное)"),
+    lang: str = Depends(get_lang),
+    db: Session = Depends(get_db),
+):
+    """
+    Конвертирует название молекулы (IUPAC или тривиальное) в SMILES.
+
+    Использует OPSIN API (https://opsin.ch.cam.ac.uk) для конвертации
+    названий в SMILES. При неудаче использует Cactus (NCI/NIH).
+    Результаты кешируются в SQLite для ускорения повторных запросов.
+
+    **Параметры:**
+    - `name` — название молекулы (например, "Aspirin", "2-acetoxybenzoic acid")
+    - `lang` — язык ответа (ru, en, uk, es)
+
+    **Возвращает:**
+    - `name` — исходное название
+    - `smiles` — полученный SMILES
+    - `source` — источник результата ("opsin", "cactus" или "cache")
+
+    **Пример запроса:**
+    ```
+    GET /api/name_to_smiles?name=Aspirin&lang=ru
+    ```
+
+    **Пример ответа:**
+    ```json
+    {
+        "name": "Aspirin",
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "source": "opsin"
+    }
+    ```
+
+    **Примечание:**
+    При повторном запросе того же названия результат будет взят из кеша.
+    """
+    if not name.strip():
+        raise HTTPException(status_code=400, detail=get_text("empty_name", lang))
+
+    # Проверяем кеш
+    cached = db.query(NameToSmilesCache).filter(NameToSmilesCache.name == name).first()
+    if cached:
+        return {"name": name, "smiles": cached.smiles, "source": "cache"}
+
+    # Пробуем OPSIN API
+    try:
+        safe_name = urllib.parse.quote(name, safe="")
+        target_url = f"https://opsin.ch.cam.ac.uk/opsin/{safe_name}.json"
+
+        opener = urllib.request.build_opener()
+        if PROXY_ADDRESS.strip():
+            proxy_host, proxy_port = PROXY_ADDRESS.split(":")
+            import socks
+            from sockshandler import SocksiPyHandler
+
+            proxy_handler = SocksiPyHandler(socks.SOCKS5, proxy_host, int(proxy_port))
+            opener = urllib.request.build_opener(proxy_handler)
+
+        req = urllib.request.Request(target_url, headers={"User-Agent": "Mozilla/5.0"})
+        with opener.open(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            smiles = data.get("smiles", "")
+
+        if smiles:
+            # Сохраняем в кеш
+            try:
+                new_cache = NameToSmilesCache(name=name, smiles=smiles)
+                db.add(new_cache)
+                db.commit()
+            except IntegrityError:
+                db.rollback()
+
+            return {"name": name, "smiles": smiles, "source": "opsin"}
+    except Exception:
+        pass
+
+    # Fallback на Cactus
+    try:
+        safe_name = urllib.parse.quote(name, safe="")
+        target_url = f"https://cactus.nci.nih.gov/chemical/structure/{safe_name}/smiles"
+
+        opener = urllib.request.build_opener()
+        if PROXY_ADDRESS.strip():
+            proxy_host, proxy_port = PROXY_ADDRESS.split(":")
+            import socks
+            from sockshandler import SocksiPyHandler
+
+            proxy_handler = SocksiPyHandler(socks.SOCKS5, proxy_host, int(proxy_port))
+            opener = urllib.request.build_opener(proxy_handler)
+
+        req = urllib.request.Request(target_url, headers={"User-Agent": "Mozilla/5.0"})
+        with opener.open(req, timeout=10) as resp:
+            smiles = resp.read().decode("utf-8").strip()
+
+        if smiles:
+            try:
+                new_cache = NameToSmilesCache(name=name, smiles=smiles)
+                db.add(new_cache)
+                db.commit()
+            except IntegrityError:
+                db.rollback()
+
+            return {"name": name, "smiles": smiles, "source": "cactus"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"{get_text('proxy_request_error', lang)}: {str(e)}",
+        )
+
+    raise HTTPException(status_code=404, detail=get_text("name_not_found", lang))

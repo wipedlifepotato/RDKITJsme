@@ -9,6 +9,12 @@ class CachedName(Base):
     smiles = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
 
+
+class NameToSmilesCache(Base):
+    __tablename__ = "name_to_smiles_cache"
+    name = Column(String, primary_key=True, index=True)
+    smiles = Column(String, nullable=False)
+
 engine = None
 SessionLocal = None
 

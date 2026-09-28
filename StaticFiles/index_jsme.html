@@ -322,6 +322,12 @@
         <button class="tab-btn" onclick="switchTab('retro')" data-i18n="retro">Retro <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('conf')" data-i18n="conf">Conformers <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('export')" data-i18n="export">Export <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('tautomers')" data-i18n="tautomers">Tautomers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('scaffold')" data-i18n="scaffold">Scaffold <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('cluster')" data-i18n="cluster">Cluster <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('stereo')" data-i18n="stereo">Stereoisomers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('ringconf')" data-i18n="ringconf">Ring Conf <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('nametosmiles')" data-i18n="nametosmiles">Name→SMILES <span class="badge badge-new">NEW</span></button>
     </div>
 
     <!-- Basic Tools -->
@@ -453,6 +459,138 @@
             </div>
             <div id="export_out" class="output-box">Export results will appear here...</div>
             <div id="svg_preview" style="margin-top: 10px; text-align: center; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Tautomers Tools -->
+    <div id="tab-tautomers" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getTautomers()" data-i18n="tautomersBtn">Enumerate Tautomers</button>
+            </div>
+            <div id="tautomers_out" class="output-box">Tautomers will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Scaffold Tools -->
+    <div id="tab-scaffold" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getScaffold()" data-i18n="scaffoldBtn">Get Bemis-Murcko Scaffold</button>
+            </div>
+            <div id="scaffold_out" class="output-box">Scaffold will appear here...</div>
+            <div id="scaffold_svg" style="margin-top: 10px; text-align: center; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Cluster Tools -->
+    <div id="tab-cluster" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <textarea id="cluster_smiles" placeholder="Enter SMILES list (one per line)" style="width: 100%; height: 80px; padding: 8px; font-family: monospace;"></textarea>
+            </div>
+            <div class="tools-row">
+                <label style="font-size: 13px;">Cutoff: <input type="number" id="cluster_cutoff" value="0.7" min="0.1" max="1.0" step="0.1" style="width: 60px; padding: 4px;"></label>
+                <button class="btn-tool" onclick="getClusters()" data-i18n="clusterBtn">Cluster Molecules (Butina)</button>
+            </div>
+            <div id="cluster_out" class="output-box">Clustering results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Stereoisomers Tools -->
+    <div id="tab-stereo" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getStereoisomers()" data-i18n="stereoBtn">Enumerate Stereoisomers</button>
+            </div>
+            <div id="stereo_out" class="output-box">Stereoisomers will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Ring Conformation Tools -->
+    <div id="tab-ringconf" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getRingConformation()" data-i18n="ringconfBtn">Analyze Ring Conformations</button>
+            </div>
+            <div id="ringconf_out" class="output-box">Ring conformation analysis will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Name to SMILES Tools -->
+    <div id="tab-nametosmiles" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <input type="text" id="name_input" placeholder="Enter molecule name (e.g. Aspirin)" style="flex: 1;">
+                <button class="btn-tool" onclick="getNameToSmiles()" data-i18n="nametosmilesBtn">Convert Name to SMILES</button>
+            </div>
+            <div id="nametosmiles_out" class="output-box">Name to SMILES result will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Tautomers Tools -->
+    <div id="tab-tautomers" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getTautomers()" data-i18n="tautomersBtn">Enumerate Tautomers</button>
+            </div>
+            <div id="tautomers_out" class="output-box">Tautomers will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Scaffold Tools -->
+    <div id="tab-scaffold" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getScaffold()" data-i18n="scaffoldBtn">Get Bemis-Murcko Scaffold</button>
+            </div>
+            <div id="scaffold_out" class="output-box">Scaffold will appear here...</div>
+            <div id="scaffold_svg" style="margin-top: 10px; text-align: center; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Cluster Tools -->
+    <div id="tab-cluster" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <textarea id="cluster_smiles" placeholder="Enter SMILES list (one per line)" style="width: 100%; height: 80px; padding: 8px; font-family: monospace;"></textarea>
+            </div>
+            <div class="tools-row">
+                <label style="font-size: 13px;">Cutoff: <input type="number" id="cluster_cutoff" value="0.7" min="0.1" max="1.0" step="0.1" style="width: 60px; padding: 4px;"></label>
+                <button class="btn-tool" onclick="getClusters()" data-i18n="clusterBtn">Cluster Molecules (Butina)</button>
+            </div>
+            <div id="cluster_out" class="output-box">Clustering results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Stereoisomers Tools -->
+    <div id="tab-stereo" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getStereoisomers()" data-i18n="stereoBtn">Enumerate Stereoisomers</button>
+            </div>
+            <div id="stereo_out" class="output-box">Stereoisomers will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Ring Conformation Tools -->
+    <div id="tab-ringconf" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <button class="btn-tool" onclick="getRingConformation()" data-i18n="ringconfBtn">Analyze Ring Conformations</button>
+            </div>
+            <div id="ringconf_out" class="output-box">Ring conformation analysis will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Name to SMILES Tools -->
+    <div id="tab-nametosmiles" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <input type="text" id="name_input" placeholder="Enter molecule name (e.g. Aspirin)" style="flex: 1;">
+                <button class="btn-tool" onclick="getNameToSmiles()" data-i18n="nametosmilesBtn">Convert Name to SMILES</button>
+            </div>
+            <div id="nametosmiles_out" class="output-box">Name to SMILES result will appear here...</div>
         </div>
     </div>
 
@@ -707,6 +845,18 @@
             export: 'Экспорт',
             svgBtn: 'Экспорт SVG',
             msBtn: 'Масс-спектрометрия',
+            tautomers: 'Тавтомеры',
+            tautomersBtn: 'Перечислить таутомеры',
+            scaffold: 'Скаффолд',
+            scaffoldBtn: 'Скаффолд Бемиса-Мерко',
+            cluster: 'Кластер',
+            clusterBtn: 'Кластеризовать (Бутина)',
+            stereo: 'Стереоизомеры',
+            stereoBtn: 'Перечислить стереоизомеры',
+            ringconf: 'Конформации',
+            ringconfBtn: 'Анализ конформаций колец',
+            nametosmiles: 'Имя→SMILES',
+            nametosmilesBtn: 'Конвертировать имя в SMILES',
             help: 'Справка',
             helpTitle: 'Справка по дескрипторам',
             basicProps: 'Базовые свойства',
@@ -811,6 +961,18 @@
             export: 'Export',
             svgBtn: 'Export SVG',
             msBtn: 'Mass Spectrometry',
+            tautomers: 'Tautomers',
+            tautomersBtn: 'Enumerate Tautomers',
+            scaffold: 'Scaffold',
+            scaffoldBtn: 'Bemis-Murcko Scaffold',
+            cluster: 'Cluster',
+            clusterBtn: 'Cluster (Butina)',
+            stereo: 'Stereoisomers',
+            stereoBtn: 'Enumerate Stereoisomers',
+            ringconf: 'Ring Conf',
+            ringconfBtn: 'Analyze Ring Conformations',
+            nametosmiles: 'Name→SMILES',
+            nametosmilesBtn: 'Convert Name to SMILES',
             help: 'Help',
             helpTitle: 'Descriptor Help Guide',
             basicProps: 'Basic Properties',
@@ -915,6 +1077,18 @@
             export: 'Експорт',
             svgBtn: 'Експорт SVG',
             msBtn: 'Мас-спектрометрія',
+            tautomers: 'Таутомери',
+            tautomersBtn: 'Перелічити таутомери',
+            scaffold: 'Скаффолд',
+            scaffoldBtn: 'Скаффолд Беміса-Мерко',
+            cluster: 'Кластер',
+            clusterBtn: 'Кластеризувати (Бутина)',
+            stereo: 'Стереоізомери',
+            stereoBtn: 'Перелічити стереоізомери',
+            ringconf: 'Конформації',
+            ringconfBtn: 'Аналіз конформацій кілець',
+            nametosmiles: 'Ім\'я→SMILES',
+            nametosmilesBtn: 'Конвертувати ім\'я в SMILES',
             help: 'Довідка',
             helpTitle: 'Довідка по дескрипторах',
             basicProps: 'Базові властивості',
@@ -1019,6 +1193,18 @@
             export: 'Exportar',
             svgBtn: 'Exportar SVG',
             msBtn: 'Espectrometría de Masas',
+            tautomers: 'Tautómeros',
+            tautomersBtn: 'Enumerar Tautómeros',
+            scaffold: 'Andamio',
+            scaffoldBtn: 'Andamio Bemis-Murcko',
+            cluster: 'Clúster',
+            clusterBtn: 'Clúster (Butina)',
+            stereo: 'Estereoisómeros',
+            stereoBtn: 'Enumerar Estereoisómeros',
+            ringconf: 'Conf. Anillo',
+            ringconfBtn: 'Analizar Conformaciones de Anillo',
+            nametosmiles: 'Nombre→SMILES',
+            nametosmilesBtn: 'Convertir Nombre a SMILES',
             help: 'Ayuda',
             helpTitle: 'Guía de Descriptores',
             basicProps: 'Propiedades Básicas',
@@ -1767,6 +1953,149 @@
                 });
                 html += `</table>`;
                 out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Tautomers Endpoints ---
+
+    async function getTautomers() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('tautomers_out');
+        if (!smiles) return;
+        out.innerHTML = "Enumerating tautomers...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/tautomers?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Tautomers (${data.count} found)</b><br>`;
+                html += `<b>Canonical:</b> ${data.canonical_tautomer}<br><br>`;
+                html += `<b>All Tautomers:</b><br>`;
+                data.tautomers.forEach((t, i) => {
+                    html += `• ${i + 1}. ${t}<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Scaffold Endpoints ---
+
+    async function getScaffold() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('scaffold_out');
+        const svgPreview = document.getElementById('scaffold_svg');
+        if (!smiles) return;
+        out.innerHTML = "Extracting scaffold...";
+        svgPreview.style.display = 'none';
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/scaffold?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Bemis-Murcko Scaffold:</b> ${data.scaffold_smiles}`;
+                svgPreview.innerHTML = data.scaffold_svg;
+                svgPreview.style.display = 'block';
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Cluster Endpoints ---
+
+    async function getClusters() {
+        const smilesText = document.getElementById('cluster_smiles').value.trim();
+        const cutoff = document.getElementById('cluster_cutoff').value || 0.7;
+        const out = document.getElementById('cluster_out');
+        if (!smilesText) { out.innerHTML = "Please enter SMILES list."; return; }
+        const smilesList = smilesText.split('\n').map(s => s.trim()).filter(s => s);
+        if (smilesList.length < 2) { out.innerHTML = "Please enter at least 2 SMILES."; return; }
+        out.innerHTML = `Clustering ${smilesList.length} molecules...`;
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/cluster`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ smiles_list: smilesList, cutoff: parseFloat(cutoff) })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Clustering Results</b><br>`;
+                html += `<b>Total molecules:</b> ${data.total_molecules} | <b>Cutoff:</b> ${data.cutoff} | <b>Clusters:</b> ${data.cluster_count}<br><br>`;
+                data.clusters.forEach(c => {
+                    html += `<b>Cluster ${c.cluster_id}</b> (${c.size} molecules):<br>`;
+                    c.smiles.forEach(s => { html += `• ${s}<br>`; });
+                    html += `<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Stereoisomers Endpoints ---
+
+    async function getStereoisomers() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('stereo_out');
+        if (!smiles) return;
+        out.innerHTML = "Enumerating stereoisomers...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/stereoisomers?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Stereoisomers (${data.count} found)</b><br>`;
+                html += `<b>Chiral centers (N):</b> ${data.chiral_centers_count}<br>`;
+                html += `<b>Formula:</b> ${data.formula}<br><br>`;
+                data.stereoisomers.forEach((s, i) => {
+                    html += `• ${i + 1}. ${s}<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Ring Conformation Endpoints ---
+
+    async function getRingConformation() {
+        const smiles = document.getElementById('smiles').value.trim();
+        const out = document.getElementById('ringconf_out');
+        if (!smiles) return;
+        out.innerHTML = "Analyzing ring conformations...";
+        try {
+            const res = await fetch(`${rdkit_api_h}rdkit/api/ring_conformation?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Ring Conformation Analysis</b><br>`;
+                html += `<b>Total rings:</b> ${data.total_rings}<br><br>`;
+                data.rings.forEach((ring, i) => {
+                    html += `<b>Ring ${i + 1}</b> (size: ${ring.ring_size})<br>`;
+                    html += `<b>Most stable:</b> ${ring.most_stable_conformation} (${ring.min_energy} kcal/mol)<br>`;
+                    html += `<b>Least stable:</b> ${ring.least_stable_conformation} (${ring.max_energy} kcal/mol)<br>`;
+                    html += `<b>Conformations found:</b> ${ring.total_conformations_found}<br><br>`;
+                    ring.conformations.forEach((conf, j) => {
+                        const cp = conf.cremer_pople;
+                        const stable = conf.is_most_stable ? ' ✅ MOST STABLE' : '';
+                        const unstable = conf.is_least_stable ? ' ⚠️ LEAST STABLE' : '';
+                        html += `&nbsp;&nbsp;• <b>${cp.conformation}</b> (E=${conf.energy} kcal/mol)${stable}${unstable}<br>`;
+                        if (cp.Q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;Q=${cp.Q} | θ=${cp.theta}° | φ=${cp.phi}°<br>`;
+                        if (cp.q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;q=${cp.q} | θ=${cp.theta}° | φ=${cp.phi}°<br>`;
+                    });
+                    html += `<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Name to SMILES Endpoints ---
+
+    async function getNameToSmiles() {
+        const name = document.getElementById('name_input').value.trim();
+        const out = document.getElementById('nametosmiles_out');
+        if (!name) { out.innerHTML = "Please enter a molecule name."; return; }
+        out.innerHTML = "Converting name to SMILES...";
+        try {
+            const res = await fetch(`${rdkit_api_h}api/name_to_smiles?name=${encodeURIComponent(name)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                out.innerHTML = `<b>Name:</b> ${data.name}<br><b>SMILES:</b> ${data.smiles}<br><b>Source:</b> ${data.source}`;
             } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
