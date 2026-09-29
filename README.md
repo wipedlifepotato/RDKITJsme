@@ -20,6 +20,7 @@
 
 ### Токсичность (ADMET)
 - RDKit alerts
+- PubChem GHS Classification
 
 ### Ретросинтез
 - Анализ разрывов связей (RDKit RECAP)

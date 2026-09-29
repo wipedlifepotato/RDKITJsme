@@ -67,6 +67,18 @@ async def serve_index():
     return "<h1>SMILES API Rdkit</h1><p>index_jsme.html не найден</p>"
 
 
+@app.get("/periodatic_table", response_class=HTMLResponse, include_in_schema=False)
+async def serve_periodatic_table():
+    """Отдаёт периодическую таблицу элементов."""
+    table_path = os.path.join(
+        os.path.dirname(__file__), "StaticFiles", "periodic_table.html"
+    )
+    if os.path.exists(table_path):
+        with open(table_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>Периодическая таблица</h1><p>periodic_table.html не найден</p>"
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
