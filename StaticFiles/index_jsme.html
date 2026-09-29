@@ -328,6 +328,7 @@
         <button class="tab-btn" onclick="switchTab('stereo')" data-i18n="stereo">Stereoisomers <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('ringconf')" data-i18n="ringconf">Ring Conf <span class="badge badge-new">NEW</span></button>
         <button class="tab-btn" onclick="switchTab('nametosmiles')" data-i18n="nametosmiles">Name→SMILES <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('inorg')" data-i18n="inorg">Inorganic <span class="badge badge-new">NEW</span></button>
     </div>
 
     <!-- Basic Tools -->
@@ -594,6 +595,39 @@
         </div>
     </div>
 
+    <!-- Inorganic Chemistry Tools -->
+    <div id="tab-inorg" class="tab-content">
+        <div class="tools-panel">
+            <div class="tools-row">
+                <input type="text" id="inorg_formula" placeholder="Formula (e.g. H2SO4, Fe2O3)" style="flex: 1;">
+                <button class="btn-tool" onclick="parseFormula()" data-i18n="parseFormula">Parse Formula</button>
+                <button class="btn-tool" onclick="getOxidationStates()" data-i18n="oxStates">Oxidation States</button>
+            </div>
+            <div id="inorg_out" class="output-box">Formula parsing results will appear here...</div>
+            
+            <div class="tools-row" style="margin-top: 10px;">
+                <input type="text" id="inorg_elem1" placeholder="Element 1 (e.g. Na)" style="width: 80px;">
+                <input type="text" id="inorg_elem2" placeholder="Element 2 (e.g. Cl)" style="width: 80px;">
+                <button class="btn-tool" onclick="getElectronegativity()" data-i18n="electronegativity">Bond Type</button>
+                <button class="btn-tool" onclick="getOrbitals()" data-i18n="orbitals">Orbitals</button>
+            </div>
+            <div id="inorg_bond_out" class="output-box">Bond type and orbitals will appear here...</div>
+            
+            <div class="tools-row" style="margin-top: 10px;">
+                <input type="text" id="inorg_cation" placeholder="Cation (e.g. Ca)" style="width: 80px;">
+                <input type="text" id="inorg_anion" placeholder="Anion (e.g. SO4)" style="width: 80px;">
+                <button class="btn-tool" onclick="checkSolubility()" data-i18n="solubility">Solubility</button>
+            </div>
+            <div id="inorg_sol_out" class="output-box">Solubility results will appear here...</div>
+            
+            <div class="tools-row" style="margin-top: 10px;">
+                <input type="text" id="inorg_reaction" placeholder="Reaction with -> (e.g. Fe2O3 + CO -> Fe + CO2)" style="flex: 1;">
+                <button class="btn-tool" onclick="analyzeRedox()" data-i18n="redox">Redox Analysis</button>
+            </div>
+            <div id="inorg_redox_out" class="output-box">Redox analysis will appear here...</div>
+        </div>
+    </div>
+
     <!-- Render Controls -->
     <div class="controls">
         <div class="radios">
@@ -857,6 +891,16 @@
             ringconfBtn: 'Анализ конформаций колец',
             nametosmiles: 'Имя→SMILES',
             nametosmilesBtn: 'Конвертировать имя в SMILES',
+            inorg: 'Неорганика',
+            parseFormula: 'Разобрать формулу',
+            oxStates: 'Степени окисления',
+            electronegativity: 'Тип связи',
+            orbitals: 'Орбитали',
+            solubility: 'Растворимость',
+            redox: 'ОВР анализ',
+            balanced: 'Уравнено',
+            oxidizingAgent: 'Окислитель',
+            reducingAgent: 'Восстановитель',
             help: 'Справка',
             helpTitle: 'Справка по дескрипторам',
             basicProps: 'Базовые свойства',
@@ -973,6 +1017,16 @@
             ringconfBtn: 'Analyze Ring Conformations',
             nametosmiles: 'Name→SMILES',
             nametosmilesBtn: 'Convert Name to SMILES',
+            inorg: 'Inorganic',
+            parseFormula: 'Parse Formula',
+            oxStates: 'Oxidation States',
+            electronegativity: 'Bond Type',
+            orbitals: 'Orbitals',
+            solubility: 'Solubility',
+            redox: 'Redox Analysis',
+            balanced: 'Balanced',
+            oxidizingAgent: 'Oxidizing Agent',
+            reducingAgent: 'Reducing Agent',
             help: 'Help',
             helpTitle: 'Descriptor Help Guide',
             basicProps: 'Basic Properties',
@@ -1089,6 +1143,16 @@
             ringconfBtn: 'Аналіз конформацій кілець',
             nametosmiles: 'Ім\'я→SMILES',
             nametosmilesBtn: 'Конвертувати ім\'я в SMILES',
+            inorg: 'Неорганіка',
+            parseFormula: 'Розібрати формулу',
+            oxStates: 'Ступені окислення',
+            electronegativity: 'Тип зв\'язку',
+            orbitals: 'Орбіталі',
+            solubility: 'Розчинність',
+            redox: 'ОВР аналіз',
+            balanced: 'Врівняно',
+            oxidizingAgent: 'Окисник',
+            reducingAgent: 'Відновник',
             help: 'Довідка',
             helpTitle: 'Довідка по дескрипторах',
             basicProps: 'Базові властивості',
@@ -1205,6 +1269,16 @@
             ringconfBtn: 'Analizar Conformaciones de Anillo',
             nametosmiles: 'Nombre→SMILES',
             nametosmilesBtn: 'Convertir Nombre a SMILES',
+            inorg: 'Inorgánica',
+            parseFormula: 'Analizar Fórmula',
+            oxStates: 'Estados de Oxidación',
+            electronegativity: 'Tipo de Enlace',
+            orbitals: 'Orbitales',
+            solubility: 'Solubilidad',
+            redox: 'Análisis Redox',
+            balanced: 'Balanceado',
+            oxidizingAgent: 'Agente Oxidante',
+            reducingAgent: 'Agente Reductor',
             help: 'Ayuda',
             helpTitle: 'Guía de Descriptores',
             basicProps: 'Propiedades Básicas',
@@ -1847,6 +1921,123 @@
                 out.innerHTML = html;
             } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    // --- Inorganic Chemistry Endpoints ---
+
+    async function parseFormula() {
+        const formula = document.getElementById('inorg_formula').value.trim();
+        const out = document.getElementById('inorg_out');
+        if (!formula) return;
+        out.innerHTML = "Parsing formula...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/parse_formula?formula=${encodeURIComponent(formula)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Formula:</b> ${data.formula}<br>`;
+                html += `<b>Molecular Mass:</b> ${data.molecular_mass} g/mol<br>`;
+                html += `<b>Total Atoms:</b> ${data.total_atoms}<br><br>`;
+                html += `<b>Elements:</b><br>`;
+                data.elements.forEach(e => {
+                    html += `• ${e.element}: ${e.count} atoms, ${e.atomic_mass} g/mol (${e.mass_percent}%)<br>`;
+                });
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getOxidationStates() {
+        const formula = document.getElementById('inorg_formula').value.trim();
+        const out = document.getElementById('inorg_out');
+        if (!formula) return;
+        out.innerHTML = "Determining oxidation states...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/oxidation_states?formula=${encodeURIComponent(formula)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Oxidation States for ${data.formula}:</b><br>`;
+                for (const [elem, state] of Object.entries(data.oxidation_states)) {
+                    html += `• ${elem}: ${state > 0 ? '+' + state : state}<br>`;
+                }
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getElectronegativity() {
+        const elem1 = document.getElementById('inorg_elem1').value.trim();
+        const elem2 = document.getElementById('inorg_elem2').value.trim();
+        const out = document.getElementById('inorg_bond_out');
+        if (!elem1 || !elem2) return;
+        out.innerHTML = "Calculating bond type...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/electronegativity?element1=${encodeURIComponent(elem1)}&element2=${encodeURIComponent(elem2)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Bond Type: ${elem1}-${elem2}</b><br>`;
+                html += `ΔEN = ${data.delta}<br>`;
+                html += `<b>${data.bond_type_ru}</b><br>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function getOrbitals() {
+        const elem = document.getElementById('inorg_elem1').value.trim();
+        const out = document.getElementById('inorg_bond_out');
+        if (!elem) return;
+        out.innerHTML = "Getting electron configuration...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/orbitals?element=${encodeURIComponent(elem)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                let html = `<b>Electron Configuration: ${data.element}</b><br>`;
+                html += `${data.electron_configuration}<br>`;
+                html += `<b>Unpaired electrons:</b> ${data.unpaired_electrons}<br>`;
+                html += `<b>Valence electrons:</b> ${data.valence_electrons}<br>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function checkSolubility() {
+        const cation = document.getElementById('inorg_cation').value.trim();
+        const anion = document.getElementById('inorg_anion').value.trim();
+        const out = document.getElementById('inorg_sol_out');
+        if (!cation || !anion) return;
+        out.innerHTML = "Checking solubility...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/solubility?cation=${encodeURIComponent(cation)}&anion=${encodeURIComponent(anion)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                const ruleKey = 'rule_' + currentLang;
+                const rule = data[ruleKey] || data.rule || '';
+                let html = `<b>Solubility: ${data.compound}</b><br>`;
+                html += `<b>${data.solubility_ru}</b><br>`;
+                html += `<i>${rule}</i><br>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = "API Connection Error"; }
+    }
+
+    async function analyzeRedox() {
+        const reaction = document.getElementById('inorg_reaction').value.trim();
+        const out = document.getElementById('inorg_redox_out');
+        if (!reaction) return;
+        out.innerHTML = "Analyzing redox reaction...";
+        try {
+            const res = await fetch(`${rdkit_api_h}inorg/api/redox?reaction=${encodeURIComponent(reaction)}&lang=${currentLang}`);
+            const data = await res.json();
+            if (res.ok) {
+                const eqKey = 'equation_' + currentLang;
+                const balanced = data[eqKey] || data.balanced || data.equation || '';
+                let html = `<b>${t('redox')}</b><br>`;
+                html += `<b>${t('balanced')}:</b> ${balanced}<br>`;
+                if (data.oxidizing_agent) html += `<b>${t('oxidizingAgent')}:</b> ${data.oxidizing_agent}<br>`;
+                if (data.reducing_agent) html += `<b>${t('reducingAgent')}:</b> ${data.reducing_agent}<br>`;
+                out.innerHTML = html;
+            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+        } catch (e) { out.innerHTML = t('apiConnectionError'); }
     }
 
     // --- Retrosynthesis Endpoints ---

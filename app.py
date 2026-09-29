@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from database import get_db, CachedName, NameToSmilesCache, PubChemToxicityCache
 from Molecule import Molecule
 from rdkit_router import router as rdkit_router, set_proxy as set_rdkit_proxy
+from inorg_router import router as inorg_router, set_proxy as set_inorg_proxy
 from i18n import get_text, get_lang
 import httpx
 
@@ -37,6 +38,10 @@ init_db("sqlite:///./chem.db")
 # Подключаем расширенный RDKit роутер
 # include_router не работает с текущей версией FastAPI — добавляем маршруты вручную
 for route in rdkit_router.routes:
+    app.routes.append(route)
+
+# Подключаем Inorganic Chemistry роутер
+for route in inorg_router.routes:
     app.routes.append(route)
 
 # ИСПРАВЛЕНИЕ: Создаем директорию, чтобы FastAPI не падал при старте, если ее нет
@@ -76,6 +81,7 @@ def set_proxy(proxy: str):
     global PROXY_ADDRESS
     PROXY_ADDRESS = proxy
     set_rdkit_proxy(proxy)
+    set_inorg_proxy(proxy)
 
 
 @app.get("/api/similarity")
