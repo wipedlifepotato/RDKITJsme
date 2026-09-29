@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗️</text></svg>">
+<title>Периодическая таблица — справочник</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    padding: 15px;
+    min-height: 100vh;
+}
+h1 { text-align: center; margin-bottom: 10px; font-size: 1.4rem; color: #fff; }
+h2 { font-size: 1rem; margin: 15px 0 8px; color: #a29bfe; }
+
+.legend {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    margin-bottom: 15px; font-size: 0.75rem;
+}
+.legend-item {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 4px; background: #16213e;
+}
+.legend-color { width: 12px; height: 12px; border-radius: 2px; }
+
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+table { border-collapse: collapse; margin: 0 auto; }
+td {
+    width: 52px; height: 52px; padding: 2px;
+    vertical-align: top; text-align: center;
+    border: 1px solid #333; border-radius: 3px;
+    cursor: pointer; font-size: 0.65rem;
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+}
+td:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+td.empty { border: none; cursor: default; background: transparent; }
+td.empty:hover { transform: none; box-shadow: none; }
+.z { font-size: 0.6rem; color: rgba(255,255,255,0.7); display: block; }
+.sym { font-size: 0.9rem; font-weight: bold; display: block; }
+.name { font-size: 0.5rem; color: rgba(255,255,255,0.6); display: block; }
+.mass { font-size: 0.5rem; color: rgba(255,255,255,0.5); display: block; }
+
+.cat-alkali { background: #c0392b; }
+.cat-alkaline { background: #e67e22; }
+.cat-transition { background: #2980b9; }
+.cat-post { background: #27ae60; }
+.cat-metalloid { background: #f39c12; }
+.cat-nonmetal { background: #2ecc71; }
+.cat-halogen { background: #e74c3c; }
+.cat-noble { background: #8e44ad; }
+.cat-lanth { background: #d35400; }
+.cat-actin { background: #7f8c8d; }
+
+.f-block { margin-top: 15px; }
+.f-block td { width: 52px; height: 52px; }
+
+#detail {
+    position: fixed; top: 0; right: -400px; width: 380px; height: 100vh;
+    background: #16213e; border-left: 2px solid #a29bfe;
+    padding: 20px; overflow-y: auto; transition: right 0.3s; z-index: 100;
+}
+#detail.open { right: 0; }
+#detail h2 { color: #fff; font-size: 1.3rem; margin-bottom: 5px; }
+#detail .close {
+    position: absolute; top: 10px; right: 15px; font-size: 1.5rem;
+    cursor: pointer; color: #a29bfe;
+}
+#detail .row { margin: 8px 0; font-size: 0.85rem; }
+#detail .label { color: #a29bfe; font-weight: bold; }
+#detail .val { color: #fff; }
+.config-box {
+    background: #0f3460; padding: 10px; border-radius: 5px;
+    font-family: monospace; font-size: 0.8rem; margin: 8px 0;
+    white-space: pre-wrap; word-break: break-all;
+}
+.spin-box {
+    background: #0f3460; padding: 10px; border-radius: 5px;
+    font-size: 1.2rem; margin: 8px 0; letter-spacing: 2px;
+}
+
+.triads { margin-top: 20px; }
+.triad-group {
+    background: #16213e; padding: 10px 15px; border-radius: 5px;
+    margin: 5px 0; font-size: 0.85rem;
+}
+.triad-group .triad-title { color: #a29bfe; font-weight: bold; }
+.triad-group .triad-elems { color: #fff; margin-top: 3px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 15px; }
+.filter-btn {
+    padding: 4px 10px; border: 1px solid #a29bfe; border-radius: 15px;
+    background: transparent; color: #a29bfe; cursor: pointer; font-size: 0.75rem;
+    transition: all 0.2s;
+}
+.filter-btn.active, .filter-btn:hover { background: #a29bfe; color: #1a1a2e; }
+
+.lang-bar {
+    display: flex; gap: 5px; justify-content: center; margin-bottom: 10px;
+}
+.lang-btn {
+    padding: 4px 12px; border: 1px solid #a29bfe; border-radius: 15px;
+    background: transparent; color: #a29bfe; cursor: pointer; font-size: 0.75rem;
+    transition: all 0.2s;
+}
+.lang-btn.active, .lang-btn:hover { background: #a29bfe; color: #1a1a2e; }
+
+@media (max-width: 768px) {
+    td { width: 40px; height: 40px; font-size: 0.55rem; }
+    .sym { font-size: 0.75rem; }
+    #detail { width: 100vw; right: -100vw; }
+}
+</style>
+</head>
+<body>
+
+<h1 data-i18n="title">Периодическая таблица элементов</h1>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#c0392b"></div><span data-i18n="cat_alkali">Щелочные</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#e67e22"></div><span data-i18n="cat_alkaline">Щёлочноземельные</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#2980b9"></div><span data-i18n="cat_transition">Переходные</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div><span data-i18n="cat_post">Постпереходные</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div><span data-i18n="cat_metalloid">Полуметаллы</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div><span data-i18n="cat_nonmetal">Неметаллы</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div><span data-i18n="cat_halogen">Галогены</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#8e44ad"></div><span data-i18n="cat_noble">Благородные газы</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#d35400"></div><span data-i18n="cat_lanth">Лантаноиды</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#7f8c8d"></div><span data-i18n="cat_actin">Актиноиды</span></div>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<div class="table-wrap">
+    <table id="main-table"></table>
+</div>
+
+<div class="f-block">
+    <h2 data-i18n="lanthanides">Лантаноиды</h2>
+    <table id="lanth-table"></table>
+</div>
+
+<div class="f-block">
+    <h2 data-i18n="actinides">Актиноиды</h2>
+    <table id="actin-table"></table>
+</div>
+
+<div class="triads">
+    <h2 data-i18n="triads_title">Правило триад (Дёберейнер — Менделеев)</h2>
+    <div id="triads-list"></div>
+</div>
+
+<div id="detail">
+    <span class="close" onclick="closeDetail()">&times;</span>
+    <div id="detail-content"></div>
+</div>
+
+<script>
+// i18n
+const I18N = {
+    ru: {
+        title: "Периодическая таблица элементов",
+        cat_alkali: "Щелочные", cat_alkaline: "Щёлочноземельные",
+        cat_transition: "Переходные", cat_post: "Постпереходные",
+        cat_metalloid: "Полуметаллы", cat_nonmetal: "Неметаллы",
+        cat_halogen: "Галогены", cat_noble: "Благородные газы",
+        cat_lanth: "Лантаноиды", cat_actin: "Актиноиды",
+        lanthanides: "Лантаноиды", actinides: "Актиноиды",
+        triads_title: "Правило триад (Дёберейнер — Менделеев)",
+        filter_all: "Все",
+        atomic_number: "Атомный номер", atomic_mass: "Атомная масса",
+        group: "Группа", period: "Период", category: "Категория",
+        electron_config: "Электронная конфигурация",
+        spins: "Спины валентных электронов",
+        ion_color: "Цвет иона",
+        toxicity: "Токсичность (чистый элемент)",
+        bioavailability: "Биодоступность",
+        alkali: "Щелочной металл", alkaline: "Щёлочноземельный металл",
+        transition: "Переходный металл", post: "Постпереходный металл",
+        metalloid: "Полуметалл", nonmetal: "Неметалл",
+        halogen: "Галоген", noble: "Благородный газ",
+        lanth: "Лантаноид", actin: "Актиноид",
+        triad_alkali: "Щелочные металлы",
+        triad_alkaline: "Щёлочноземельные металлы",
+        triad_sc: "Триада скандия", triad_ti: "Триада титана",
+        triad_v: "Триада ванадия", triad_cr: "Триада хрома",
+        triad_mn: "Триада марганца", triad_fe: "Триада железа",
+        triad_co: "Триада кобальта", triad_ni: "Триада никеля",
+        triad_cu: "Триада меди", triad_zn: "Триада цинка",
+        triad_b: "Триада бора", triad_c: "Триада углерода",
+        triad_n: "Триада азота", triad_o: "Триада кислорода",
+        triad_halogen: "Галогены", triad_noble: "Благородные газы",
+        colorless: "бесцветный", none: "нет",
+        low: "низкая", medium: "средняя", high: "высокая",
+        // Цвета ионов (исправлено по Глинка/Некрасов/Коттон)
+        ion_Cr: "Cr²⁺ голубой; Cr³⁺ фиолетовый/зелёный; CrO₄²⁻ жёлтый; Cr₂O₇²⁻ оранжевый",
+        ion_Ti: "Ti³⁺ фиолетовый; Ti⁴⁺ бесцветный",
+        ion_V: "V²⁺ фиолетовый; V³⁺ зелёный; VO²⁺ синий; VO₂⁺ жёлтый",
+        ion_Mn: "Mn²⁺ бледно-розовый; MnO₄⁻ красно-фиолетовый; MnO₄²⁻ изумрудно-зелёный",
+        ion_Fe: "Fe²⁺ бледно-зелёный; Fe³⁺ фиолетовый/жёлто-коричневый; FeO₄²⁻ красно-фиолетовый",
+        ion_Co: "Co²⁺ розовый",
+        ion_Ni: "Ni²⁺ зелёный",
+        ion_Cu: "Cu²⁺ голубой/синий",
+        ion_Zn: "Zn²⁺ бесцветный",
+        ion_Ag: "Ag⁺ бесцветный",
+        ion_Cd: "Cd²⁺ бесцветный",
+        ion_Hg: "Hg²⁺ бесцветный",
+        ion_Al: "Al³⁺ бесцветный",
+        ion_Pb: "Pb²⁺ бесцветный",
+        ion_Sn: "Sn²⁺ бесцветный",
+        ion_Bi: "Bi³⁺ бесцветный",
+        ion_Sb: "Sb³⁺ бесцветный",
+        ion_As: "As³⁺ бесцветный",
+        ion_Se: "Se²⁻ бесцветный",
+        ion_Te: "Te²⁻ бесцветный",
+        ion_I: "I⁻ бесцветный; I₃⁻ тёмно-коричневый",
+        ion_Br: "Br⁻ бесцветный",
+        ion_Cl: "Cl⁻ бесцветный",
+        ion_F: "F⁻ бесцветный",
+        ion_S: "S²⁻ бесцветный; Sₙ²⁻ жёлтый/оранжевый",
+        ion_O: "O²⁻ бесцветный",
+        ion_N: "N³⁻ бесцветный",
+        ion_P: "P³⁻ бесцветный",
+        ion_C: "C⁴⁻ бесцветный",
+        ion_Si: "Si⁴⁺ бесцветный",
+        ion_B: "B³⁺ бесцветный",
+        ion_Ba: "Ba²⁺ бесцветный",
+        ion_Sr: "Sr²⁺ бесцветный",
+        ion_Ca: "Ca²⁺ бесцветный",
+        ion_Mg: "Mg²⁺ бесцветный",
+        ion_Na: "Na⁺ бесцветный",
+        ion_K: "K⁺ бесцветный",
+        ion_Li: "Li⁺ бесцветный",
+        ion_Rb: "Rb⁺ бесцветный",
+        ion_Cs: "Cs⁺ бесцветный",
+        ion_Be: "Be²⁺ бесцветный",
+        ion_Sc: "Sc³⁺ бесцветный",
+        ion_Y: "Y³⁺ бесцветный",
+        ion_La: "La³⁺ бесцветный",
+        ion_Ce: "Ce³⁺ бесцветный; Ce⁴⁺ жёлтый",
+        ion_Pr: "Pr³⁺ зелёный",
+        ion_Nd: "Nd³⁺ розовый",
+        ion_Sm: "Sm³⁺ жёлтый",
+        ion_Eu: "Eu³⁺ розовый",
+        ion_Gd: "Gd³⁺ бесцветный",
+        ion_Tb: "Tb³⁺ бесцветный",
+        ion_Dy: "Dy³⁺ жёлтый",
+        ion_Ho: "Ho³⁺ жёлтый",
+        ion_Er: "Er³⁺ розовый",
+        ion_Tm: "Tm³⁺ зелёный",
+        ion_Yb: "Yb³⁺ бесцветный",
+        ion_Lu: "Lu³⁺ бесцветный",
+        ion_Hf: "Hf⁴⁺ бесцветный",
+        ion_Ta: "Ta⁵⁺ бесцветный",
+        ion_W: "W⁶⁺ бесцветный",
+        ion_Re: "Re⁷⁺ бесцветный",
+        ion_Os: "Os⁸⁺ бесцветный",
+        ion_Ir: "Ir³⁺ коричневый",
+        ion_Pt: "Pt²⁺ жёлтый",
+        ion_Au: "Au³⁺ жёлтый",
+        ion_Tl: "Tl⁺ бесцветный",
+        ion_In: "In³⁺ бесцветный",
+        ion_Ga: "Ga³⁺ бесцветный",
+        ion_Ge: "Ge⁴⁺ бесцветный",
+        ion_Po: "Po⁴⁺ бесцветный",
+        ion_At: "At⁻ бесцветный",
+        ion_Fr: "Fr⁺ бесцветный",
+        ion_Ra: "Ra²⁺ бесцветный",
+        ion_Ac: "Ac³⁺ бесцветный",
+        ion_Th: "Th⁴⁺ бесцветный",
+        ion_Pa: "Pa⁵⁺ бесцветный",
+        ion_U: "U⁴⁺ зелёный; UO₂²⁺ жёлтый",
+        ion_Np: "Np⁴⁺ синий",
+        ion_Pu: "Pu⁴⁺ синий",
+        ion_Am: "Am³⁺ розовый",
+        ion_Cm: "Cm³⁺ бесцветный",
+        ion_Bk: "Bk³⁺ бесцветный",
+        ion_Cf: "Cf³⁺ бесцветный",
+        ion_Es: "Es³⁺ бесцветный",
+        ion_Fm: "Fm³⁺ бесцветный",
+        ion_Md: "Md³⁺ бесцветный",
+        ion_No: "No³⁺ бесцветный",
+        ion_Lr: "Lr³⁺ бесцветный",
+        ion_Rf: "Rf⁴⁺ неизвестно",
+        ion_Db: "Db⁵⁺ неизвестно",
+        ion_Sg: "Sg⁶⁺ неизвестно",
+        ion_Bh: "Bh⁷⁺ неизвестно",
+        ion_Hs: "Hs⁸⁺ неизвестно",
+        ion_Mt: "Mt⁶⁺ неизвестно",
+        ion_Ds: "Ds⁸⁺ неизвестно",
+        ion_Rg: "Rg⁹⁺ неизвестно",
+        ion_Cn: "Cn²⁺ неизвестно",
+        ion_Nh: "Nh⁺ неизвестно",
+        ion_Fl: "Fl⁺ неизвестно",
+        ion_Mc: "Mc³⁺ неизвестно",
+        ion_Lv: "Lv²⁺ неизвестно",
+        ion_Ts: "Ts⁻ неизвестно",
+        ion_Og: "Og неизвестно",
+        ion_H: "H⁺ бесцветный",
+        ion_He: "He нет",
+        ion_Ne: "Ne нет",
+        ion_Ar: "Ar нет",
+        ion_Kr: "Kr нет",
+        ion_Xe: "Xe нет",
+        ion_Rn: "Rn нет"
+    },
+    en: {
+        title: "Periodic Table of Elements",
+        cat_alkali: "Alkali", cat_alkaline: "Alkaline earth",
+        cat_transition: "Transition", cat_post: "Post-transition",
+        cat_metalloid: "Metalloids", cat_nonmetal: "Nonmetals",
+        cat_halogen: "Halogens", cat_noble: "Noble gases",
+        cat_lanth: "Lanthanides", cat_actin: "Actinides",
+        lanthanides: "Lanthanides", actinides: "Actinides",
+        triads_title: "Triad Rule (Döbereiner — Mendeleev)",
+        filter_all: "All",
+        atomic_number: "Atomic number", atomic_mass: "Atomic mass",
+        group: "Group", period: "Period", category: "Category",
+        electron_config: "Electron configuration",
+        spins: "Valence electron spins",
+        ion_color: "Ion color",
+        toxicity: "Toxicity (pure element)",
+        bioavailability: "Bioavailability",
+        alkali: "Alkali metal", alkaline: "Alkaline earth metal",
+        transition: "Transition metal", post: "Post-transition metal",
+        metalloid: "Metalloid", nonmetal: "Nonmetal",
+        halogen: "Halogen", noble: "Noble gas",
+        lanth: "Lanthanide", actin: "Actinide",
+        triad_alkali: "Alkali metals",
+        triad_alkaline: "Alkaline earth metals",
+        triad_sc: "Scandium triad", triad_ti: "Titanium triad",
+        triad_v: "Vanadium triad", triad_cr: "Chromium triad",
+        triad_mn: "Manganese triad", triad_fe: "Iron triad",
+        triad_co: "Cobalt triad", triad_ni: "Nickel triad",
+        triad_cu: "Copper triad", triad_zn: "Zinc triad",
+        triad_b: "Boron triad", triad_c: "Carbon triad",
+        triad_n: "Nitrogen triad", triad_o: "Oxygen triad",
+        triad_halogen: "Halogens", triad_noble: "Noble gases",
+        colorless: "colorless", none: "none",
+        low: "low", medium: "medium", high: "high",
+        ion_Cr: "Cr²⁺ blue; Cr³⁺ violet/green; CrO₄²⁻ yellow; Cr₂O₇²⁻ orange",
+        ion_Ti: "Ti³⁺ violet; Ti⁴⁺ colorless",
+        ion_V: "V²⁺ violet; V³⁺ green; VO²⁺ blue; VO₂⁺ yellow",
+        ion_Mn: "Mn²⁺ pale pink; MnO₄⁻ red-violet; MnO₄²⁻ emerald green",
+        ion_Fe: "Fe²⁺ pale green; Fe³⁺ violet/yellow-brown; FeO₄²⁻ red-violet",
+        ion_Co: "Co²⁺ pink",
+        ion_Ni: "Ni²⁺ green",
+        ion_Cu: "Cu²⁺ blue",
+        ion_Zn: "Zn²⁺ colorless",
+        ion_Ag: "Ag⁺ colorless",
+        ion_Cd: "Cd²⁺ colorless",
+        ion_Hg: "Hg²⁺ colorless",
+        ion_Al: "Al³⁺ colorless",
+        ion_Pb: "Pb²⁺ colorless",
+        ion_Sn: "Sn²⁺ colorless",
+        ion_Bi: "Bi³⁺ colorless",
+        ion_Sb: "Sb³⁺ colorless",
+        ion_As: "As³⁺ colorless",
+        ion_Se: "Se²⁻ colorless",
+        ion_Te: "Te²⁻ colorless",
+        ion_I: "I⁻ colorless; I₃⁻ dark brown",
+        ion_Br: "Br⁻ colorless",
+        ion_Cl: "Cl⁻ colorless",
+        ion_F: "F⁻ colorless",
+        ion_S: "S²⁻ colorless; Sₙ²⁻ yellow/orange",
+        ion_O: "O²⁻ colorless",
+        ion_N: "N³⁻ colorless",
+        ion_P: "P³⁻ colorless",
+        ion_C: "C⁴⁻ colorless",
+        ion_Si: "Si⁴⁺ colorless",
+        ion_B: "B³⁺ colorless",
+        ion_Ba: "Ba²⁺ colorless",
+        ion_Sr: "Sr²⁺ colorless",
+        ion_Ca: "Ca²⁺ colorless",
+        ion_Mg: "Mg²⁺ colorless",
+        ion_Na: "Na⁺ colorless",
+        ion_K: "K⁺ colorless",
+        ion_Li: "Li⁺ colorless",
+        ion_Rb: "Rb⁺ colorless",
+        ion_Cs: "Cs⁺ colorless",
+        ion_Be: "Be²⁺ colorless",
+        ion_Sc: "Sc³⁺ colorless",
+        ion_Y: "Y³⁺ colorless",
+        ion_La: "La³⁺ colorless",
+        ion_Ce: "Ce³⁺ colorless; Ce⁴⁺ yellow",
+        ion_Pr: "Pr³⁺ green",
+        ion_Nd: "Nd³⁺ pink",
+        ion_Sm: "Sm³⁺ yellow",
+        ion_Eu: "Eu³⁺ pink",
+        ion_Gd: "Gd³⁺ colorless",
+        ion_Tb: "Tb³⁺ colorless",
+        ion_Dy: "Dy³⁺ yellow",
+        ion_Ho: "Ho³⁺ yellow",
+        ion_Er: "Er³⁺ pink",
+        ion_Tm: "Tm³⁺ green",
+        ion_Yb: "Yb³⁺ colorless",
+        ion_Lu: "Lu³⁺ colorless",
+        ion_Hf: "Hf⁴⁺ colorless",
+        ion_Ta: "Ta⁵⁺ colorless",
+        ion_W: "W⁶⁺ colorless",
+        ion_Re: "Re⁷⁺ colorless",
+        ion_Os: "Os⁸⁺ colorless",
+        ion_Ir: "Ir³⁺ brown",
+        ion_Pt: "Pt²⁺ yellow",
+        ion_Au: "Au³⁺ yellow",
+        ion_Tl: "Tl⁺ colorless",
+        ion_In: "In³⁺ colorless",
+        ion_Ga: "Ga³⁺ colorless",
+        ion_Ge: "Ge⁴⁺ colorless",
+        ion_Po: "Po⁴⁺ colorless",
+        ion_At: "At⁻ colorless",
+        ion_Fr: "Fr⁺ colorless",
+        ion_Ra: "Ra²⁺ colorless",
+        ion_Ac: "Ac³⁺ colorless",
+        ion_Th: "Th⁴⁺ colorless",
+        ion_Pa: "Pa⁵⁺ colorless",
+        ion_U: "U⁴⁺ green; UO₂²⁺ yellow",
+        ion_Np: "Np⁴⁺ blue",
+        ion_Pu: "Pu⁴⁺ blue",
+        ion_Am: "Am³⁺ pink",
+        ion_Cm: "Cm³⁺ colorless",
+        ion_Bk: "Bk³⁺ colorless",
+        ion_Cf: "Cf³⁺ colorless",
+        ion_Es: "Es³⁺ colorless",
+        ion_Fm: "Fm³⁺ colorless",
+        ion_Md: "Md³⁺ colorless",
+        ion_No: "No³⁺ colorless",
+        ion_Lr: "Lr³⁺ colorless",
+        ion_Rf: "Rf⁴⁺ unknown",
+        ion_Db: "Db⁵⁺ unknown",
+        ion_Sg: "Sg⁶⁺ unknown",
+        ion_Bh: "Bh⁷⁺ unknown",
+        ion_Hs: "Hs⁸⁺ unknown",
+        ion_Mt: "Mt⁶⁺ unknown",
+        ion_Ds: "Ds⁸⁺ unknown",
+        ion_Rg: "Rg⁹⁺ unknown",
+        ion_Cn: "Cn²⁺ unknown",
+        ion_Nh: "Nh⁺ unknown",
+        ion_Fl: "Fl⁺ unknown",
+        ion_Mc: "Mc³⁺ unknown",
+        ion_Lv: "Lv²⁺ unknown",
+        ion_Ts: "Ts⁻ unknown",
+        ion_Og: "Og unknown",
+        ion_H: "H⁺ colorless",
+        ion_He: "He none",
+        ion_Ne: "Ne none",
+        ion_Ar: "Ar none",
+        ion_Kr: "Kr none",
+        ion_Xe: "Xe none",
+        ion_Rn: "Rn none"
+    },
+    uk: {
+        title: "Періодична таблиця елементів",
+        cat_alkali: "Лужні", cat_alkaline: "Лужноземельні",
+        cat_transition: "Перехідні", cat_post: "Постперехідні",
+        cat_metalloid: "Напівметали", cat_nonmetal: "Неметали",
+        cat_halogen: "Галогени", cat_noble: "Благородні гази",
+        cat_lanth: "Лантаноїди", cat_actin: "Актиноїди",
+        lanthanides: "Лантаноїди", actinides: "Актиноїди",
+        triads_title: "Правило триад (Доберейнер — Менделєєв)",
+        filter_all: "Всі",
+        atomic_number: "Атомний номер", atomic_mass: "Атомна маса",
+        group: "Група", period: "Період", category: "Категорія",
+        electron_config: "Електронна конфігурація",
+        spins: "Спіни валентних електронів",
+        ion_color: "Колір іона",
+        toxicity: "Токсичність (чистий елемент)",
+        bioavailability: "Біодоступність",
+        alkali: "Лужний метал", alkaline: "Лужноземельний метал",
+        transition: "Перехідний метал", post: "Постперехідний метал",
+        metalloid: "Напівметал", nonmetal: "Неметал",
+        halogen: "Галоген", noble: "Благородний газ",
+        lanth: "Лантаноїд", actin: "Актиноїд",
+        triad_alkali: "Лужні метали",
+        triad_alkaline: "Лужноземельні метали",
+        triad_sc: "Тріада скандію", triad_ti: "Тріада титану",
+        triad_v: "Тріада ванадію", triad_cr: "Тріада хрому",
+        triad_mn: "Тріада марганцю", triad_fe: "Тріада заліза",
+        triad_co: "Тріада кобальту", triad_ni: "Тріада нікелю",
+        triad_cu: "Тріада міді", triad_zn: "Тріада цинку",
+        triad_b: "Тріада бору", triad_c: "Тріада вуглецю",
+        triad_n: "Тріада азоту", triad_o: "Тріада кисню",
+        triad_halogen: "Галогени", triad_noble: "Благородні гази",
+        colorless: "безбарвний", none: "немає",
+        low: "низька", medium: "середня", high: "висока",
+        ion_Cr: "Cr²⁺ блакитний; Cr³⁺ фіолетовий/зелений; CrO₄²⁻ жовтий; Cr₂O₇²⁻ оранжевий",
+        ion_Ti: "Ti³⁺ фіолетовий; Ti⁴⁺ безбарвний",
+        ion_V: "V²⁺ фіолетовий; V³⁺ зелений; VO²⁺ синій; VO₂⁺ жовтий",
+        ion_Mn: "Mn²⁺ блідо-рожевий; MnO₄⁻ червоно-фіолетовий; MnO₄²⁻ смарагдово-зелений",
+        ion_Fe: "Fe²⁺ блідо-зелений; Fe³⁺ фіолетовий/жовто-коричневий; FeO₄²⁻ червоно-фіолетовий",
+        ion_Co: "Co²⁺ рожевий",
+        ion_Ni: "Ni²⁺ зелений",
+        ion_Cu: "Cu²⁺ блакитний/синій",
+        ion_Zn: "Zn²⁺ безбарвний",
+        ion_Ag: "Ag⁺ безбарвний",
+        ion_Cd: "Cd²⁺ безбарвний",
+        ion_Hg: "Hg²⁺ безбарвний",
+        ion_Al: "Al³⁺ безбарвний",
+        ion_Pb: "Pb²⁺ безбарвний",
+        ion_Sn: "Sn²⁺ безбарвний",
+        ion_Bi: "Bi³⁺ безбарвний",
+        ion_Sb: "Sb³⁺ безбарвний",
+        ion_As: "As³⁺ безбарвний",
+        ion_Se: "Se²⁻ безбарвний",
+        ion_Te: "Te²⁻ безбарвний",
+        ion_I: "I⁻ безбарвний; I₃⁻ темно-коричневий",
+        ion_Br: "Br⁻ безбарвний",
+        ion_Cl: "Cl⁻ безбарвний",
+        ion_F: "F⁻ безбарвний",
+        ion_S: "S²⁻ безбарвний; Sₙ²⁻ жовтий/оранжевий",
+        ion_O: "O²⁻ безбарвний",
+        ion_N: "N³⁻ безбарвний",
+        ion_P: "P³⁻ безбарвний",
+        ion_C: "C⁴⁻ безбарвний",
+        ion_Si: "Si⁴⁺ безбарвний",
+        ion_B: "B³⁺ безбарвний",
+        ion_Ba: "Ba²⁺ безбарвний",
+        ion_Sr: "Sr²⁺ безбарвний",
+        ion_Ca: "Ca²⁺ безбарвний",
+        ion_Mg: "Mg²⁺ безбарвний",
+        ion_Na: "Na⁺ безбарвний",
+        ion_K: "K⁺ безбарвний",
+        ion_Li: "Li⁺ безбарвний",
+        ion_Rb: "Rb⁺ безбарвний",
+        ion_Cs: "Cs⁺ безбарвний",
+        ion_Be: "Be²⁺ безбарвний",
+        ion_Sc: "Sc³⁺ безбарвний",
+        ion_Y: "Y³⁺ безбарвний",
+        ion_La: "La³⁺ безбарвний",
+        ion_Ce: "Ce³⁺ безбарвний; Ce⁴⁺ жовтий",
+        ion_Pr: "Pr³⁺ зелений",
+        ion_Nd: "Nd³⁺ рожевий",
+        ion_Sm: "Sm³⁺ жовтий",
+        ion_Eu: "Eu³⁺ рожевий",
+        ion_Gd: "Gd³⁺ безбарвний",
+        ion_Tb: "Tb³⁺ безбарвний",
+        ion_Dy: "Dy³⁺ жовтий",
+        ion_Ho: "Ho³⁺ жовтий",
+        ion_Er: "Er³⁺ рожевий",
+        ion_Tm: "Tm³⁺ зелений",
+        ion_Yb: "Yb³⁺ безбарвний",
+        ion_Lu: "Lu³⁺ безбарвний",
+        ion_Hf: "Hf⁴⁺ безбарвний",
+        ion_Ta: "Ta⁵⁺ безбарвний",
+        ion_W: "W⁶⁺ безбарвний",
+        ion_Re: "Re⁷⁺ безбарвний",
+        ion_Os: "Os⁸⁺ безбарвний",
+        ion_Ir: "Ir³⁺ коричневий",
+        ion_Pt: "Pt²⁺ жовтий",
+        ion_Au: "Au³⁺ жовтий",
+        ion_Tl: "Tl⁺ безбарвний",
+        ion_In: "In³⁺ безбарвний",
+        ion_Ga: "Ga³⁺ безбарвний",
+        ion_Ge: "Ge⁴⁺ безбарвний",
+        ion_Po: "Po⁴⁺ безбарвний",
+        ion_At: "At⁻ безбарвний",
+        ion_Fr: "Fr⁺ безбарвний",
+        ion_Ra: "Ra²⁺ безбарвний",
+        ion_Ac: "Ac³⁺ безбарвний",
+        ion_Th: "Th⁴⁺ безбарвний",
+        ion_Pa: "Pa⁵⁺ безбарвний",
+        ion_U: "U⁴⁺ зелений; UO₂²⁺ жовтий",
+        ion_Np: "Np⁴⁺ синій",
+        ion_Pu: "Pu⁴⁺ синій",
+        ion_Am: "Am³⁺ рожевий",
+        ion_Cm: "Cm³⁺ безбарвний",
+        ion_Bk: "Bk³⁺ безбарвний",
+        ion_Cf: "Cf³⁺ безбарвний",
+        ion_Es: "Es³⁺ безбарвний",
+        ion_Fm: "Fm³⁺ безбарвний",
+        ion_Md: "Md³⁺ безбарвний",
+        ion_No: "No³⁺ безбарвний",
+        ion_Lr: "Lr³⁺ безбарвний",
+        ion_Rf: "Rf⁴⁺ невідомо",
+        ion_Db: "Db⁵⁺ невідомо",
+        ion_Sg: "Sg⁶⁺ невідомо",
+        ion_Bh: "Bh⁷⁺ невідомо",
+        ion_Hs: "Hs⁸⁺ невідомо",
+        ion_Mt: "Mt⁶⁺ невідомо",
+        ion_Ds: "Ds⁸⁺ невідомо",
+        ion_Rg: "Rg⁹⁺ невідомо",
+        ion_Cn: "Cn²⁺ невідомо",
+        ion_Nh: "Nh⁺ невідомо",
+        ion_Fl: "Fl⁺ невідомо",
+        ion_Mc: "Mc³⁺ невідомо",
+        ion_Lv: "Lv²⁺ невідомо",
+        ion_Ts: "Ts⁻ невідомо",
+        ion_Og: "Og невідомо",
+        ion_H: "H⁺ безбарвний",
+        ion_He: "He немає",
+        ion_Ne: "Ne немає",
+        ion_Ar: "Ar немає",
+        ion_Kr: "Kr немає",
+        ion_Xe: "Xe немає",
+        ion_Rn: "Rn немає"
+    },
+    es: {
+        title: "Tabla Periódica de Elementos",
+        cat_alkali: "Alcalinos", cat_alkaline: "Alcalinotérreos",
+        cat_transition: "Transición", cat_post: "Post-transición",
+        cat_metalloid: "Metaloides", cat_nonmetal: "No metales",
+        cat_halogen: "Halógenos", cat_noble: "Gases nobles",
+        cat_lanth: "Lantánidos", cat_actin: "Actínidos",
+        lanthanides: "Lantánidos", actinides: "Actínidos",
+        triads_title: "Regla de las triadas (Döbereiner — Mendeléyev)",
+        filter_all: "Todos",
+        atomic_number: "Número atómico", atomic_mass: "Masa atómica",
+        group: "Grupo", period: "Período", category: "Categoría",
+        electron_config: "Configuración electrónica",
+        spins: "Espines de electrones de valencia",
+        ion_color: "Color del ion",
+        toxicity: "Toxicidad (elemento puro)",
+        bioavailability: "Biodisponibilidad",
+        alkali: "Metal alcalino", alkaline: "Metal alcalinotérreo",
+        transition: "Metal de transición", post: "Metal post-transición",
+        metalloid: "Metaloide", nonmetal: "No metal",
+        halogen: "Halógeno", noble: "Gas noble",
+        lanth: "Lantánido", actin: "Actínido",
+        triad_alkali: "Metales alcalinos",
+        triad_alkaline: "Metales alcalinotérreos",
+        triad_sc: "Triada del escandio", triad_ti: "Triada del titanio",
+        triad_v: "Triada del vanadio", triad_cr: "Triada del cromo",
+        triad_mn: "Triada del manganeso", triad_fe: "Triada del hierro",
+        triad_co: "Triada del cobalto", triad_ni: "Triada del níquel",
+        triad_cu: "Triada del cobre", triad_zn: "Triada del zinc",
+        triad_b: "Triada del boro", triad_c: "Triada del carbono",
+        triad_n: "Triada del nitrógeno", triad_o: "Triada del oxígeno",
+        triad_halogen: "Halógenos", triad_noble: "Gases nobles",
+        colorless: "incoloro", none: "ninguno",
+        low: "baja", medium: "media", high: "alta",
+        ion_Cr: "Cr²⁺ azul; Cr³⁺ violeta/verde; CrO₄²⁻ amarillo; Cr₂O₇²⁻ naranja",
+        ion_Ti: "Ti³⁺ violeta; Ti⁴⁺ incoloro",
+        ion_V: "V²⁺ violeta; V³⁺ verde; VO²⁺ azul; VO₂⁺ amarillo",
+        ion_Mn: "Mn²⁺ rosa pálido; MnO₄⁻ rojo-violeta; MnO₄²⁻ verde esmeralda",
+        ion_Fe: "Fe²⁺ verde pálido; Fe³⁺ violeta/amarillo-marrón; FeO₄²⁻ rojo-violeta",
+        ion_Co: "Co²⁺ rosa",
+        ion_Ni: "Ni²⁺ verde",
+        ion_Cu: "Cu²⁺ azul",
+        ion_Zn: "Zn²⁺ incoloro",
+        ion_Ag: "Ag⁺ incoloro",
+        ion_Cd: "Cd²⁺ incoloro",
+        ion_Hg: "Hg²⁺ incoloro",
+        ion_Al: "Al³⁺ incoloro",
+        ion_Pb: "Pb²⁺ incoloro",
+        ion_Sn: "Sn²⁺ incoloro",
+        ion_Bi: "Bi³⁺ incoloro",
+        ion_Sb: "Sb³⁺ incoloro",
+        ion_As: "As³⁺ incoloro",
+        ion_Se: "Se²⁻ incoloro",
+        ion_Te: "Te²⁻ incoloro",
+        ion_I: "I⁻ incoloro; I₃⁻ marrón oscuro",
+        ion_Br: "Br⁻ incoloro",
+        ion_Cl: "Cl⁻ incoloro",
+        ion_F: "F⁻ incoloro",
+        ion_S: "S²⁻ incoloro; Sₙ²⁻ amarillo/naranja",
+        ion_O: "O²⁻ incoloro",
+        ion_N: "N³⁻ incoloro",
+        ion_P: "P³⁻ incoloro",
+        ion_C: "C⁴⁻ incoloro",
+        ion_Si: "Si⁴⁺ incoloro",
+        ion_B: "B³⁺ incoloro",
+        ion_Ba: "Ba²⁺ incoloro",
+        ion_Sr: "Sr²⁺ incoloro",
+        ion_Ca: "Ca²⁺ incoloro",
+        ion_Mg: "Mg²⁺ incoloro",
+        ion_Na: "Na⁺ incoloro",
+        ion_K: "K⁺ incoloro",
+        ion_Li: "Li⁺ incoloro",
+        ion_Rb: "Rb⁺ incoloro",
+        ion_Cs: "Cs⁺ incoloro",
+        ion_Be: "Be²⁺ incoloro",
+        ion_Sc: "Sc³⁺ incoloro",
+        ion_Y: "Y³⁺ incoloro",
+        ion_La: "La³⁺ incoloro",
+        ion_Ce: "Ce³⁺ incoloro; Ce⁴⁺ amarillo",
+        ion_Pr: "Pr³⁺ verde",
+        ion_Nd: "Nd³⁺ rosa",
+        ion_Sm: "Sm³⁺ amarillo",
+        ion_Eu: "Eu³⁺ rosa",
+        ion_Gd: "Gd³⁺ incoloro",
+        ion_Tb: "Tb³⁺ incoloro",
+        ion_Dy: "Dy³⁺ amarillo",
+        ion_Ho: "Ho³⁺ amarillo",
+        ion_Er: "Er³⁺ rosa",
+        ion_Tm: "Tm³⁺ verde",
+        ion_Yb: "Yb³⁺ incoloro",
+        ion_Lu: "Lu³⁺ incoloro",
+        ion_Hf: "Hf⁴⁺ incoloro",
+        ion_Ta: "Ta⁵⁺ incoloro",
+        ion_W: "W⁶⁺ incoloro",
+        ion_Re: "Re⁷⁺ incoloro",
+        ion_Os: "Os⁸⁺ incoloro",
+        ion_Ir: "Ir³⁺ marrón",
+        ion_Pt: "Pt²⁺ amarillo",
+        ion_Au: "Au³⁺ amarillo",
+        ion_Tl: "Tl⁺ incoloro",
+        ion_In: "In³⁺ incoloro",
+        ion_Ga: "Ga³⁺ incoloro",
+        ion_Ge: "Ge⁴⁺ incoloro",
+        ion_Po: "Po⁴⁺ incoloro",
+        ion_At: "At⁻ incoloro",
+        ion_Fr: "Fr⁺ incoloro",
+        ion_Ra: "Ra²⁺ incoloro",
+        ion_Ac: "Ac³⁺ incoloro",
+        ion_Th: "Th⁴⁺ incoloro",
+        ion_Pa: "Pa⁵⁺ incoloro",
+        ion_U: "U⁴⁺ verde; UO₂²⁺ amarillo",
+        ion_Np: "Np⁴⁺ azul",
+        ion_Pu: "Pu⁴⁺ azul",
+        ion_Am: "Am³⁺ rosa",
+        ion_Cm: "Cm³⁺ incoloro",
+        ion_Bk: "Bk³⁺ incoloro",
+        ion_Cf: "Cf³⁺ incoloro",
+        ion_Es: "Es³⁺ incoloro",
+        ion_Fm: "Fm³⁺ incoloro",
+        ion_Md: "Md³⁺ incoloro",
+        ion_No: "No³⁺ incoloro",
+        ion_Lr: "Lr³⁺ incoloro",
+        ion_Rf: "Rf⁴⁺ desconocido",
+        ion_Db: "Db⁵⁺ desconocido",
+        ion_Sg: "Sg⁶⁺ desconocido",
+        ion_Bh: "Bh⁷⁺ desconocido",
+        ion_Hs: "Hs⁸⁺ desconocido",
+        ion_Mt: "Mt⁶⁺ desconocido",
+        ion_Ds: "Ds⁸⁺ desconocido",
+        ion_Rg: "Rg⁹⁺ desconocido",
+        ion_Cn: "Cn²⁺ desconocido",
+        ion_Nh: "Nh⁺ desconocido",
+        ion_Fl: "Fl⁺ desconocido",
+        ion_Mc: "Mc³⁺ desconocido",
+        ion_Lv: "Lv²⁺ desconocido",
+        ion_Ts: "Ts⁻ desconocido",
+        ion_Og: "Og desconocido",
+        ion_H: "H⁺ incoloro",
+        ion_He: "He ninguno",
+        ion_Ne: "Ne ninguno",
+        ion_Ar: "Ar ninguno",
+        ion_Kr: "Kr ninguno",
+        ion_Xe: "Xe ninguno",
+        ion_Rn: "Rn ninguno"
+    }
+};
+
+let currentLang = localStorage.getItem('pt_lang') || 'ru';
+function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N['ru'][key] || key; }
+
+function applyI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === currentLang);
+    });
+}
+
+function buildLangBar() {
+    const bar = document.getElementById('lang-bar');
+    const langs = ['ru', 'en', 'uk', 'es'];
+    let html = '';
+    langs.forEach(l => {
+        html += `<button class="lang-btn${l===currentLang?' active':''}" data-lang="${l}" onclick="setLang('${l}')">${l.toUpperCase()}</button>`;
+    });
+    bar.innerHTML = html;
+}
+
+function setLang(l) {
+    currentLang = l;
+    localStorage.setItem('pt_lang', l);
+    applyI18n();
+    buildFilters();
+    buildTriads();
+}
+
+// Данные: индекс = Z. [Z, символ, название, масса, группа, период, ряд, категория, конфигурация, спины, ключ_цвета_иона, токсичность, биодоступность]
+const E = [];
+E[1]=[1,"H","Водород",1.008,"1А",1,"s","nonmetal","1s1","↑","ion_H","low","high"];
+E[2]=[2,"He","Гелий",4.003,"8А",1,"s","noble","1s2","↑↓","ion_He","none","none"];
+E[3]=[3,"Li","Литий",6.94,"1А",2,"s","alkali","[He] 2s1","↑","ion_Li","medium","high"];
+E[4]=[4,"Be","Бериллий",9.012,"2А",2,"s","alkaline","[He] 2s2","↑↓","ion_Be","high","low"];
+E[5]=[5,"B","Бор",10.81,"3А",2,"p","metalloid","[He] 2s2 2p1","↑","ion_B","low","high"];
+E[6]=[6,"C","Углерод",12.01,"4А",2,"p","nonmetal","[He] 2s2 2p2","↑ ↑","ion_C","low","high"];
+E[7]=[7,"N","Азот",14.01,"5А",2,"p","nonmetal","[He] 2s2 2p3","↑ ↑ ↑","ion_N","low","high"];
+E[8]=[8,"O","Кислород",16.00,"6А",2,"p","nonmetal","[He] 2s2 2p4","↑↓ ↑ ↑","ion_O","low","high"];
+E[9]=[9,"F","Фтор",19.00,"7А",2,"p","halogen","[He] 2s2 2p5","↑↓ ↑↓ ↑","ion_F","high","high"];
+E[10]=[10,"Ne","Неон",20.18,"8А",2,"p","noble","[He] 2s2 2p6","↑↓ ↑↓ ↑↓","ion_Ne","none","none"];
+E[11]=[11,"Na","Натрий",22.99,"1А",3,"s","alkali","[Ne] 3s1","↑","ion_Na","medium","high"];
+E[12]=[12,"Mg","Магний",24.31,"2А",3,"s","alkaline","[Ne] 3s2","↑↓","ion_Mg","low","high"];
+E[13]=[13,"Al","Алюминий",26.98,"3А",3,"p","post","[Ne] 3s2 3p1","↑","ion_Al","low","low"];
+E[14]=[14,"Si","Кремний",28.09,"4А",3,"p","metalloid","[Ne] 3s2 3p2","↑ ↑","ion_Si","low","low"];
+E[15]=[15,"P","Фосфор",30.97,"5А",3,"p","nonmetal","[Ne] 3s2 3p3","↑ ↑ ↑","ion_P","high","high"];
+E[16]=[16,"S","Сера",32.07,"6А",3,"p","nonmetal","[Ne] 3s2 3p4","↑↓ ↑ ↑","ion_S","low","high"];
+E[17]=[17,"Cl","Хлор",35.45,"7А",3,"p","halogen","[Ne] 3s2 3p5","↑↓ ↑↓ ↑","ion_Cl","high","high"];
+E[18]=[18,"Ar","Аргон",39.95,"8А",3,"p","noble","[Ne] 3s2 3p6","↑↓ ↑↓ ↑↓","ion_Ar","none","none"];
+E[19]=[19,"K","Калий",39.10,"1А",4,"s","alkali","[Ar] 4s1","↑","ion_K","medium","high"];
+E[20]=[20,"Ca","Кальций",40.08,"2А",4,"s","alkaline","[Ar] 4s2","↑↓","ion_Ca","low","high"];
+E[21]=[21,"Sc","Скандий",44.96,"3Б",4,"d","transition","[Ar] 3d1 4s2","↑ ↑","ion_Sc","medium","low"];
+E[22]=[22,"Ti","Титан",47.87,"4Б",4,"d","transition","[Ar] 3d2 4s2","↑ ↑","ion_Ti","low","low"];
+E[23]=[23,"V","Ванадий",50.94,"5Б",4,"d","transition","[Ar] 3d3 4s2","↑ ↑ ↑","ion_V","medium","medium"];
+E[24]=[24,"Cr","Хром",52.00,"6Б",4,"d","transition","[Ar] 3d5 4s1","↑ ↑ ↑ ↑ ↑ ↑","ion_Cr","medium","medium"];
+E[25]=[25,"Mn","Марганец",54.94,"7Б",4,"d","transition","[Ar] 3d5 4s2","↑ ↑ ↑ ↑ ↑","ion_Mn","medium","medium"];
+E[26]=[26,"Fe","Железо",55.85,"8",4,"d","transition","[Ar] 3d6 4s2","↑↓ ↑ ↑ ↑ ↑","ion_Fe","low","high"];
+E[27]=[27,"Co","Кобальт",58.93,"8",4,"d","transition","[Ar] 3d7 4s2","↑↓ ↑↓ ↑ ↑ ↑","ion_Co","medium","medium"];
+E[28]=[28,"Ni","Никель",58.69,"8",4,"d","transition","[Ar] 3d8 4s2","↑↓ ↑↓ ↑↓ ↑ ↑","ion_Ni","medium","medium"];
+E[29]=[29,"Cu","Медь",63.55,"1Б",4,"d","transition","[Ar] 3d10 4s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Cu","medium","medium"];
+E[30]=[30,"Zn","Цинк",65.38,"2Б",4,"d","transition","[Ar] 3d10 4s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Zn","medium","high"];
+E[31]=[31,"Ga","Галлий",69.72,"3А",4,"p","post","[Ar] 3d10 4s2 4p1","↑","ion_Ga","medium","low"];
+E[32]=[32,"Ge","Германий",72.63,"4А",4,"p","metalloid","[Ar] 3d10 4s2 4p2","↑ ↑","ion_Ge","low","low"];
+E[33]=[33,"As","Мышьяк",74.92,"5А",4,"p","metalloid","[Ar] 3d10 4s2 4p3","↑ ↑ ↑","ion_As","high","medium"];
+E[34]=[34,"Se","Селен",78.97,"6А",4,"p","nonmetal","[Ar] 3d10 4s2 4p4","↑↓ ↑ ↑","ion_Se","medium","medium"];
+E[35]=[35,"Br","Бром",79.90,"7А",4,"p","halogen","[Ar] 3d10 4s2 4p5","↑↓ ↑↓ ↑","ion_Br","high","high"];
+E[36]=[36,"Kr","Криптон",83.80,"8А",4,"p","noble","[Ar] 3d10 4s2 4p6","↑↓ ↑↓ ↑↓","ion_Kr","none","none"];
+E[37]=[37,"Rb","Рубидий",85.47,"1А",5,"s","alkali","[Kr] 5s1","↑","ion_Rb","medium","high"];
+E[38]=[38,"Sr","Стронций",87.62,"2А",5,"s","alkaline","[Kr] 5s2","↑↓","ion_Sr","low","medium"];
+E[39]=[39,"Y","Иттрий",88.91,"3Б",5,"d","transition","[Kr] 4d1 5s2","↑ ↑","ion_Y","medium","low"];
+E[40]=[40,"Zr","Цирконий",91.22,"4Б",5,"d","transition","[Kr] 4d2 5s2","↑ ↑","ion_Zr","low","low"];
+E[41]=[41,"Nb","Ниобий",92.91,"5Б",5,"d","transition","[Kr] 4d4 5s1","↑ ↑ ↑ ↑ ↑","ion_Nb","medium","low"];
+E[42]=[42,"Mo","Молибден",95.95,"6Б",5,"d","transition","[Kr] 4d5 5s1","↑ ↑ ↑ ↑ ↑ ↑","ion_Mo","medium","medium"];
+E[43]=[43,"Tc","Технеций",98,"7Б",5,"d","transition","[Kr] 4d5 5s2","↑↓ ↑ ↑ ↑ ↑","ion_Tc","high","none"];
+E[44]=[44,"Ru","Рутений",101.1,"8",5,"d","transition","[Kr] 4d7 5s1","↑↓ ↑↓ ↑ ↑ ↑","ion_Ru","medium","low"];
+E[45]=[45,"Rh","Родий",102.9,"8",5,"d","transition","[Kr] 4d8 5s1","↑↓ ↑↓ ↑↓ ↑ ↑","ion_Rh","medium","low"];
+E[46]=[46,"Pd","Палладий",106.4,"8",5,"d","transition","[Kr] 4d10","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Pd","medium","low"];
+E[47]=[47,"Ag","Серебро",107.9,"1Б",5,"d","transition","[Kr] 4d10 5s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Ag","medium","low"];
+E[48]=[48,"Cd","Кадмий",112.4,"2Б",5,"d","transition","[Kr] 4d10 5s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Cd","high","medium"];
+E[49]=[49,"In","Индий",114.8,"3А",5,"p","post","[Kr] 4d10 5s2 5p1","↑","ion_In","medium","low"];
+E[50]=[50,"Sn","Олово",118.7,"4А",5,"p","post","[Kr] 4d10 5s2 5p2","↑ ↑","ion_Sn","low","medium"];
+E[51]=[51,"Sb","Сурьма",121.8,"5А",5,"p","metalloid","[Kr] 4d10 5s2 5p3","↑ ↑ ↑","ion_Sb","medium","medium"];
+E[52]=[52,"Te","Теллур",127.6,"6А",5,"p","metalloid","[Kr] 4d10 5s2 5p4","↑↓ ↑ ↑","ion_Te","medium","medium"];
+E[53]=[53,"I","Иод",126.9,"7А",5,"p","halogen","[Kr] 4d10 5s2 5p5","↑↓ ↑↓ ↑","ion_I","medium","high"];
+E[54]=[54,"Xe","Ксенон",131.3,"8А",5,"p","noble","[Kr] 4d10 5s2 5p6","↑↓ ↑↓ ↑↓","ion_Xe","none","none"];
+E[55]=[55,"Cs","Цезий",132.9,"1А",6,"s","alkali","[Xe] 6s1","↑","ion_Cs","medium","high"];
+E[56]=[56,"Ba","Барий",137.3,"2А",6,"s","alkaline","[Xe] 6s2","↑↓","ion_Ba","medium","medium"];
+E[57]=[57,"La","Лантан",138.9,"3Б",6,"f","lanth","[Xe] 5d1 6s2","↑ ↑","ion_La","medium","low"];
+E[58]=[58,"Ce","Церий",140.1,"3Б",6,"f","lanth","[Xe] 4f1 5d1 6s2","↑ ↑ ↑","ion_Ce","medium","low"];
+E[59]=[59,"Pr","Празеодим",140.9,"3Б",6,"f","lanth","[Xe] 4f3 6s2","↑ ↑ ↑ ↑","ion_Pr","medium","low"];
+E[60]=[60,"Nd","Неодим",144.2,"3Б",6,"f","lanth","[Xe] 4f4 6s2","↑ ↑ ↑ ↑ ↑","ion_Nd","medium","low"];
+E[61]=[61,"Pm","Прометий",145,"3Б",6,"f","lanth","[Xe] 4f5 6s2","↑ ↑ ↑ ↑ ↑ ↑","ion_Pm","high","none"];
+E[62]=[62,"Sm","Самарий",150.4,"3Б",6,"f","lanth","[Xe] 4f6 6s2","↑↓ ↑ ↑ ↑ ↑ ↑","ion_Sm","medium","low"];
+E[63]=[63,"Eu","Европий",152.0,"3Б",6,"f","lanth","[Xe] 4f7 6s2","↑↓ ↑↓ ↑ ↑ ↑ ↑","ion_Eu","medium","low"];
+E[64]=[64,"Gd","Гадолиний",157.3,"3Б",6,"f","lanth","[Xe] 4f7 5d1 6s2","↑↓ ↑↓ ↑↓ ↑ ↑ ↑ ↑","ion_Gd","medium","low"];
+E[65]=[65,"Tb","Тербий",158.9,"3Б",6,"f","lanth","[Xe] 4f9 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ ↑ ↑","ion_Tb","medium","low"];
+E[66]=[66,"Dy","Диспрозий",162.5,"3Б",6,"f","lanth","[Xe] 4f10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ ↑","ion_Dy","medium","low"];
+E[67]=[67,"Ho","Гольмий",164.9,"3Б",6,"f","lanth","[Xe] 4f11 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Ho","medium","low"];
+E[68]=[68,"Er","Эрбий",167.3,"3Б",6,"f","lanth","[Xe] 4f12 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Er","medium","low"];
+E[69]=[69,"Tm","Тулий",168.9,"3Б",6,"f","lanth","[Xe] 4f13 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Tm","medium","low"];
+E[70]=[70,"Yb","Иттербий",173.0,"3Б",6,"f","lanth","[Xe] 4f14 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Yb","medium","low"];
+E[71]=[71,"Lu","Лютеций",175.0,"3Б",6,"f","lanth","[Xe] 4f14 5d1 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Lu","medium","low"];
+E[72]=[72,"Hf","Гафний",178.5,"4Б",6,"d","transition","[Xe] 4f14 5d2 6s2","↑ ↑","ion_Hf","low","low"];
+E[73]=[73,"Ta","Тантал",180.9,"5Б",6,"d","transition","[Xe] 4f14 5d3 6s2","↑ ↑ ↑","ion_Ta","low","low"];
+E[74]=[74,"W","Вольфрам",183.8,"6Б",6,"d","transition","[Xe] 4f14 5d4 6s2","↑ ↑ ↑ ↑","ion_W","medium","medium"];
+E[75]=[75,"Re","Рений",186.2,"7Б",6,"d","transition","[Xe] 4f14 5d5 6s2","↑↓ ↑ ↑ ↑ ↑","ion_Re","medium","low"];
+E[76]=[76,"Os","Осмий",190.2,"8",6,"d","transition","[Xe] 4f14 5d6 6s2","↑↓ ↑↓ ↑ ↑ ↑","ion_Os","medium","low"];
+E[77]=[77,"Ir","Иридий",192.2,"8",6,"d","transition","[Xe] 4f14 5d7 6s2","↑↓ ↑↓ ↑↓ ↑ ↑","ion_Ir","medium","low"];
+E[78]=[78,"Pt","Платина",195.1,"8",6,"d","transition","[Xe] 4f14 5d9 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Pt","low","low"];
+E[79]=[79,"Au","Золото",197.0,"1Б",6,"d","transition","[Xe] 4f14 5d10 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Au","low","low"];
+E[80]=[80,"Hg","Ртуть",200.6,"2Б",6,"d","transition","[Xe] 4f14 5d10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Hg","high","medium"];
+E[81]=[81,"Tl","Таллий",204.4,"3А",6,"p","post","[Xe] 4f14 5d10 6s2 6p1","↑","ion_Tl","high","medium"];
+E[82]=[82,"Pb","Свинец",207.2,"4А",6,"p","post","[Xe] 4f14 5d10 6s2 6p2","↑ ↑","ion_Pb","high","medium"];
+E[83]=[83,"Bi","Висмут",209.0,"5А",6,"p","post","[Xe] 4f14 5d10 6s2 6p3","↑ ↑ ↑","ion_Bi","medium","medium"];
+E[84]=[84,"Po","Полоний",209,"6А",6,"p","metalloid","[Xe] 4f14 5d10 6s2 6p4","↑↓ ↑ ↑","ion_Po","high","none"];
+E[85]=[85,"At","Астат",210,"7А",6,"p","halogen","[Xe] 4f14 5d10 6s2 6p5","↑↓ ↑↓ ↑","ion_At","high","none"];
+E[86]=[86,"Rn","Радон",222,"8А",6,"p","noble","[Xe] 4f14 5d10 6s2 6p6","↑↓ ↑↓ ↑↓","ion_Rn","high","none"];
+E[87]=[87,"Fr","Франций",223,"1А",7,"s","alkali","[Rn] 7s1","↑","ion_Fr","high","none"];
+E[88]=[88,"Ra","Радий",226,"2А",7,"s","alkaline","[Rn] 7s2","↑↓","ion_Ra","high","medium"];
+E[89]=[89,"Ac","Актиний",227,"3Б",7,"f","actin","[Rn] 6d1 7s2","↑ ↑","ion_Ac","high","none"];
+E[90]=[90,"Th","Торий",232.0,"3Б",7,"f","actin","[Rn] 6d2 7s2","↑ ↑","ion_Th","high","medium"];
+E[91]=[91,"Pa","Протактиний",231.0,"3Б",7,"f","actin","[Rn] 5f2 6d1 7s2","↑ ↑ ↑","ion_Pa","high","none"];
+E[92]=[92,"U","Уран",238.0,"3Б",7,"f","actin","[Rn] 5f3 6d1 7s2","↑ ↑ ↑ ↑","ion_U","high","medium"];
+E[93]=[93,"Np","Нептуний",237,"3Б",7,"f","actin","[Rn] 5f4 6d1 7s2","↑ ↑ ↑ ↑ ↑","ion_Np","high","none"];
+E[94]=[94,"Pu","Плутоний",244,"3Б",7,"f","actin","[Rn] 5f6 7s2","↑↓ ↑ ↑ ↑ ↑","ion_Pu","high","none"];
+E[95]=[95,"Am","Америций",243,"3Б",7,"f","actin","[Rn] 5f7 7s2","↑↓ ↑↓ ↑ ↑ ↑","ion_Am","high","none"];
+E[96]=[96,"Cm","Кюрий",247,"3Б",7,"f","actin","[Rn] 5f7 6d1 7s2","↑↓ ↑↓ ↑↓ ↑ ↑","ion_Cm","high","none"];
+E[97]=[97,"Bk","Берклий",247,"3Б",7,"f","actin","[Rn] 5f9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Bk","high","none"];
+E[98]=[98,"Cf","Калифорний",251,"3Б",7,"f","actin","[Rn] 5f10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Cf","high","none"];
+E[99]=[99,"Es","Эйнштейний",252,"3Б",7,"f","actin","[Rn] 5f11 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Es","high","none"];
+E[100]=[100,"Fm","Фермий",257,"3Б",7,"f","actin","[Rn] 5f12 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Fm","high","none"];
+E[101]=[101,"Md","Менделевий",258,"3Б",7,"f","actin","[Rn] 5f13 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Md","high","none"];
+E[102]=[102,"No","Нобелий",259,"3Б",7,"f","actin","[Rn] 5f14 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_No","high","none"];
+E[103]=[103,"Lr","Лоуренсий",266,"3Б",7,"f","actin","[Rn] 5f14 7s2 7p1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Lr","high","none"];
+E[104]=[104,"Rf","Резерфордий",267,"4Б",7,"d","transition","[Rn] 5f14 6d2 7s2","↑ ↑","ion_Rf","high","none"];
+E[105]=[105,"Db","Дубний",268,"5Б",7,"d","transition","[Rn] 5f14 6d3 7s2","↑ ↑ ↑","ion_Db","high","none"];
+E[106]=[106,"Sg","Сиборгий",269,"6Б",7,"d","transition","[Rn] 5f14 6d4 7s2","↑ ↑ ↑ ↑","ion_Sg","high","none"];
+E[107]=[107,"Bh","Борий",270,"7Б",7,"d","transition","[Rn] 5f14 6d5 7s2","↑↓ ↑ ↑ ↑","ion_Bh","high","none"];
+E[108]=[108,"Hs","Хассий",277,"8",7,"d","transition","[Rn] 5f14 6d6 7s2","↑↓ ↑↓ ↑ ↑","ion_Hs","high","none"];
+E[109]=[109,"Mt","Мейтнерий",278,"8",7,"d","transition","[Rn] 5f14 6d7 7s2","↑↓ ↑↓ ↑↓ ↑","ion_Mt","high","none"];
+E[110]=[110,"Ds","Дармштадтий",281,"8",7,"d","transition","[Rn] 5f14 6d8 7s2","↑↓ ↑↓ ↑↓ ↑↓","ion_Ds","high","none"];
+E[111]=[111,"Rg","Рентгений",282,"1Б",7,"d","transition","[Rn] 5f14 6d9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑","ion_Rg","high","none"];
+E[112]=[112,"Cn","Коперниций",285,"2Б",7,"d","transition","[Rn] 5f14 6d10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Cn","high","none"];
+E[113]=[113,"Nh","Нихоний",286,"3А",7,"p","post","[Rn] 5f14 6d10 7s2 7p1","↑","ion_Nh","high","none"];
+E[114]=[114,"Fl","Флеровий",289,"4А",7,"p","post","[Rn] 5f14 6d10 7s2 7p2","↑ ↑","ion_Fl","high","none"];
+E[115]=[115,"Mc","Московий",290,"5А",7,"p","post","[Rn] 5f14 6d10 7s2 7p3","↑ ↑ ↑","ion_Mc","high","none"];
+E[116]=[116,"Lv","Ливерморий",293,"6А",7,"p","post","[Rn] 5f14 6d10 7s2 7p4","↑↓ ↑ ↑","ion_Lv","high","none"];
+E[117]=[117,"Ts","Теннессин",294,"7А",7,"p","halogen","[Rn] 5f14 6d10 7s2 7p5","↑↓ ↑↓ ↑","ion_Ts","high","none"];
+E[118]=[118,"Og","Оганесон",294,"8А",7,"p","noble","[Rn] 5f14 6d10 7s2 7p6","↑↓ ↑↓ ↑↓","ion_Og","high","none"];
+
+const POS = {
+1:[1,1],2:[1,18],
+3:[2,1],4:[2,2],5:[2,13],6:[2,14],7:[2,15],8:[2,16],9:[2,17],10:[2,18],
+11:[3,1],12:[3,2],13:[3,13],14:[3,14],15:[3,15],16:[3,16],17:[3,17],18:[3,18],
+19:[4,1],20:[4,2],21:[4,3],22:[4,4],23:[4,5],24:[4,6],25:[4,7],26:[4,8],27:[4,9],28:[4,10],29:[4,11],30:[4,12],31:[4,13],32:[4,14],33:[4,15],34:[4,16],35:[4,17],36:[4,18],
+37:[5,1],38:[5,2],39:[5,3],40:[5,4],41:[5,5],42:[5,6],43:[5,7],44:[5,8],45:[5,9],46:[5,10],47:[5,11],48:[5,12],49:[5,13],50:[5,14],51:[5,15],52:[5,16],53:[5,17],54:[5,18],
+55:[6,1],56:[6,2],57:[6,3],72:[6,4],73:[6,5],74:[6,6],75:[6,7],76:[6,8],77:[6,9],78:[6,10],79:[6,11],80:[6,12],81:[6,13],82:[6,14],83:[6,15],84:[6,16],85:[6,17],86:[6,18],
+87:[7,1],88:[7,2],89:[7,3],104:[7,4],105:[7,5],106:[7,6],107:[7,7],108:[7,8],109:[7,9],110:[7,10],111:[7,11],112:[7,12],113:[7,13],114:[7,14],115:[7,15],116:[7,16],117:[7,17],118:[7,18]
+};
+
+const LANTH = [57,58,59,60,61,62,63,64,65,66,67,68,69,70,71];
+const ACTIN = [89,90,91,92,93,94,95,96,97,98,99,100,101,102,103];
+
+const TRIADS = [
+    {name:"triad_alkali", elems:[3,11,19,37,55,87]},
+    {name:"triad_alkaline", elems:[4,20,38,56,88]},
+    {name:"triad_sc", elems:[21,39,57]},
+    {name:"triad_ti", elems:[22,40,72]},
+    {name:"triad_v", elems:[23,41,73]},
+    {name:"triad_cr", elems:[24,42,74]},
+    {name:"triad_mn", elems:[25,43,75]},
+    {name:"triad_fe", elems:[26,44,76]},
+    {name:"triad_co", elems:[27,45,77]},
+    {name:"triad_ni", elems:[28,46,78]},
+    {name:"triad_cu", elems:[29,47,79]},
+    {name:"triad_zn", elems:[30,48,80]},
+    {name:"triad_b", elems:[5,13,31,49,81]},
+    {name:"triad_c", elems:[6,14,32,50,82]},
+    {name:"triad_n", elems:[7,15,33,51,83]},
+    {name:"triad_o", elems:[8,16,34,52,84]},
+    {name:"triad_halogen", elems:[9,17,35,53,85]},
+    {name:"triad_noble", elems:[2,10,18,36,54,86]}
+];
+
+function buildTable() {
+    const table = document.getElementById('main-table');
+    let html = '';
+    for (let p = 1; p <= 7; p++) {
+        html += '<tr>';
+        for (let c = 1; c <= 18; c++) {
+            const z = Object.keys(POS).find(k => POS[k][0] === p && POS[k][1] === c);
+            if (z) {
+                const d = E[z];
+                html += `<td class="cat-${d[7]}" onclick="showDetail(${z})">
+                    <span class="z">${d[0]}</span>
+                    <span class="sym">${d[1]}</span>
+                    <span class="name">${d[2]}</span>
+                    <span class="mass">${d[3]}</span>
+                </td>`;
+            } else {
+                html += '<td class="empty"></td>';
+            }
+        }
+        html += '</tr>';
+    }
+    table.innerHTML = html;
+
+    const lanth = document.getElementById('lanth-table');
+    let lhtml = '<tr>';
+    LANTH.forEach(z => {
+        const d = E[z];
+        lhtml += `<td class="cat-${d[7]}" onclick="showDetail(${z})">
+            <span class="z">${d[0]}</span>
+            <span class="sym">${d[1]}</span>
+            <span class="name">${d[2]}</span>
+            <span class="mass">${d[3]}</span>
+        </td>`;
+    });
+    lhtml += '</tr>';
+    lanth.innerHTML = lhtml;
+
+    const actin = document.getElementById('actin-table');
+    let ahtml = '<tr>';
+    ACTIN.forEach(z => {
+        const d = E[z];
+        ahtml += `<td class="cat-${d[7]}" onclick="showDetail(${z})">
+            <span class="z">${d[0]}</span>
+            <span class="sym">${d[1]}</span>
+            <span class="name">${d[2]}</span>
+            <span class="mass">${d[3]}</span>
+        </td>`;
+    });
+    ahtml += '</tr>';
+    actin.innerHTML = ahtml;
+}
+
+function showDetail(z) {
+    const d = E[z];
+    const detail = document.getElementById('detail');
+    const content = document.getElementById('detail-content');
+    
+    const catNames = {
+        alkali:'alkali', alkaline:'alkaline',
+        transition:'transition', post:'post',
+        metalloid:'metalloid', nonmetal:'nonmetal',
+        halogen:'halogen', noble:'noble',
+        lanth:'lanth', actin:'actin'
+    };
+
+    content.innerHTML = `
+        <h2>${d[2]} (${d[1]})</h2>
+        <div class="row"><span class="label">${t('atomic_number')}:</span> <span class="val">${d[0]}</span></div>
+        <div class="row"><span class="label">${t('atomic_mass')}:</span> <span class="val">${d[3]}</span></div>
+        <div class="row"><span class="label">${t('group')}:</span> <span class="val">${d[4]}</span></div>
+        <div class="row"><span class="label">${t('period')}:</span> <span class="val">${d[5]}</span></div>
+        <div class="row"><span class="label">${t('category')}:</span> <span class="val">${t(catNames[d[7]])}</span></div>
+        <div class="row"><span class="label">${t('electron_config')}:</span></div>
+        <div class="config-box">${d[8]}</div>
+        <div class="row"><span class="label">${t('spins')}:</span></div>
+        <div class="spin-box">${d[9]}</div>
+        <div class="row"><span class="label">${t('ion_color')}:</span> <span class="val">${t(d[10])}</span></div>
+        <div class="row"><span class="label">${t('toxicity')}:</span> <span class="val">${t(d[11])}</span></div>
+        <div class="row"><span class="label">${t('bioavailability')}:</span> <span class="val">${t(d[12])}</span></div>
+    `;
+    detail.classList.add('open');
+}
+
+function closeDetail() {
+    document.getElementById('detail').classList.remove('open');
+}
+
+function buildTriads() {
+    const list = document.getElementById('triads-list');
+    let html = '';
+    TRIADS.forEach(tr => {
+        const elems = tr.elems.map(z => `${E[z][1]} (${E[z][2]})`).join(' — ');
+        html += `<div class="triad-group">
+            <div class="triad-title">${t(tr.name)}</div>
+            <div class="triad-elems">${elems}</div>
+        </div>`;
+    });
+    list.innerHTML = html;
+}
+
+function buildFilters() {
+    const filters = document.getElementById('filters');
+    const cats = [
+        ['all','filter_all'],['alkali','cat_alkali'],['alkaline','cat_alkaline'],
+        ['transition','cat_transition'],['post','cat_post'],
+        ['metalloid','cat_metalloid'],['nonmetal','cat_nonmetal'],
+        ['halogen','cat_halogen'],['noble','cat_noble'],
+        ['lanth','cat_lanth'],['actin','cat_actin']
+    ];
+    let html = '';
+    cats.forEach(([key, labelKey]) => {
+        html += `<button class="filter-btn" onclick="filterCat('${key}', this)">${t(labelKey)}</button>`;
+    });
+    filters.innerHTML = html;
+}
+
+function filterCat(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    document.querySelectorAll('td[class^="cat-"]').forEach(td => {
+        if (cat === 'all') {
+            td.style.opacity = '1';
+        } else {
+            td.style.opacity = td.classList.contains('cat-' + cat) ? '1' : '0.15';
+        }
+    });
+}
+
+buildLangBar();
+applyI18n();
+buildTable();
+buildTriads();
+buildFilters();
+</script>
+</body>
+</html>
