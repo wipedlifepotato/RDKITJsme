@@ -97,34 +97,7 @@ python3 main.py
    - Раскомментируйте `server_name` и укажите ваш домен
 
 ### Пример конфигурации
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    # Все запросы к /rdkit/ (UI + эндпоинты API)
-    location /rdkit/ {
-        proxy_pass http://127.0.0.1:1235/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Документация FastAPI
-    location /docs { proxy_pass http://127.0.0.1:1235; }
-    location /redoc { proxy_pass http://127.0.0.1:1235; }
-    location /openapi.json { proxy_pass http://127.0.0.1:1235; }
-
-    # Статические файлы
-    location /StaticFiles/ {
-        alias /path/to/your/StaticFiles/;
-        expires 7d;
-        add_header Cache-Control "public, no-transform";
-    }
-}
-```
+nginx.conf file
 
 ### Запуск через systemd
 
