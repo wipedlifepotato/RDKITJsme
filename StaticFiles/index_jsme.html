@@ -734,7 +734,11 @@
     // for nginx usage
     //const rdkit_api_h = `/rdkit/`;
     // for local usage
-    const rdkit_api_h = `/`;
+    const nginx_path = '/rdkit/';
+    const isLocal = /(?:127\.0\.0\.1|localhost):\d+/.test(window.location.host);
+    const rdkit_api_h = (() => {
+     return isLocal ? '/' : nginx_path;
+    })();
 
     // --- i18n ---
     const I18N = {
@@ -2352,6 +2356,9 @@
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 </script>
-<center><p>For periodatic table use 'Kalzium' or <a href='/periodatic_table' target='_blank'>Not recomended, but there is periodatic table</a></p></center>
+<center><p>For periodatic table use 'Kalzium' or <a href='#' id='periodaticTable' target='_blank'>Not recomended, but there is periodatic table</a></p></center>
+<script>
+	document.getElementById('periodaticTable').href= isLocal ? '/periodatic_table' : nginx_path+"/periodatic_table"
+</script>
 </body>
 </html>
