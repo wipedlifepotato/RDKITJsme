@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, create_engine
+from sqlalchemy import Column, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -14,6 +14,14 @@ class NameToSmilesCache(Base):
     __tablename__ = "name_to_smiles_cache"
     name = Column(String, primary_key=True, index=True)
     smiles = Column(String, nullable=False)
+
+
+class PubChemToxicityCache(Base):
+    __tablename__ = "pubchem_toxicity_cache"
+    smiles = Column(String, primary_key=True, index=True)
+    pubchem_cid = Column(String, nullable=True)
+    high_toxicity_risk = Column(String, nullable=True)  # "true" или "false"
+    hazard_statements = Column(Text, nullable=True)  # JSON array
 
 engine = None
 SessionLocal = None

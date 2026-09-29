@@ -9,10 +9,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from database import get_db, CachedName, NameToSmilesCache
+from database import get_db, CachedName, NameToSmilesCache, PubChemToxicityCache
 from Molecule import Molecule
 from rdkit_router import router as rdkit_router, set_proxy as set_rdkit_proxy
 from i18n import get_text, get_lang
+import httpx
 
 from rdkit import Chem
 from rdkit import DataStructs
@@ -441,3 +442,288 @@ def name_to_smiles(
         )
 
     raise HTTPException(status_code=404, detail=get_text("name_not_found", lang))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PubChem API — Токсикологические данные (GHS Classification)
+# ─────────────────────────────────────────────────────────────────────────────
+
+PUBCHEM_SMILES_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/cids/JSON"
+PUBCHEM_VIEW_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{cid}/JSON?heading=GHS+Classification"
+
+
+
+
+def extract_ghs_hazards(data: dict) -> list:
+    """
+    Рекурсивно обходит весь JSON-ответ PubChem 
+    и собирает все уникальные строки GHS Hazard Statements.
+    """
+    hazards = set()
+
+    def recursive_search(item):
+        if isinstance(item, dict):
+            if item.get("Name") == "GHS Hazard Statements":
+                string_markup = item.get("Value", {}).get("StringWithMarkup", [])
+                for entry in string_markup:
+                    text = entry.get("String")
+                    if text:
+                        hazards.add(text)
+            for key, value in item.items():
+                recursive_search(value)
+        elif isinstance(item, list):
+            for element in item:
+                recursive_search(element)
+
+    recursive_search(data)
+    return sorted(list(hazards))
+
+
+def _get_pubchem_data(url: str, use_proxy: bool = True) -> dict:
+    """
+    Выполняет HTTP GET запрос к PubChem API с поддержкой SOCKS5 прокси.
+    
+    Использует тот же подход, что и для Cactus (PySocks + sockshandler).
+    При неудаче с прокси — fallback на прямое подключение.
+    """
+    import socks
+    from sockshandler import SocksiPyHandler
+    
+    for attempt_proxy in ([True, False] if use_proxy else [False]):
+        try:
+            if attempt_proxy and PROXY_ADDRESS.strip():
+                proxy_host, proxy_port = PROXY_ADDRESS.split(":")
+                proxy_handler = SocksiPyHandler(socks.SOCKS5, proxy_host, int(proxy_port))
+                opener = urllib.request.build_opener(proxy_handler)
+            else:
+                opener = urllib.request.build_opener()
+            
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with opener.open(req, timeout=10) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception:
+            if attempt_proxy:
+                continue  # Пробуем без прокси
+            raise
+    
+    raise HTTPException(status_code=502, detail="PubChem API unavailable")
+
+
+@app.get("/api/pubchem_toxicity")
+async def check_toxicity_via_pubchem(
+    smiles: str = Query(..., description="SMILES молекулы, например C#N"),
+    lang: str = Depends(get_lang),
+    db: Session = Depends(get_db),
+):
+    """
+    Проверяет токсичность молекулы через PubChem API.
+    
+    Использует PubChem PUG REST API для:
+    1. Поиска CID (Compound ID) по SMILES
+    2. Получения GHS Classification ( Hazard Statements )
+    
+    Результаты кешируются в SQLite для ускорения повторных запросов.
+    
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+    
+    **Возвращает:**
+    - `pubchem_cid` — PubChem Compound ID
+    - `high_toxicity_risk` — флаг высокого риска
+    - `hazard_statements` — список hazard statements
+    - `source` — источник данных ("cache" или "pubchem")
+    
+    **Пример запроса:**
+    ```
+    GET /api/pubchem_toxicity?smiles=CC(=O)Oc1ccccc1C(=O)O&lang=ru
+    ```
+    """
+    # Проверяем кеш в БД
+    cached = db.query(PubChemToxicityCache).filter(PubChemToxicityCache.smiles == smiles).first()
+    if cached:
+        return {
+            "smiles": smiles,
+            "pubchem_cid": cached.pubchem_cid,
+            "high_toxicity_risk": cached.high_toxicity_risk == "true",
+            "hazard_statements": json.loads(cached.hazard_statements) if cached.hazard_statements else [],
+            "source": "cache"
+        }
+    
+    encoded_smiles = urllib.parse.quote(smiles, safe='')
+    
+    # 1. Получаем CID по SMILES (с прокси/fallback)
+    try:
+        data = _get_pubchem_data(PUBCHEM_SMILES_URL.format(smiles=encoded_smiles))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"PubChem API error: {str(e)}")
+    
+    cids = data.get("IdentifierList", {}).get("CID", [])
+    if not cids:
+        raise HTTPException(status_code=404, detail="CID не найден для данной молекулы")
+    
+    cid = cids[0]
+
+    # 2. Запрашиваем токсикологические предупреждения GHS по CID
+    hazards = []
+    is_high_risk = False
+
+    try:
+        view_data = _get_pubchem_data(PUBCHEM_VIEW_URL.format(cid=cid))
+        
+        if view_data and "Record" in view_data:
+            # Рекурсивно извлекаем все GHS Hazard Statements
+            hazards = extract_ghs_hazards(view_data)
+            # Фильтруем ключевые слова острой токсичности
+            for msg in hazards:
+                if any(w in msg.lower() for w in ["fatal", "toxic", "danger", "poison", "mortal"]):
+                    is_high_risk = True
+    except HTTPException:
+        pass
+    except Exception:
+        pass
+
+    # Сохраняем в кеш БД
+    try:
+        new_cache = PubChemToxicityCache(
+            smiles=smiles,
+            pubchem_cid=str(cid),
+            high_toxicity_risk="true" if is_high_risk else "false",
+            hazard_statements=json.dumps(hazards[:10])
+        )
+        db.add(new_cache)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+
+    return {
+        "smiles": smiles,
+        "pubchem_cid": cid,
+        "high_toxicity_risk": is_high_risk,
+        "hazard_statements": hazards[:10],
+        "source": "pubchem"
+    }
+
+
+@app.get("/api/combined_toxicity")
+async def combined_toxicity_assessment(
+    smiles: str = Query(..., description="SMILES молекулы, например C#N"),
+    lang: str = Depends(get_lang),
+    db: Session = Depends(get_db),
+):
+    """
+    Комбинированная оценка токсичности: RDKit (Brenk/PAINS) + PubChem (GHS).
+    
+    Объединяет результаты из двух источников:
+    - RDKit FilterCatalog (Brenk filters, PAINS)
+    - PubChem GHS Classification (Hazard Statements)
+    
+    **Параметры:**
+    - `smiles` — строка SMILES молекулы
+    - `lang` — язык ответа (ru, en, uk, es)
+    
+    **Возвращает:**
+    - `rdkit_alerts` — алерты от RDKit
+    - `pubchem_ghs` — hazard statements от PubChem
+    - `overall_risk` — общая оценка риска (HIGH/MEDIUM/LOW)
+    - `high_toxicity_risk` — флаг высокого риска от PubChem
+    
+    **Пример запроса:**
+    ```
+    GET /api/combined_toxicity?smiles=CC(=O)Oc1ccccc1C(=O)O&lang=ru
+    ```
+    """
+    # Получаем данные от RDKit
+    try:
+        m = Molecule(smiles)
+        if m.m is None:
+            raise ValueError(get_text("invalid_smiles", lang))
+        mol = m.m
+
+        from rdkit.Chem import FilterCatalog
+        params = FilterCatalog.FilterCatalogParams()
+        params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
+        params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
+        catalog = FilterCatalog.FilterCatalog(params)
+        
+        matches = catalog.GetMatches(mol)
+        rdkit_alerts = []
+        for entry in matches:
+            rdkit_alerts.append({
+                "name": entry.GetDescription(),
+                "heading": entry.GetHeading() if hasattr(entry, 'GetHeading') else "RDKit"
+            })
+    except Exception:
+        rdkit_alerts = []
+
+    # Получаем данные от PubChem (с кешированием)
+    pubchem_data = {
+        "pubchem_cid": None,
+        "high_toxicity_risk": False,
+        "hazard_statements": []
+    }
+    
+    # Проверяем кеш в БД
+    cached = db.query(PubChemToxicityCache).filter(PubChemToxicityCache.smiles == smiles).first()
+    if cached:
+        pubchem_data["pubchem_cid"] = cached.pubchem_cid
+        pubchem_data["high_toxicity_risk"] = cached.high_toxicity_risk == "true"
+        pubchem_data["hazard_statements"] = json.loads(cached.hazard_statements) if cached.hazard_statements else []
+    else:
+        encoded_smiles = urllib.parse.quote(smiles, safe='')
+        
+        try:
+            # 1. Получаем CID
+            data = _get_pubchem_data(PUBCHEM_SMILES_URL.format(smiles=encoded_smiles))
+            cids = data.get("IdentifierList", {}).get("CID", [])
+            if cids:
+                cid = cids[0]
+                pubchem_data["pubchem_cid"] = cid
+                
+                # 2. Получаем GHS Classification
+                try:
+                    view_data = _get_pubchem_data(PUBCHEM_VIEW_URL.format(cid=cid))
+                    if view_data and "Record" in view_data:
+                        # Рекурсивно извлекаем все GHS Hazard Statements
+                        pubchem_data["hazard_statements"] = extract_ghs_hazards(view_data)
+                        # Фильтруем ключевые слова острой токсичности
+                        for msg in pubchem_data["hazard_statements"]:
+                            if any(w in msg.lower() for w in ["fatal", "toxic", "danger", "poison", "mortal"]):
+                                pubchem_data["high_toxicity_risk"] = True
+                except Exception:
+                    pass
+                
+                # Сохраняем в кеш БД
+                try:
+                    new_cache = PubChemToxicityCache(
+                        smiles=smiles,
+                        pubchem_cid=str(cid),
+                        high_toxicity_risk="true" if pubchem_data["high_toxicity_risk"] else "false",
+                        hazard_statements=json.dumps(pubchem_data["hazard_statements"][:10])
+                    )
+                    db.add(new_cache)
+                    db.commit()
+                except IntegrityError:
+                    db.rollback()
+        except Exception:
+            pass
+
+    # Определяем общий риск
+    total_alerts = len(rdkit_alerts) + len(pubchem_data["hazard_statements"])
+    if pubchem_data["high_toxicity_risk"] or len(rdkit_alerts) >= 2:
+        overall_risk = get_text("tox_risk_high", lang)
+    elif total_alerts >= 1:
+        overall_risk = get_text("tox_risk_medium", lang)
+    else:
+        overall_risk = get_text("tox_risk_low", lang)
+
+    return {
+        "smiles": smiles,
+        "overall_risk": overall_risk,
+        "total_alerts": total_alerts,
+        "rdkit_alerts": rdkit_alerts,
+        "pubchem_ghs": pubchem_data,
+        "high_toxicity_risk": pubchem_data["high_toxicity_risk"]
+    }

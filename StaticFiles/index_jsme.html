@@ -1804,24 +1804,46 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('tox_out');
         if (!smiles) return;
-        out.innerHTML = "Assessing toxicity...";
+        out.innerHTML = "Assessing toxicity (RDKit + PubChem GHS)...";
         try {
-            const res = await fetch(`${rdkit_api_h}rdkit/api/toxicity?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
+            const res = await fetch(`${rdkit_api_h}api/combined_toxicity?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Toxicity Assessment (Brenk / PAINS)</b><br>`;
+                let html = `<b>Combined Toxicity Assessment (RDKit + PubChem GHS)</b><br>`;
                 html += `<b>Overall Risk:</b> <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${data.overall_risk}</b><br>`;
-                html += `<b>Total Alerts:</b> ${data.total_alerts}<br><br>`;
-                if (data.alerts.length > 0) {
+                html += `<b>Total Alerts:</b> ${data.total_alerts}<br>`;
+                
+                // PubChem GHS Data
+                if (data.pubchem_ghs && data.pubchem_ghs.pubchem_cid) {
+                    html += `<br><b>PubChem GHS Classification:</b> CID ${data.pubchem_ghs.pubchem_cid}<br>`;
+                    if (data.pubchem_ghs.high_toxicity_risk) {
+                        html += `<b style="color:red">⚠️ HIGH TOXICITY RISK detected by PubChem</b><br>`;
+                    }
+                    if (data.pubchem_ghs.hazard_statements && data.pubchem_ghs.hazard_statements.length > 0) {
+                        html += `<table style="border-collapse: collapse; width: 100%;">`;
+                        html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">Hazard Statement</th></tr>`;
+                        data.pubchem_ghs.hazard_statements.forEach((h, i) => {
+                            html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${h}</td></tr>`;
+                        });
+                        html += `</table>`;
+                    } else {
+                        html += `<i>No GHS hazard statements found in PubChem.</i><br>`;
+                    }
+                } else {
+                    html += `<br><i>PubChem data not available (may be cached or API unavailable).</i><br>`;
+                }
+                
+                // RDKit Alerts
+                if (data.rdkit_alerts && data.rdkit_alerts.length > 0) {
+                    html += `<br><b>RDKit Alerts (Brenk / PAINS):</b><br>`;
                     html += `<table style="border-collapse: collapse; width: 100%;">`;
                     html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">Alert</th><th style="padding: 8px; text-align: left;">Source</th></tr>`;
-                    data.alerts.forEach((a, i) => {
+                    data.rdkit_alerts.forEach((a, i) => {
                         html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${a.name}</td><td style="padding: 8px;">${a.heading}</td></tr>`;
                     });
                     html += `</table>`;
-                } else {
-                    html += `<b>No alerts found</b> — molecule passes Brenk and PAINS filters.`;
                 }
+                
                 out.innerHTML = html;
             } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
