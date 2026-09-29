@@ -312,23 +312,23 @@
     
     <!-- Tabs для новых инструментов -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('basic')" data-i18n="basic">Basic</button>
-        <button class="tab-btn" onclick="switchTab('adme')" data-i18n="adme">ADME <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('analysis')" data-i18n="analysis">Analysis <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('advanced')" data-i18n="advanced">Advanced <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('3d')" data-i18n="viewer3d">3D Viewer <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('nmr')" data-i18n="nmr">NMR <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('tox')" data-i18n="tox">Toxicity <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('retro')" data-i18n="retro">Retro <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('conf')" data-i18n="conf">Conformers <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('export')" data-i18n="export">Export <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('tautomers')" data-i18n="tautomers">Tautomers <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('scaffold')" data-i18n="scaffold">Scaffold <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('cluster')" data-i18n="cluster">Cluster <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('stereo')" data-i18n="stereo">Stereoisomers <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('ringconf')" data-i18n="ringconf">Ring Conf <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('nametosmiles')" data-i18n="nametosmiles">Name→SMILES <span class="badge badge-new">NEW</span></button>
-        <button class="tab-btn" onclick="switchTab('inorg')" data-i18n="inorg">Inorganic <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn active" onclick="switchTab(event, 'basic')" data-i18n="basic">Basic</button>
+        <button class="tab-btn" onclick="switchTab(event, 'adme')" data-i18n="adme">ADME <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'analysis')" data-i18n="analysis">Analysis <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'advanced')" data-i18n="advanced">Advanced <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, '3d')" data-i18n="viewer3d">3D Viewer <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'nmr')" data-i18n="nmr">NMR <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'tox')" data-i18n="tox">Toxicity <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'retro')" data-i18n="retro">Retro <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'conf')" data-i18n="conf">Conformers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'export')" data-i18n="export">Export <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'tautomers')" data-i18n="tautomers">Tautomers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'scaffold')" data-i18n="scaffold">Scaffold <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'cluster')" data-i18n="cluster">Cluster <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'stereo')" data-i18n="stereo">Stereoisomers <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'ringconf')" data-i18n="ringconf">Ring Conf <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'nametosmiles')" data-i18n="nametosmiles">Name→SMILES <span class="badge badge-new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'inorg')" data-i18n="inorg">Inorganic <span class="badge badge-new">NEW</span></button>
     </div>
 
     <!-- Basic Tools -->
@@ -460,72 +460,6 @@
             </div>
             <div id="export_out" class="output-box">Export results will appear here...</div>
             <div id="svg_preview" style="margin-top: 10px; text-align: center; display: none;"></div>
-        </div>
-    </div>
-
-    <!-- Tautomers Tools -->
-    <div id="tab-tautomers" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <button class="btn-tool" onclick="getTautomers()" data-i18n="tautomersBtn">Enumerate Tautomers</button>
-            </div>
-            <div id="tautomers_out" class="output-box">Tautomers will appear here...</div>
-        </div>
-    </div>
-
-    <!-- Scaffold Tools -->
-    <div id="tab-scaffold" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <button class="btn-tool" onclick="getScaffold()" data-i18n="scaffoldBtn">Get Bemis-Murcko Scaffold</button>
-            </div>
-            <div id="scaffold_out" class="output-box">Scaffold will appear here...</div>
-            <div id="scaffold_svg" style="margin-top: 10px; text-align: center; display: none;"></div>
-        </div>
-    </div>
-
-    <!-- Cluster Tools -->
-    <div id="tab-cluster" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <textarea id="cluster_smiles" placeholder="Enter SMILES list (one per line)" style="width: 100%; height: 80px; padding: 8px; font-family: monospace;"></textarea>
-            </div>
-            <div class="tools-row">
-                <label style="font-size: 13px;">Cutoff: <input type="number" id="cluster_cutoff" value="0.7" min="0.1" max="1.0" step="0.1" style="width: 60px; padding: 4px;"></label>
-                <button class="btn-tool" onclick="getClusters()" data-i18n="clusterBtn">Cluster Molecules (Butina)</button>
-            </div>
-            <div id="cluster_out" class="output-box">Clustering results will appear here...</div>
-        </div>
-    </div>
-
-    <!-- Stereoisomers Tools -->
-    <div id="tab-stereo" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <button class="btn-tool" onclick="getStereoisomers()" data-i18n="stereoBtn">Enumerate Stereoisomers</button>
-            </div>
-            <div id="stereo_out" class="output-box">Stereoisomers will appear here...</div>
-        </div>
-    </div>
-
-    <!-- Ring Conformation Tools -->
-    <div id="tab-ringconf" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <button class="btn-tool" onclick="getRingConformation()" data-i18n="ringconfBtn">Analyze Ring Conformations</button>
-            </div>
-            <div id="ringconf_out" class="output-box">Ring conformation analysis will appear here...</div>
-        </div>
-    </div>
-
-    <!-- Name to SMILES Tools -->
-    <div id="tab-nametosmiles" class="tab-content">
-        <div class="tools-panel">
-            <div class="tools-row">
-                <input type="text" id="name_input" placeholder="Enter molecule name (e.g. Aspirin)" style="flex: 1;">
-                <button class="btn-tool" onclick="getNameToSmiles()" data-i18n="nametosmilesBtn">Convert Name to SMILES</button>
-            </div>
-            <div id="nametosmiles_out" class="output-box">Name to SMILES result will appear here...</div>
         </div>
     </div>
 
@@ -868,6 +802,30 @@
             pinkSpheres: 'розовые сферы',
             loading: 'Загрузка...',
             apiConnectionError: 'Ошибка подключения к API',
+            loadingADME: 'Загрузка ADME свойств...',
+            searchingFG: 'Поиск функциональных групп...',
+            estimatingPKa: 'Оценка pKa...',
+            computingDescriptors: 'Вычисление 200+ дескрипторов...',
+            applyingReaction: 'Применение реакции...',
+            lookingUpInChIKey: 'Поиск по InChIKey...',
+            estimatingNMR: 'Оценка ЯМР сдвигов...',
+            assessingToxicity: 'Оценка токсичности (RDKit + PubChem GHS)...',
+            parsingFormula: 'Разбор формулы...',
+            determiningOxidation: 'Определение степеней окисления...',
+            calculatingBondType: 'Расчёт типа связи...',
+            gettingOrbitals: 'Получение электронной конфигурации...',
+            checkingSolubility: 'Проверка растворимости...',
+            analyzingRedox: 'Анализ ОВР...',
+            analyzingRetro: 'Анализ ретросинтетических путей...',
+            generatingConformers: 'Генерация конформеров...',
+            generatingSVG: 'Генерация SVG...',
+            calculatingMS: 'Расчёт масс-спектра...',
+            enumeratingTautomers: 'Перечисление таутомеров...',
+            extractingScaffold: 'Извлечение скаффолда...',
+            clusteringMolecules: 'Кластеризация молекул...',
+            enumeratingStereo: 'Перечисление стереоизомеров...',
+            analyzingRingConf: 'Анализ конформаций колец...',
+            convertingNameToSmiles: 'Конвертация имени в SMILES...',
             nmr: 'ЯМР',
             nmrBtn: 'Оценка ЯМР (1H и 13C)',
             tox: 'Токсичность',
@@ -994,6 +952,30 @@
             pinkSpheres: 'pink spheres',
             loading: 'Loading...',
             apiConnectionError: 'API Connection Error',
+            loadingADME: 'Loading ADME properties...',
+            searchingFG: 'Searching functional groups...',
+            estimatingPKa: 'Estimating pKa...',
+            computingDescriptors: 'Computing 200+ descriptors...',
+            applyingReaction: 'Applying reaction...',
+            lookingUpInChIKey: 'Looking up InChIKey...',
+            estimatingNMR: 'Estimating NMR shifts...',
+            assessingToxicity: 'Assessing toxicity (RDKit + PubChem GHS)...',
+            parsingFormula: 'Parsing formula...',
+            determiningOxidation: 'Determining oxidation states...',
+            calculatingBondType: 'Calculating bond type...',
+            gettingOrbitals: 'Getting electron configuration...',
+            checkingSolubility: 'Checking solubility...',
+            analyzingRedox: 'Analyzing redox reaction...',
+            analyzingRetro: 'Analyzing retrosynthetic pathways...',
+            generatingConformers: 'Generating conformers...',
+            generatingSVG: 'Generating SVG...',
+            calculatingMS: 'Calculating mass spectrum...',
+            enumeratingTautomers: 'Enumerating tautomers...',
+            extractingScaffold: 'Extracting scaffold...',
+            clusteringMolecules: 'Clustering molecules...',
+            enumeratingStereo: 'Enumerating stereoisomers...',
+            analyzingRingConf: 'Analyzing ring conformations...',
+            convertingNameToSmiles: 'Converting name to SMILES...',
             nmr: 'NMR',
             nmrBtn: 'Estimate NMR (1H & 13C)',
             tox: 'Toxicity',
@@ -1120,6 +1102,30 @@
             pinkSpheres: 'рожеві сфери',
             loading: 'Завантаження...',
             apiConnectionError: 'Помилка підключення до API',
+            loadingADME: 'Завантаження ADME властивостей...',
+            searchingFG: 'Пошук функціональних груп...',
+            estimatingPKa: 'Оцінка pKa...',
+            computingDescriptors: 'Обчислення 200+ дескрипторів...',
+            applyingReaction: 'Застосування реакції...',
+            lookingUpInChIKey: 'Пошук за InChIKey...',
+            estimatingNMR: 'Оцінка ЯМР зсувів...',
+            assessingToxicity: 'Оцінка токсичності (RDKit + PubChem GHS)...',
+            parsingFormula: 'Розбір формули...',
+            determiningOxidation: 'Визначення ступенів окислення...',
+            calculatingBondType: 'Розрахунок типу зв\'язку...',
+            gettingOrbitals: 'Отримання електронної конфігурації...',
+            checkingSolubility: 'Перевірка розчинності...',
+            analyzingRedox: 'Аналіз ОВР...',
+            analyzingRetro: 'Аналіз ретросинтетичних шляхів...',
+            generatingConformers: 'Генерація конформерів...',
+            generatingSVG: 'Генерація SVG...',
+            calculatingMS: 'Розрахунок мас-спектра...',
+            enumeratingTautomers: 'Перелічування таутомерів...',
+            extractingScaffold: 'Витягування скаффолда...',
+            clusteringMolecules: 'Кластеризація молекул...',
+            enumeratingStereo: 'Перелічування стереоізомерів...',
+            analyzingRingConf: 'Аналіз конформацій кілець...',
+            convertingNameToSmiles: 'Конвертація імені в SMILES...',
             nmr: 'ЯМР',
             nmrBtn: 'Оцінка ЯМР (1H та 13C)',
             tox: 'Токсичність',
@@ -1246,6 +1252,30 @@
             pinkSpheres: 'esferas rosas',
             loading: 'Cargando...',
             apiConnectionError: 'Error de Conexión API',
+            loadingADME: 'Cargando propiedades ADME...',
+            searchingFG: 'Buscando grupos funcionales...',
+            estimatingPKa: 'Estimando pKa...',
+            computingDescriptors: 'Calculando 200+ descriptores...',
+            applyingReaction: 'Aplicando reacción...',
+            lookingUpInChIKey: 'Buscando por InChIKey...',
+            estimatingNMR: 'Estimando desplazamientos RMN...',
+            assessingToxicity: 'Evaluando toxicidad (RDKit + PubChem GHS)...',
+            parsingFormula: 'Analizando fórmula...',
+            determiningOxidation: 'Determinando estados de oxidación...',
+            calculatingBondType: 'Calculando tipo de enlace...',
+            gettingOrbitals: 'Obteniendo configuración electrónica...',
+            checkingSolubility: 'Verificando solubilidad...',
+            analyzingRedox: 'Analizando reacción redox...',
+            analyzingRetro: 'Analizando vías retrosintéticas...',
+            generatingConformers: 'Generando confórmeros...',
+            generatingSVG: 'Generando SVG...',
+            calculatingMS: 'Calculando espectro de masas...',
+            enumeratingTautomers: 'Enumerando tautómeros...',
+            extractingScaffold: 'Extrayendo andamio...',
+            clusteringMolecules: 'Clustering moléculas...',
+            enumeratingStereo: 'Enumerando estereoisómeros...',
+            analyzingRingConf: 'Analizando conformaciones de anillo...',
+            convertingNameToSmiles: 'Convirtiendo nombre a SMILES...',
             nmr: 'RMN',
             nmrBtn: 'Estimar RMN (1H y 13C)',
             tox: 'Toxicidad',
@@ -1312,6 +1342,15 @@
     let currentLang = localStorage.getItem('lang') || 'ru';
     const langs = ['ru', 'uk', 'en', 'es'];
     function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || key; }
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
     function applyI18n() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             el.textContent = t(el.getAttribute('data-i18n'));
@@ -1435,11 +1474,11 @@
     }
 
     // --- Tab Switching ---
-    function switchTab(tabName) {
+    function switchTab(event, tabName) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.add('active');
-        event.target.classList.add('active');
+        event.currentTarget.classList.add('active');
     }
 
     // --- Basic Endpoints ---
@@ -1452,8 +1491,8 @@
             const res = await fetch(`${rdkit_api_h}api/get_properties?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                out.innerHTML = `<b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight.toFixed(2)} | <b>LogP:</b> ${data.logp.toFixed(2)} | <b>HBD:</b> ${data.hbd} | <b>HBA:</b> ${data.hba} | <b>TPSA:</b> ${data.tpsa.toFixed(2)}`;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail || 'Invalid input'}</span>`;
+                out.innerHTML = `<b>Formula:</b> ${escapeHtml(data.formula)} | <b>MW:</b> ${escapeHtml(data.molecular_weight.toFixed(2))} | <b>LogP:</b> ${escapeHtml(data.logp.toFixed(2))} | <b>HBD:</b> ${escapeHtml(data.hbd)} | <b>HBA:</b> ${escapeHtml(data.hba)} | <b>TPSA:</b> ${escapeHtml(data.tpsa.toFixed(2))}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail || 'Invalid input')}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1465,8 +1504,8 @@
             const res = await fetch(`${rdkit_api_h}api/convert?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok && data.valid) {
-                out.innerHTML = `<b>Canonical:</b> ${data.canonical_smiles}<br><b>InChI:</b> ${data.inchi}<br><b>InChIKey:</b> ${data.inchikey}`;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.error || data.detail}</span>`;
+                out.innerHTML = `<b>Canonical:</b> ${escapeHtml(data.canonical_smiles)}<br><b>InChI:</b> ${escapeHtml(data.inchi)}<br><b>InChIKey:</b> ${escapeHtml(data.inchikey)}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.error || data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1486,8 +1525,8 @@
             const res = await fetch(`${rdkit_api_h}api/substructure_search?target_smiles=${encodeURIComponent(target)}&pattern_smarts=${encodeURIComponent(pattern)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                out.innerHTML = `<b>Substructure Found:</b> ${data.has_match ? 'Yes ✅' : 'No ❌'} | <b>Matches Count:</b> ${data.match_count}`;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+                out.innerHTML = `<b>Substructure Found:</b> ${data.has_match ? 'Yes ✅' : 'No ❌'} | <b>Matches Count:</b> ${escapeHtml(data.match_count)}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1501,8 +1540,8 @@
             const res = await fetch(`${rdkit_api_h}api/similarity?smiles1=${encodeURIComponent(s1)}&smiles2=${encodeURIComponent(s2)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                out.innerHTML = `<b>Tanimoto Similarity:</b> ${data.tanimoto_similarity} (0.0 to 1.0)`;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+                out.innerHTML = `<b>Tanimoto Similarity:</b> ${escapeHtml(data.tanimoto_similarity)} (0.0 to 1.0)`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1512,21 +1551,21 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('adme_out');
         if (!smiles) return;
-        out.innerHTML = "Loading ADME properties...";
+        out.innerHTML = t('loadingADME');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/adme?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 out.innerHTML = `
                     <b>ADME / Drug-likeness Analysis</b><br>
-                    <b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight} | <b>LogP:</b> ${data.logp}<br>
-                    <b>HBD:</b> ${data.hbd} | <b>HBA:</b> ${data.hba} | <b>TPSA:</b> ${data.tpsa}<br>
-                    <b>Rotatable Bonds:</b> ${data.rotatable_bonds} | <b>Rings:</b> ${data.num_rings} | <b>Aromatic Rings:</b> ${data.num_aromatic_rings}<br>
-                    <b>Lipinski Violations:</b> ${data.lipinski_violations} (${data.lipinski_pass ? 'PASS ✅' : 'FAIL ❌'})<br>
-                    <b>QED:</b> ${data.qed} (${data.qed_interpretation})<br>
-                    <b>SA Score:</b> ${data.sa_score || 'N/A'} | <b>Stereocenters:</b> ${data.num_stereocenters}
+                    <b>Formula:</b> ${escapeHtml(data.formula)} | <b>MW:</b> ${escapeHtml(data.molecular_weight)} | <b>LogP:</b> ${escapeHtml(data.logp)}<br>
+                    <b>HBD:</b> ${escapeHtml(data.hbd)} | <b>HBA:</b> ${escapeHtml(data.hba)} | <b>TPSA:</b> ${escapeHtml(data.tpsa)}<br>
+                    <b>Rotatable Bonds:</b> ${escapeHtml(data.rotatable_bonds)} | <b>Rings:</b> ${escapeHtml(data.num_rings)} | <b>Aromatic Rings:</b> ${escapeHtml(data.num_aromatic_rings)}<br>
+                    <b>Lipinski Violations:</b> ${escapeHtml(data.lipinski_violations)} (${data.lipinski_pass ? 'PASS ✅' : 'FAIL ❌'})<br>
+                    <b>QED:</b> ${escapeHtml(data.qed)} (${escapeHtml(data.qed_interpretation)})<br>
+                    <b>SA Score:</b> ${escapeHtml(data.sa_score || 'N/A')} | <b>Stereocenters:</b> ${escapeHtml(data.num_stereocenters)}
                 `;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1534,17 +1573,17 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('adme_out');
         if (!smiles) return;
-        out.innerHTML = "Searching functional groups...";
+        out.innerHTML = t('searchingFG');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/functional_groups?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Functional Groups Found:</b> ${data.total_groups_found}<br>`;
+                let html = `<b>Functional Groups Found:</b> ${escapeHtml(data.total_groups_found)}<br>`;
                 data.functional_groups.forEach(fg => {
-                    html += `• ${fg.name} (${fg.count}x)<br>`;
+                    html += `• ${escapeHtml(fg.name)} (${escapeHtml(fg.count)}x)<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1556,12 +1595,12 @@
             const res = await fetch(`${rdkit_api_h}rdkit/api/validate?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (data.valid) {
-                out.innerHTML = `<b>✅ Valid SMILES</b><br><b>Canonical:</b> ${data.canonical_smiles}`;
+                out.innerHTML = `<b>✅ Valid SMILES</b><br><b>Canonical:</b> ${escapeHtml(data.canonical_smiles)}`;
                 if (data.warnings.length > 0) {
-                    out.innerHTML += `<br><b>Warnings:</b> ${data.warnings.join(', ')}`;
+                    out.innerHTML += `<br><b>Warnings:</b> ${escapeHtml(data.warnings.join(', '))}`;
                 }
             } else {
-                out.innerHTML = `<b>❌ Invalid SMILES</b><br><b>Error Type:</b> ${data.error_type}<br><b>Message:</b> ${data.error_message}`;
+                out.innerHTML = `<b>❌ Invalid SMILES</b><br><b>Error Type:</b> ${escapeHtml(data.error_type)}<br><b>Message:</b> ${escapeHtml(data.error_message)}`;
             }
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
@@ -1572,17 +1611,17 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('analysis_out');
         if (!smiles) return;
-        out.innerHTML = "Estimating pKa...";
+        out.innerHTML = t('estimatingPKa');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/pka?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>pKa Estimation</b> — ${data.total_sites} sites found<br>`;
+                let html = `<b>pKa Estimation</b> — ${escapeHtml(data.total_sites)} sites found<br>`;
                 data.pka_sites.forEach(site => {
-                    html += `• Atom ${site.atom_idx}: ${site.type} (pKa ~${site.estimated_pka}, ${site.strength})<br>`;
+                    html += `• Atom ${escapeHtml(site.atom_idx)}: ${escapeHtml(site.type)} (pKa ~${escapeHtml(site.estimated_pka)}, ${escapeHtml(site.strength)})<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1590,21 +1629,21 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('analysis_out');
         if (!smiles) return;
-        out.innerHTML = "Computing 200+ descriptors...";
+        out.innerHTML = t('computingDescriptors');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/descriptors?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 const d = data.extra_descriptors;
                 out.innerHTML = `
-                    <b>Descriptors (${data.descriptor_count} total)</b><br>
-                    <b>MW:</b> ${d.MolWt} | <b>LogP:</b> ${d.MolLogP} | <b>TPSA:</b> ${d.TPSA}<br>
-                    <b>HBD:</b> ${d.NumHDonors} | <b>HBA:</b> ${d.NumHAcceptors} | <b>RotB:</b> ${d.NumRotatableBonds}<br>
-                    <b>Rings:</b> ${d.NumRings} | <b>Aromatic Rings:</b> ${d.NumAromaticRings}<br>
-                    <b>Fraction CSP3:</b> ${d.FractionCSP3} | <b>BalabanJ:</b> ${d.BalabanJ}<br>
-                    <b>QED:</b> ${d.QED?.score || 'N/A'}
+                    <b>Descriptors (${escapeHtml(data.descriptor_count)} total)</b><br>
+                    <b>MW:</b> ${escapeHtml(d.MolWt)} | <b>LogP:</b> ${escapeHtml(d.MolLogP)} | <b>TPSA:</b> ${escapeHtml(d.TPSA)}<br>
+                    <b>HBD:</b> ${escapeHtml(d.NumHDonors)} | <b>HBA:</b> ${escapeHtml(d.NumHAcceptors)} | <b>RotB:</b> ${escapeHtml(d.NumRotatableBonds)}<br>
+                    <b>Rings:</b> ${escapeHtml(d.NumRings)} | <b>Aromatic Rings:</b> ${escapeHtml(d.NumAromaticRings)}<br>
+                    <b>Fraction CSP3:</b> ${escapeHtml(d.FractionCSP3)} | <b>BalabanJ:</b> ${escapeHtml(d.BalabanJ)}<br>
+                    <b>QED:</b> ${escapeHtml(d.QED?.score || 'N/A')}
                 `;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1615,17 +1654,17 @@
         const reaction = document.getElementById('reaction_smarts').value.trim();
         const out = document.getElementById('reaction_out');
         if (!smiles || !reaction) { out.innerHTML = "Please enter both SMILES and SMIRKS reaction."; return; }
-        out.innerHTML = "Applying reaction...";
+        out.innerHTML = t('applyingReaction');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/reaction?smiles=${encodeURIComponent(smiles)}&reaction_smarts=${encodeURIComponent(reaction)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 if (data.product_count > 0) {
-                    out.innerHTML = `<b>Reaction Products (${data.product_count}):</b><br>` + data.products.map(p => `• ${p}`).join('<br>');
+                    out.innerHTML = `<b>Reaction Products (${escapeHtml(data.product_count)}):</b><br>` + data.products.map(p => `• ${escapeHtml(p)}`).join('<br>');
                 } else {
                     out.innerHTML = "No reaction products formed.";
                 }
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1633,18 +1672,18 @@
         const inchikey = document.getElementById('inchikey_input').value.trim();
         const out = document.getElementById('inchikey_out');
         if (!inchikey) { out.innerHTML = "Please enter an InChIKey."; return; }
-        out.innerHTML = "Looking up InChIKey...";
+        out.innerHTML = t('lookingUpInChIKey');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/by_inchikey?inchikey=${encodeURIComponent(inchikey)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 out.innerHTML = `
-                    <b>InChIKey:</b> ${data.inchikey}<br>
-                    <b>SMILES:</b> ${data.smiles}<br>
-                    <b>Formula:</b> ${data.formula} | <b>MW:</b> ${data.molecular_weight}<br>
-                    <b>LogP:</b> ${data.logp} | <b>QED:</b> ${data.qed}
+                    <b>InChIKey:</b> ${escapeHtml(data.inchikey)}<br>
+                    <b>SMILES:</b> ${escapeHtml(data.smiles)}<br>
+                    <b>Formula:</b> ${escapeHtml(data.formula)} | <b>MW:</b> ${escapeHtml(data.molecular_weight)}<br>
+                    <b>LogP:</b> ${escapeHtml(data.logp)} | <b>QED:</b> ${escapeHtml(data.qed)}
                 `;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1847,7 +1886,7 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('nmr_out');
         if (!smiles) return;
-        out.innerHTML = "Estimating NMR shifts...";
+        out.innerHTML = t('estimatingNMR');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/nmr?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
@@ -1868,7 +1907,7 @@
                 });
                 html += `</table>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1878,18 +1917,18 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('tox_out');
         if (!smiles) return;
-        out.innerHTML = "Assessing toxicity (RDKit + PubChem GHS)...";
+        out.innerHTML = t('assessingToxicity');
         try {
             const res = await fetch(`${rdkit_api_h}api/combined_toxicity?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 let html = `<b>Combined Toxicity Assessment (RDKit + PubChem GHS)</b><br>`;
-                html += `<b>Overall Risk:</b> <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${data.overall_risk}</b><br>`;
-                html += `<b>Total Alerts:</b> ${data.total_alerts}<br>`;
+                html += `<b>Overall Risk:</b> <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${escapeHtml(data.overall_risk)}</b><br>`;
+                html += `<b>Total Alerts:</b> ${escapeHtml(data.total_alerts)}<br>`;
                 
                 // PubChem GHS Data
                 if (data.pubchem_ghs && data.pubchem_ghs.pubchem_cid) {
-                    html += `<br><b>PubChem GHS Classification:</b> CID ${data.pubchem_ghs.pubchem_cid}<br>`;
+                    html += `<br><b>PubChem GHS Classification:</b> CID ${escapeHtml(data.pubchem_ghs.pubchem_cid)}<br>`;
                     if (data.pubchem_ghs.high_toxicity_risk) {
                         html += `<b style="color:red">⚠️ HIGH TOXICITY RISK detected by PubChem</b><br>`;
                     }
@@ -1897,7 +1936,7 @@
                         html += `<table style="border-collapse: collapse; width: 100%;">`;
                         html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">Hazard Statement</th></tr>`;
                         data.pubchem_ghs.hazard_statements.forEach((h, i) => {
-                            html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${h}</td></tr>`;
+                            html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${escapeHtml(h)}</td></tr>`;
                         });
                         html += `</table>`;
                     } else {
@@ -1913,13 +1952,13 @@
                     html += `<table style="border-collapse: collapse; width: 100%;">`;
                     html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">Alert</th><th style="padding: 8px; text-align: left;">Source</th></tr>`;
                     data.rdkit_alerts.forEach((a, i) => {
-                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${a.name}</td><td style="padding: 8px;">${a.heading}</td></tr>`;
+                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td style="padding: 8px;">${escapeHtml(a.name)}</td><td style="padding: 8px;">${escapeHtml(a.heading)}</td></tr>`;
                     });
                     html += `</table>`;
                 }
                 
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1929,20 +1968,20 @@
         const formula = document.getElementById('inorg_formula').value.trim();
         const out = document.getElementById('inorg_out');
         if (!formula) return;
-        out.innerHTML = "Parsing formula...";
+        out.innerHTML = t('parsingFormula');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/parse_formula?formula=${encodeURIComponent(formula)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Formula:</b> ${data.formula}<br>`;
-                html += `<b>Molecular Mass:</b> ${data.molecular_mass} g/mol<br>`;
-                html += `<b>Total Atoms:</b> ${data.total_atoms}<br><br>`;
+                let html = `<b>Formula:</b> ${escapeHtml(data.formula)}<br>`;
+                html += `<b>Molecular Mass:</b> ${escapeHtml(data.molecular_mass)} g/mol<br>`;
+                html += `<b>Total Atoms:</b> ${escapeHtml(data.total_atoms)}<br><br>`;
                 html += `<b>Elements:</b><br>`;
                 data.elements.forEach(e => {
-                    html += `• ${e.element}: ${e.count} atoms, ${e.atomic_mass} g/mol (${e.mass_percent}%)<br>`;
+                    html += `• ${escapeHtml(e.element)}: ${escapeHtml(e.count)} atoms, ${escapeHtml(e.atomic_mass)} g/mol (${escapeHtml(e.mass_percent)}%)<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1950,17 +1989,17 @@
         const formula = document.getElementById('inorg_formula').value.trim();
         const out = document.getElementById('inorg_out');
         if (!formula) return;
-        out.innerHTML = "Determining oxidation states...";
+        out.innerHTML = t('determiningOxidation');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/oxidation_states?formula=${encodeURIComponent(formula)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Oxidation States for ${data.formula}:</b><br>`;
+                let html = `<b>Oxidation States for ${escapeHtml(data.formula)}:</b><br>`;
                 for (const [elem, state] of Object.entries(data.oxidation_states)) {
-                    html += `• ${elem}: ${state > 0 ? '+' + state : state}<br>`;
+                    html += `• ${escapeHtml(elem)}: ${escapeHtml(state > 0 ? '+' + state : state)}<br>`;
                 }
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1969,16 +2008,16 @@
         const elem2 = document.getElementById('inorg_elem2').value.trim();
         const out = document.getElementById('inorg_bond_out');
         if (!elem1 || !elem2) return;
-        out.innerHTML = "Calculating bond type...";
+        out.innerHTML = t('calculatingBondType');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/electronegativity?element1=${encodeURIComponent(elem1)}&element2=${encodeURIComponent(elem2)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Bond Type: ${elem1}-${elem2}</b><br>`;
-                html += `ΔEN = ${data.delta}<br>`;
-                html += `<b>${data.bond_type_ru}</b><br>`;
+                let html = `<b>Bond Type: ${escapeHtml(elem1)}-${escapeHtml(elem2)}</b><br>`;
+                html += `ΔEN = ${escapeHtml(data.delta)}<br>`;
+                html += `<b>${escapeHtml(data.bond_type_ru)}</b><br>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -1986,17 +2025,17 @@
         const elem = document.getElementById('inorg_elem1').value.trim();
         const out = document.getElementById('inorg_bond_out');
         if (!elem) return;
-        out.innerHTML = "Getting electron configuration...";
+        out.innerHTML = t('gettingOrbitals');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/orbitals?element=${encodeURIComponent(elem)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Electron Configuration: ${data.element}</b><br>`;
-                html += `${data.electron_configuration}<br>`;
-                html += `<b>Unpaired electrons:</b> ${data.unpaired_electrons}<br>`;
-                html += `<b>Valence electrons:</b> ${data.valence_electrons}<br>`;
+                let html = `<b>Electron Configuration: ${escapeHtml(data.element)}</b><br>`;
+                html += `${escapeHtml(data.electron_configuration)}<br>`;
+                html += `<b>Unpaired electrons:</b> ${escapeHtml(data.unpaired_electrons)}<br>`;
+                html += `<b>Valence electrons:</b> ${escapeHtml(data.valence_electrons)}<br>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2005,18 +2044,18 @@
         const anion = document.getElementById('inorg_anion').value.trim();
         const out = document.getElementById('inorg_sol_out');
         if (!cation || !anion) return;
-        out.innerHTML = "Checking solubility...";
+        out.innerHTML = t('checkingSolubility');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/solubility?cation=${encodeURIComponent(cation)}&anion=${encodeURIComponent(anion)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 const ruleKey = 'rule_' + currentLang;
                 const rule = data[ruleKey] || data.rule || '';
-                let html = `<b>Solubility: ${data.compound}</b><br>`;
-                html += `<b>${data.solubility_ru}</b><br>`;
-                html += `<i>${rule}</i><br>`;
+                let html = `<b>Solubility: ${escapeHtml(data.compound)}</b><br>`;
+                html += `<b>${escapeHtml(data.solubility_ru)}</b><br>`;
+                html += `<i>${escapeHtml(rule)}</i><br>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2024,7 +2063,7 @@
         const reaction = document.getElementById('inorg_reaction').value.trim();
         const out = document.getElementById('inorg_redox_out');
         if (!reaction) return;
-        out.innerHTML = "Analyzing redox reaction...";
+        out.innerHTML = t('analyzingRedox');
         try {
             const res = await fetch(`${rdkit_api_h}inorg/api/redox?reaction=${encodeURIComponent(reaction)}&lang=${currentLang}`);
             const data = await res.json();
@@ -2032,11 +2071,11 @@
                 const eqKey = 'equation_' + currentLang;
                 const balanced = data[eqKey] || data.balanced || data.equation || '';
                 let html = `<b>${t('redox')}</b><br>`;
-                html += `<b>${t('balanced')}:</b> ${balanced}<br>`;
-                if (data.oxidizing_agent) html += `<b>${t('oxidizingAgent')}:</b> ${data.oxidizing_agent}<br>`;
-                if (data.reducing_agent) html += `<b>${t('reducingAgent')}:</b> ${data.reducing_agent}<br>`;
+                html += `<b>${t('balanced')}:</b> ${escapeHtml(balanced)}<br>`;
+                if (data.oxidizing_agent) html += `<b>${t('oxidizingAgent')}:</b> ${escapeHtml(data.oxidizing_agent)}<br>`;
+                if (data.reducing_agent) html += `<b>${t('reducingAgent')}:</b> ${escapeHtml(data.reducing_agent)}<br>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = t('apiConnectionError'); }
     }
 
@@ -2046,26 +2085,26 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('retro_out');
         if (!smiles) return;
-        out.innerHTML = "Analyzing retrosynthetic pathways...";
+        out.innerHTML = t('analyzingRetro');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/retrosynthesis?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 let html = `<b>RECAP Retrosynthetic Analysis</b><br>`;
-                html += `<b>Building blocks:</b> ${data.fragments_count}<br><br>`;
+                html += `<b>Building blocks:</b> ${escapeHtml(data.fragments_count)}<br><br>`;
                 if (data.fragments_count > 0) {
                     html += `<table style="border-collapse: collapse; width: 100%;">`;
                     html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">Fragment</th><th style="padding: 8px; text-align: left;">Formula</th><th style="padding: 8px; text-align: left;">MW</th><th style="padding: 8px; text-align: left;">Attachment Points</th></tr>`;
                     data.fragments.forEach(f => {
-                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-family: monospace;">${f.smiles}</td><td style="padding: 8px;">${f.formula}</td><td style="padding: 8px;">${f.molecular_weight}</td><td style="padding: 8px;">${f.attachment_points}</td></tr>`;
+                        html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-family: monospace;">${escapeHtml(f.smiles)}</td><td style="padding: 8px;">${escapeHtml(f.formula)}</td><td style="padding: 8px;">${escapeHtml(f.molecular_weight)}</td><td style="padding: 8px;">${escapeHtml(f.attachment_points)}</td></tr>`;
                     });
                     html += `</table>`;
-                    html += `<p style="font-size: 0.85em; color: #777; margin-top: 4px;">${data.note || ''}</p>`;
+                    html += `<p style="font-size: 0.85em; color: #777; margin-top: 4px;">${escapeHtml(data.note || '')}</p>`;
                 } else {
                     html += `<i>No RECAP-cleavable bonds (amides, esters, ethers, ureas, etc.)</i><br>`;
                 }
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2077,15 +2116,15 @@
         const out = document.getElementById('conf_out');
         const viewer = document.getElementById('conf_viewer');
         if (!smiles) return;
-        out.innerHTML = `Generating ${count} conformers...`;
+        out.innerHTML = t('generatingConformers').replace('{count}', escapeHtml(count));
         viewer.style.display = 'none';
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/conformers?smiles=${encodeURIComponent(smiles)}&num_conformers=${count}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Conformers Generated:</b> ${data.total_conformers}<br><br>`;
+                let html = `<b>Conformers Generated:</b> ${escapeHtml(data.total_conformers)}<br><br>`;
                 data.conformers.forEach(c => {
-                    html += `<b>Rank ${c.rank}</b> (Conf ${c.conf_id}): Energy = ${c.energy} kcal/mol<br>`;
+                    html += `<b>Rank ${escapeHtml(c.rank)}</b> (Conf ${escapeHtml(c.conf_id)}): Energy = ${escapeHtml(c.energy)} kcal/mol<br>`;
                 });
                 out.innerHTML = html;
 
@@ -2101,7 +2140,7 @@
                     viewer3D.zoomTo();
                     viewer3D.render();
                 }
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2112,7 +2151,7 @@
         const out = document.getElementById('export_out');
         const preview = document.getElementById('svg_preview');
         if (!smiles) return;
-        out.innerHTML = "Generating SVG...";
+        out.innerHTML = t('generatingSVG');
         preview.style.display = 'none';
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/export_svg?smiles=${encodeURIComponent(smiles)}&width=400&height=400&lang=${currentLang}`);
@@ -2149,24 +2188,24 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('export_out');
         if (!smiles) return;
-        out.innerHTML = "Calculating mass spectrum...";
+        out.innerHTML = t('calculatingMS');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/ms?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 let html = `<b>Mass Spectrometry</b><br>`;
-                html += `<b>SMILES:</b> ${data.smiles}<br>`;
-                html += `<b>Formula:</b> ${data.molecular_formula}<br>`;
-                html += `<b>Exact Mass:</b> ${data.exact_mass} Da<br><br>`;
+                html += `<b>SMILES:</b> ${escapeHtml(data.smiles)}<br>`;
+                html += `<b>Formula:</b> ${escapeHtml(data.molecular_formula)}<br>`;
+                html += `<b>Exact Mass:</b> ${escapeHtml(data.exact_mass)} Da<br><br>`;
                 html += `<b>Isotope Pattern:</b><br>`;
                 html += `<table style="border-collapse: collapse; width: 100%;">`;
                 html += `<tr style="background: #f5f6fa;"><th style="padding: 8px; text-align: left;">#</th><th style="padding: 8px; text-align: left;">m/z</th><th style="padding: 8px; text-align: left;">Intensity (%)</th></tr>`;
                 data.isotope_pattern.forEach((p, i) => {
-                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i}</td><td style="padding: 8px;">${p.m_z}</td><td style="padding: 8px;">${p.intensity_percent}</td></tr>`;
+                    html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i}</td><td style="padding: 8px;">${escapeHtml(p.m_z)}</td><td style="padding: 8px;">${escapeHtml(p.intensity_percent)}</td></tr>`;
                 });
                 html += `</table>`;
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2176,19 +2215,19 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('tautomers_out');
         if (!smiles) return;
-        out.innerHTML = "Enumerating tautomers...";
+        out.innerHTML = t('enumeratingTautomers');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/tautomers?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Tautomers (${data.count} found)</b><br>`;
-                html += `<b>Canonical:</b> ${data.canonical_tautomer}<br><br>`;
+                let html = `<b>Tautomers (${escapeHtml(data.count)} found)</b><br>`;
+                html += `<b>Canonical:</b> ${escapeHtml(data.canonical_tautomer)}<br><br>`;
                 html += `<b>All Tautomers:</b><br>`;
                 data.tautomers.forEach((t, i) => {
-                    html += `• ${i + 1}. ${t}<br>`;
+                    html += `• ${i + 1}. ${escapeHtml(t)}<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2199,16 +2238,16 @@
         const out = document.getElementById('scaffold_out');
         const svgPreview = document.getElementById('scaffold_svg');
         if (!smiles) return;
-        out.innerHTML = "Extracting scaffold...";
+        out.innerHTML = t('extractingScaffold');
         svgPreview.style.display = 'none';
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/scaffold?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                out.innerHTML = `<b>Bemis-Murcko Scaffold:</b> ${data.scaffold_smiles}`;
-                svgPreview.innerHTML = data.scaffold_svg;
+                out.innerHTML = `<b>Bemis-Murcko Scaffold:</b> ${escapeHtml(data.scaffold_smiles)}`;
+                svgPreview.innerHTML = escapeHtml(data.scaffold_svg);
                 svgPreview.style.display = 'block';
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2221,7 +2260,7 @@
         if (!smilesText) { out.innerHTML = "Please enter SMILES list."; return; }
         const smilesList = smilesText.split('\n').map(s => s.trim()).filter(s => s);
         if (smilesList.length < 2) { out.innerHTML = "Please enter at least 2 SMILES."; return; }
-        out.innerHTML = `Clustering ${smilesList.length} molecules...`;
+        out.innerHTML = t('clusteringMolecules').replace('{count}', escapeHtml(smilesList.length));
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/cluster`, {
                 method: 'POST',
@@ -2231,14 +2270,14 @@
             const data = await res.json();
             if (res.ok) {
                 let html = `<b>Clustering Results</b><br>`;
-                html += `<b>Total molecules:</b> ${data.total_molecules} | <b>Cutoff:</b> ${data.cutoff} | <b>Clusters:</b> ${data.cluster_count}<br><br>`;
+                html += `<b>Total molecules:</b> ${escapeHtml(data.total_molecules)} | <b>Cutoff:</b> ${escapeHtml(data.cutoff)} | <b>Clusters:</b> ${escapeHtml(data.cluster_count)}<br><br>`;
                 data.clusters.forEach(c => {
-                    html += `<b>Cluster ${c.cluster_id}</b> (${c.size} molecules):<br>`;
-                    c.smiles.forEach(s => { html += `• ${s}<br>`; });
+                    html += `<b>Cluster ${escapeHtml(c.cluster_id)}</b> (${escapeHtml(c.size)} molecules):<br>`;
+                    c.smiles.forEach(s => { html += `• ${escapeHtml(s)}<br>`; });
                     html += `<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2248,19 +2287,19 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('stereo_out');
         if (!smiles) return;
-        out.innerHTML = "Enumerating stereoisomers...";
+        out.innerHTML = t('enumeratingStereo');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/stereoisomers?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Stereoisomers (${data.count} found)</b><br>`;
-                html += `<b>Chiral centers (N):</b> ${data.chiral_centers_count}<br>`;
-                html += `<b>Formula:</b> ${data.formula}<br><br>`;
+                let html = `<b>Stereoisomers (${escapeHtml(data.count)} found)</b><br>`;
+                html += `<b>Chiral centers (N):</b> ${escapeHtml(data.chiral_centers_count)}<br>`;
+                html += `<b>Formula:</b> ${escapeHtml(data.formula)}<br><br>`;
                 data.stereoisomers.forEach((s, i) => {
-                    html += `• ${i + 1}. ${s}<br>`;
+                    html += `• ${i + 1}. ${escapeHtml(s)}<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2270,30 +2309,30 @@
         const smiles = document.getElementById('smiles').value.trim();
         const out = document.getElementById('ringconf_out');
         if (!smiles) return;
-        out.innerHTML = "Analyzing ring conformations...";
+        out.innerHTML = t('analyzingRingConf');
         try {
             const res = await fetch(`${rdkit_api_h}rdkit/api/ring_conformation?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
                 let html = `<b>Ring Conformation Analysis</b><br>`;
-                html += `<b>Total rings:</b> ${data.total_rings}<br><br>`;
+                html += `<b>Total rings:</b> ${escapeHtml(data.total_rings)}<br><br>`;
                 data.rings.forEach((ring, i) => {
-                    html += `<b>Ring ${i + 1}</b> (size: ${ring.ring_size})<br>`;
-                    html += `<b>Most stable:</b> ${ring.most_stable_conformation} (${ring.min_energy} kcal/mol)<br>`;
-                    html += `<b>Least stable:</b> ${ring.least_stable_conformation} (${ring.max_energy} kcal/mol)<br>`;
-                    html += `<b>Conformations found:</b> ${ring.total_conformations_found}<br><br>`;
+                    html += `<b>Ring ${i + 1}</b> (size: ${escapeHtml(ring.ring_size)})<br>`;
+                    html += `<b>Most stable:</b> ${escapeHtml(ring.most_stable_conformation)} (${escapeHtml(ring.min_energy)} kcal/mol)<br>`;
+                    html += `<b>Least stable:</b> ${escapeHtml(ring.least_stable_conformation)} (${escapeHtml(ring.max_energy)} kcal/mol)<br>`;
+                    html += `<b>Conformations found:</b> ${escapeHtml(ring.total_conformations_found)}<br><br>`;
                     ring.conformations.forEach((conf, j) => {
                         const cp = conf.cremer_pople;
                         const stable = conf.is_most_stable ? ' ✅ MOST STABLE' : '';
                         const unstable = conf.is_least_stable ? ' ⚠️ LEAST STABLE' : '';
-                        html += `&nbsp;&nbsp;• <b>${cp.conformation}</b> (E=${conf.energy} kcal/mol)${stable}${unstable}<br>`;
-                        if (cp.Q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;Q=${cp.Q} | θ=${cp.theta}° | φ=${cp.phi}°<br>`;
-                        if (cp.q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;q=${cp.q} | θ=${cp.theta}° | φ=${cp.phi}°<br>`;
+                        html += `&nbsp;&nbsp;• <b>${escapeHtml(cp.conformation)}</b> (E=${escapeHtml(conf.energy)} kcal/mol)${stable}${unstable}<br>`;
+                        if (cp.Q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;Q=${escapeHtml(cp.Q)} | θ=${escapeHtml(cp.theta)}° | φ=${escapeHtml(cp.phi)}°<br>`;
+                        if (cp.q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;q=${escapeHtml(cp.q)} | θ=${escapeHtml(cp.theta)}° | φ=${escapeHtml(cp.phi)}°<br>`;
                     });
                     html += `<br>`;
                 });
                 out.innerHTML = html;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 
@@ -2303,13 +2342,13 @@
         const name = document.getElementById('name_input').value.trim();
         const out = document.getElementById('nametosmiles_out');
         if (!name) { out.innerHTML = "Please enter a molecule name."; return; }
-        out.innerHTML = "Converting name to SMILES...";
+        out.innerHTML = t('convertingNameToSmiles');
         try {
             const res = await fetch(`${rdkit_api_h}api/name_to_smiles?name=${encodeURIComponent(name)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                out.innerHTML = `<b>Name:</b> ${data.name}<br><b>SMILES:</b> ${data.smiles}<br><b>Source:</b> ${data.source}`;
-            } else out.innerHTML = `<span style="color:red">Error: ${data.detail}</span>`;
+                out.innerHTML = `<b>Name:</b> ${escapeHtml(data.name)}<br><b>SMILES:</b> ${escapeHtml(data.smiles)}<br><b>Source:</b> ${escapeHtml(data.source)}`;
+            } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }
     }
 </script>
