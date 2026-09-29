@@ -1,7 +1,9 @@
 # RadoniumAPI 
 
 Веб-приложение для анализа молекул, хемоинформатики и планирования синтеза.
-
+<img width="791" height="924" alt="image" src="https://github.com/user-attachments/assets/ed4245ff-a08c-46aa-b7d8-1de20938fd69" />
+<img width="768" height="913" alt="image" src="https://github.com/user-attachments/assets/d7cb153a-9edf-4204-8830-cc1cec967a36" />
+(periodatic table can have on commit f18b36e639055d813ae5641da31cd98d4b4bd3f0 normal biological/toxicity information, like barium is toxic, but in this version is not toxic, so recheck all information)
 ## Возможности
 
 ### Медицинская химия
