@@ -60,7 +60,7 @@ pip install -r reqs.txt
 python3 main.py
 ```
 
-Откройте браузер: http://localhost:8000
+Откройте браузер: http://localhost:1235
 
 ## Nginx
 
@@ -77,7 +77,7 @@ python3 main.py
 
 2. **Порт приложения:**
    - В блоке `location /rdkit/` указан `proxy_pass http://127.0.0.1:1235/;`
-   - Измените порт `1235` на порт, который использует ваше приложение (по умолчанию `8000`)
+   - Измените порт `1235` на порт, который использует ваше приложение (по умолчанию `1235`)
 
 3. **SSL (опционально):**
    - Раскомментируйте строки с `ssl_certificate` и `ssl_certificate_key`
@@ -95,7 +95,7 @@ server {
 
     # Все запросы к /rdkit/ (UI + эндпоинты API)
     location /rdkit/ {
-        proxy_pass http://127.0.0.1:8000/;
+        proxy_pass http://127.0.0.1:1235/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -103,9 +103,9 @@ server {
     }
 
     # Документация FastAPI
-    location /docs { proxy_pass http://127.0.0.1:8000; }
-    location /redoc { proxy_pass http://127.0.0.1:8000; }
-    location /openapi.json { proxy_pass http://127.0.0.1:8000; }
+    location /docs { proxy_pass http://127.0.0.1:1235; }
+    location /redoc { proxy_pass http://127.0.0.1:1235; }
+    location /openapi.json { proxy_pass http://127.0.0.1:1235; }
 
     # Статические файлы
     location /StaticFiles/ {
@@ -206,9 +206,9 @@ sudo systemctl status chem
 
 ### Документация API
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- OpenAPI JSON: http://localhost:8000/openapi.json
+- Swagger UI: http://localhost:1235/docs
+- ReDoc: http://localhost:1235/redoc
+- OpenAPI JSON: http://localhost:1235/openapi.json
 
 ## Конфигурация
 
@@ -224,7 +224,7 @@ address = 127.0.0.1:9050
 
 ```python
 # main.py
-uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0", port=1235)
 ```
 
 ## Лицензия
