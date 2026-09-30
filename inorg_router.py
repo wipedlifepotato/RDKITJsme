@@ -377,6 +377,11 @@ def get_oxidation_states(
             if "O" in remaining:
                 oxidation["O"] = -1
                 del remaining["O"]
+        elif "ni(co)" in normalized_formula or normalized_formula == "ni(co)4":
+            oxidation["Ni"] = 0
+            oxidation["C"] = 2
+            oxidation["O"] = -2
+            remaining.clear()
         else:
             if "F" in remaining:
                 oxidation["F"] = -1
