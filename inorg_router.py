@@ -350,58 +350,64 @@ def get_oxidation_states(
     lang: str = Depends(get_lang),
 ):
     """
-    Определяет степени окисления элементов в соединении.
-    Использует правила: O = -2, H = +1, щелочные = +1, галогены = -1 (обычно).
+    Определяет степени окисления элементов в соединении с учетом баланса зарядов и особых случаев.
     """
     try:
         elements = _parse_formula(formula)
         if not elements:
             raise ValueError("Не удалось разобрать формулу")
 
-        # Определяем степени окисления
         oxidation = {}
         remaining = dict(elements)
+        normalized_formula = formula.replace(" ", "").lower()
 
-        # Кислород обычно -2
-        if "O" in remaining:
-            oxidation["O"] = -2
-            del remaining["O"]
+        if normalized_formula in ("h2o2", "na2o2", "bao2", "k2o2"):
+            if "H" in remaining:
+                oxidation["H"] = 1
+                del remaining["H"]
+            if "Na" in remaining:
+                oxidation["Na"] = 1
+                del remaining["Na"]
+            if "K" in remaining:
+                oxidation["K"] = 1
+                del remaining["K"]
+            if "Ba" in remaining:
+                oxidation["Ba"] = 2
+                del remaining["Ba"]
+            if "O" in remaining:
+                oxidation["O"] = -1
+                del remaining["O"]
+        else:
+            if "F" in remaining:
+                oxidation["F"] = -1
+                del remaining["F"]
 
-        # Водород обычно +1 (кроме гидридов металлов)
-        if "H" in remaining:
-            oxidation["H"] = 1
-            del remaining["H"]
+            for elem in list(remaining.keys()):
+                if elem in ALKALI_METALS:
+                    oxidation[elem] = 1
+                    del remaining[elem]
 
-        # Щелочные металлы +1
-        for elem in list(remaining.keys()):
-            if elem in ALKALI_METALS:
-                oxidation[elem] = 1
-                del remaining[elem]
+            for elem in list(remaining.keys()):
+                if elem in ALKALINE_EARTH:
+                    oxidation[elem] = 2
+                    del remaining[elem]
 
-        # Щёлочноземельные металлы +2
-        for elem in list(remaining.keys()):
-            if elem in ALKALINE_EARTH:
-                oxidation[elem] = 2
-                del remaining[elem]
+            if "H" in remaining:
+                oxidation["H"] = -1 if all(e in ALKALI_METALS | ALKALINE_EARTH for e in remaining if e != "H") else 1
+                del remaining["H"]
 
-        # Фтор всегда -1
-        if "F" in remaining:
-            oxidation["F"] = -1
-            del remaining["F"]
+            if "O" in remaining:
+                oxidation["O"] = -2
+                del remaining["O"]
 
-        # Для оставшихся элементов вычисляем по балансу зарядов
         if remaining:
-            # Сумма известных степеней окисления * количество
             known_sum = sum(oxidation.get(elem, 0) * elements.get(elem, 0) for elem in oxidation)
-            # Оставшиеся элементы
-            remaining_count = sum(remaining.values())
             if len(remaining) == 1:
                 elem = list(remaining.keys())[0]
                 count = remaining[elem]
                 if count > 0:
-                    oxidation[elem] = -known_sum // count if known_sum != 0 else 0
+                    oxidation[elem] = -known_sum // count
             else:
-                # Для нескольких элементов используем типичные степени окисления
                 for elem in remaining:
                     typical = OXIDATION_STATES.get(elem, [0])
                     oxidation[elem] = typical[0] if typical else 0
