@@ -4,10 +4,11 @@
 ---
 <img width="791" height="924" alt="image" src="https://github.com/user-attachments/assets/ed4245ff-a08c-46aa-b7d8-1de20938fd69" />
 <img width="768" height="913" alt="image" src="https://github.com/user-attachments/assets/d7cb153a-9edf-4204-8830-cc1cec967a36" />
+<img width="1920" height="941" alt="image" src="https://github.com/user-attachments/assets/a94cb32c-92f2-4761-a809-4d436647b91b" />
 
 ---
 
-(periodatic table can have on commit f18b36e639055d813ae5641da31cd98d4b4bd3f0 normal biological/toxicity information, like barium is toxic, but in this version is not toxic, so recheck all information)
+(periodatic table can have on commit f18b36e639055d813ae5641da31cd98d4b4bd3f0 normal biological/toxicity information, like barium is toxic, but in this version is not toxic, so recheck all information. also for on 30.09.2026 some organic things low if even it's unknown by rdkit/another places/pubchem, like unknown molecule, but it's can be harmful. Or some molecules is harmful in big concentration like acetic acid. So, all information for a now give as if but no warranty no garranty)
 
 ## Возможности
 
@@ -127,13 +128,6 @@ sudo systemctl status chem
 config.ini или аргументы командной строки. Приоритет у аргументов CLI: `-h/--host`, `-p/--port`, `-s/--socks`, `-d/--db`. Если аргумент не передан, берётся значение из config.ini.
 
 ## Лицензия
-
-Personal & Educational Use License
-
-- Бесплатно: личное использование, образование, некоммерческие исследования, Open Source
-- Платно: коммерческое использование, SaaS, встраивание в платные продукты
-
-Для получения коммерческой лицензии свяжитесь: issues github
-
+WTF
 Подробнее: [LICENSE](LICENSE)
 
