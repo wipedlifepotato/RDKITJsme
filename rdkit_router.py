@@ -3,10 +3,14 @@ Enhanced RDKit API Router — расширенный функционал хем
 """
 
 from fastapi import APIRouter, HTTPException, Query, Depends, Response
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, Field
 from typing import List, Optional
+import json
+import math
+import html as html_lib
 import urllib.parse
 import urllib.request
 
@@ -65,6 +69,18 @@ async def rdkit_index(lang: str = Depends(get_lang)):
         },
     }
     return {"endpoints": endpoints, "total": sum(len(v) for v in endpoints.values())}
+
+
+def _optimize_and_energy(mol, conf_id):
+    """Оптимизация конформера: MMFF, а если параметров нет — UFF. Возвращает энергию (ккал/моль)."""
+    if AllChem.MMFFHasAllMoleculeParams(mol):
+        AllChem.MMFFOptimizeMolecule(mol, confId=conf_id, maxIters=2000)
+        props = AllChem.MMFFGetMoleculeProperties(mol)
+        ff = AllChem.MMFFGetMoleculeForceField(mol, props, confId=conf_id)
+    else:
+        AllChem.UFFOptimizeMolecule(mol, confId=conf_id, maxIters=2000)
+        ff = AllChem.UFFGetMoleculeForceField(mol, confId=conf_id)
+    return ff.CalcEnergy()
 
 
 def set_proxy(proxy: str):
@@ -204,7 +220,7 @@ FUNCTIONAL_GROUPS = {
     },
     "amine_tertiary": {"smarts": "[NX3;H0;!$(NC=O)]", "name": "Tertiary amine (-N<)"},
     "amide": {"smarts": "[NX3][CX3](=[OX1])", "name": "Amide (-C(=O)N-)"},
-    "nitro": {"smarts": "[NX3](=[OX1])(=[OX1])", "name": "Nitro (-NO2)"},
+    "nitro": {"smarts": "[$([NX3+](=O)[O-]),$([NX3](=O)=O)]", "name": "Nitro (-NO2)"},
     "sulfonyl": {"smarts": "[SX4](=[OX1])(=[OX1])", "name": "Sulfonyl (-SO2-)"},
     "phosphate": {"smarts": "[PX4](=[OX1])([OX2])[OX2]", "name": "Phosphate"},
     "aldehyde": {"smarts": "[CX3H1](=O)[#6]", "name": "Aldehyde (-CHO)"},
@@ -306,7 +322,7 @@ def validate_smiles(
 
     # Проверка на недопустимые символы
     allowed_chars = set(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()[]=#@+-./\\:%"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()[]=#@+-./\\:%*"
     )
     invalid_chars = set()
     for i, ch in enumerate(smiles):
@@ -315,7 +331,7 @@ def validate_smiles(
     if invalid_chars:
         result["error_type"] = "invalid_characters"
         result["error_message"] = f"{get_text('val_invalid_characters', lang)}: {invalid_chars}"
-        result["error_position"] = list(invalid_chars)[0][0]
+        result["error_position"] = min(invalid_chars)[0]
         return result
 
     # Проверка баланса скобок
@@ -717,9 +733,12 @@ def get_all_descriptors(
             try:
                 value = func(mol)
                 if isinstance(value, (int, float)):
-                    descriptors[name] = (
-                        round(value, 6) if isinstance(value, float) else value
-                    )
+                    if isinstance(value, float) and not math.isfinite(value):
+                        descriptors[name] = None
+                    else:
+                        descriptors[name] = (
+                            round(value, 6) if isinstance(value, float) else value
+                        )
             except Exception:
                 descriptors[name] = None
 
@@ -775,6 +794,11 @@ def get_all_descriptors(
         except Exception:
             pass
 
+        extra = {
+            k: (None if isinstance(v, float) and not math.isfinite(v) else v)
+            for k, v in extra.items()
+        }
+
         return {
             "smiles": smiles,
             "canonical_smiles": Chem.MolToSmiles(mol, canonical=True),
@@ -807,8 +831,12 @@ def get_3d_structure(
             raise ValueError(get_text("invalid_smiles", lang))
 
         mol = Chem.AddHs(m.m)
-        AllChem.EmbedMolecule(mol, AllChem.ETKDG())
-        AllChem.MMFFOptimizeMolecule(mol)
+        if AllChem.EmbedMolecule(mol, AllChem.ETKDG()) == -1:
+            raise ValueError(get_text("failed_to_embed_molecule", lang))
+        if AllChem.MMFFHasAllMoleculeParams(mol):
+            AllChem.MMFFOptimizeMolecule(mol)
+        else:
+            AllChem.UFFOptimizeMolecule(mol)
 
         if format.lower() == "sdf":
             block = Chem.MolToMolBlock(mol)
@@ -903,6 +931,8 @@ def delete_from_library(
         db.delete(entry)
         db.commit()
         return {"status": get_text("lib_deleted", lang), "smiles": smiles}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -1449,8 +1479,7 @@ def generate_conformers(
         results = []
         for cid in cids:
             try:
-                AllChem.MMFFOptimizeMolecule(mol, confId=cid)
-                energy = AllChem.MMFFGetMoleculeForceField(mol, confId=cid).CalcEnergy()
+                energy = _optimize_and_energy(mol, cid)
                 results.append({
                     "conf_id": int(cid),
                     "energy": round(energy, 4),
@@ -1845,7 +1874,7 @@ def cluster_molecules(
             sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps[:i])
             dists.extend([1 - x for x in sims])
 
-        clusters = Butina.ClusterData(dists, len(fps), request.cutoff, isDistData=True)
+        clusters = Butina.ClusterData(dists, len(fps), 1.0 - request.cutoff, isDistData=True)  # cutoff — сходство, Butina ждёт расстояние
 
         result = []
         for cluster in clusters:
@@ -2003,9 +2032,7 @@ def get_3d_conformers(
         conformers = []
         for cid in cids:
             try:
-                AllChem.MMFFOptimizeMolecule(mol, confId=cid)
-                ff = AllChem.MMFFGetMoleculeForceField(mol, confId=cid)
-                energy = ff.CalcEnergy() if ff else 0.0
+                energy = _optimize_and_energy(mol, cid)
 
                 # Координаты атомов
                 conf = mol.GetConformer(cid)
@@ -2046,13 +2073,18 @@ def get_3d_conformers(
 
         # Сортировка по энергии
         conformers.sort(key=lambda x: x["energy"])
+        if not conformers:
+            raise ValueError(get_text("failed_to_generate_conformers", lang))
+
+        conformers_json = json.dumps(conformers).replace("</", "<\\/")
+        smiles_html = html_lib.escape(smiles)
 
         # Генерация HTML с 3Dmol.js
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>3D Conformers — {smiles}</title>
+    <title>3D Conformers — {smiles_html}</title>
     <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
@@ -2064,7 +2096,7 @@ def get_3d_conformers(
     </style>
 </head>
 <body>
-    <h2>3D-конформеры: {smiles}</h2>
+    <h2>3D-конформеры: {smiles_html}</h2>
     <div class="info">
         <strong>Конформер:</strong> <span id="conf-id">1</span> |
         <strong>Энергия:</strong> <span id="conf-energy">{conformers[0]["energy"] if conformers else 0}</span> ккал/моль |
@@ -2525,11 +2557,7 @@ def _analyze_all_ring_conformations(
     for cid in cids:
         energy = 0.0
         try:
-            # Пробуем оптимизировать через MMFF
-            AllChem.MMFFOptimizeMolecule(mol, confId=cid)
-            ff = AllChem.MMFFGetMoleculeForceField(mol, confId=cid)
-            if ff:
-                energy = ff.CalcEnergy()
+            energy = _optimize_and_energy(mol, cid)
         except Exception:
             try:
                 # Fallback: UFF

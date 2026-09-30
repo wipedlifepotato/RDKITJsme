@@ -1127,6 +1127,18 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "en": "Comparison",
         "es": "Comparación",
     },
+    "empty_name": {
+        "ru": "Название не может быть пустым",
+        "uk": "Назва не може бути порожньою",
+        "en": "Name must not be empty",
+        "es": "El nombre no puede estar vacío",
+    },
+    "no_rings_found": {
+        "ru": "Циклы в молекуле не найдены",
+        "uk": "Цикли в молекулі не знайдено",
+        "en": "No rings found in the molecule",
+        "es": "No se encontraron anillos en la molécula",
+    },
 }
 
 

@@ -491,7 +491,7 @@
                 <textarea id="cluster_smiles" placeholder="Enter SMILES list (one per line)" style="width: 100%; height: 80px; padding: 8px; font-family: monospace;"></textarea>
             </div>
             <div class="tools-row">
-                <label style="font-size: 13px;">Cutoff: <input type="number" id="cluster_cutoff" value="0.7" min="0.1" max="1.0" step="0.1" style="width: 60px; padding: 4px;"></label>
+                <label style="font-size: 13px;">Min. Tanimoto similarity: <input type="number" id="cluster_cutoff" value="0.7" min="0.1" max="1.0" step="0.1" style="width: 60px; padding: 4px;"></label>
                 <button class="btn-tool" onclick="getClusters()" data-i18n="clusterBtn">Cluster Molecules (Butina)</button>
             </div>
             <div id="cluster_out" class="output-box">Clustering results will appear here...</div>
@@ -1926,7 +1926,7 @@
             const res = await fetch(`${rdkit_api_h}api/combined_toxicity?smiles=${encodeURIComponent(smiles)}&lang=${currentLang}`);
             const data = await res.json();
             if (res.ok) {
-                let html = `<b>Combined Toxicity Assessment (RDKit + PubChem GHS)</b><br>`;
+                let html = `<b>Combined Toxicity Assessment (RDKit + PubChem GHS) (low not that 100% is not harmful!)</b><br>`;
                 html += `<b>Overall Risk:</b> <b style="color:${data.overall_risk === 'HIGH' ? 'red' : data.overall_risk === 'MEDIUM' ? 'orange' : 'green'}">${escapeHtml(data.overall_risk)}</b><br>`;
                 html += `<b>Total Alerts:</b> ${escapeHtml(data.total_alerts)}<br>`;
                 
@@ -2114,6 +2114,7 @@
 
     // --- Conformers Endpoints ---
 
+    let confViewer = null;
     async function getConformers() {
         const smiles = document.getElementById('smiles').value.trim();
         const count = document.getElementById('conf_count').value || 10;
@@ -2132,20 +2133,27 @@
                 });
                 out.innerHTML = html;
 
-                // Show first conformer in viewer
+                // Show first conformer in viewer (отдельный viewer, не делим с блоком 3D)
                 if (data.conformers.length > 0) {
-                    viewer.style.display = 'block';
-                    if (!viewer3D) {
-                        viewer3D = $3Dmol.createViewer('conf_viewer', { backgroundColor: 'white' });
+                    if (typeof $3Dmol === 'undefined') {
+                        out.innerHTML += `<span style="color:#e67e22">3D-просмотр недоступен: не загружен /StaticFiles/3Dmol-min.js</span>`;
+                        return;
                     }
-                    viewer3D.clear();
-                    viewer3D.addModel(data.conformers[0].sdf, 'sdf');
-                    viewer3D.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
-                    viewer3D.zoomTo();
-                    viewer3D.render();
+                    viewer.style.display = 'block';
+                    if (!confViewer) {
+                        confViewer = $3Dmol.createViewer('conf_viewer', { backgroundColor: 'white' });
+                    }
+                    confViewer.clear();
+                    confViewer.addModel(data.conformers[0].sdf, 'sdf');
+                    confViewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
+                    confViewer.zoomTo();
+                    confViewer.render();
                 }
             } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
-        } catch (e) { out.innerHTML = "API Connection Error"; }
+        } catch (e) {
+            console.error('getConformers:', e);
+            out.innerHTML += `<br><span style="color:red">Error: ${escapeHtml(e && e.message ? e.message : e)}</span>`;
+        }
     }
 
     // --- Export Endpoints ---
@@ -2249,7 +2257,7 @@
             const data = await res.json();
             if (res.ok) {
                 out.innerHTML = `<b>Bemis-Murcko Scaffold:</b> ${escapeHtml(data.scaffold_smiles)}`;
-                svgPreview.innerHTML = escapeHtml(data.scaffold_svg);
+                svgPreview.innerHTML = `<img alt="scaffold" style="max-width:100%" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(data.scaffold_svg)}">`;
                 svgPreview.style.display = 'block';
             } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
         } catch (e) { out.innerHTML = "API Connection Error"; }

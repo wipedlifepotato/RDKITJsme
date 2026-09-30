@@ -277,7 +277,126 @@ const I18N = {
         // Группы
         grp_1А: "1А", grp_2А: "2А", grp_3Б: "3Б", grp_4Б: "4Б", grp_5Б: "5Б", grp_6Б: "6Б", grp_7Б: "7Б",
         grp_8: "8", grp_1Б: "1Б", grp_2Б: "2Б", grp_3А: "3А", grp_4А: "4А", grp_5А: "5А", grp_6А: "6А",
-        grp_7А: "7А", grp_8А: "8А"
+        grp_7А: "7А", grp_8А: "8А",
+        // Токсичность и формы
+        tox_H: "Макроэлемент — основа органических соединений, воды, биомолекул",
+        tox_He: "Инертный газ, не имеет биологической роли",
+        tox_Li: "Микроэлемент — используется в психиатрии (биполярное расстройство)",
+        tox_Be: "Высокотоксичен — канцероген (IARC Группа 1). Вызывает хромосомные аберрации и бериллиоз (тяжёлый гранулематоз лёгких). [ATSDR, IARC]",
+        tox_B: "Микроэлемент/условно-эссенциальный. Борная кислота/бораты при передозировке поражают почки, ЦНС и репродуктивную систему (LD50 перорально ~3-5 г/кг). [EFSA, ECHA]",
+        tox_C: "Макроэлемент — основа всех органических соединений",
+        tox_N: "Макроэлемент — белки, нуклеиновые кислоты, АТФ",
+        tox_O: "Макроэлемент — дыхание, окисление, вода",
+        tox_F: "Микроэлемент — зубная эмаль, кости; F⁻ в избытке токсичен",
+        tox_Ne: "Инертный газ, не имеет биологической роли",
+        tox_Na: "Макроэлемент — ключевой электролит, нервная проводимость",
+        tox_Mg: "Макроэлемент — 300+ ферментов, кости, мышцы",
+        tox_Al: "Токсичный — нейротоксин, возможна связь с болезнью Альцгеймера",
+        tox_Si: "Условно-эссенциальный — коллаген, кости, соединительная ткань",
+        tox_P: "Макроэлемент — ДНК, РНК, АТФ, кости; белый фосфор — чрезвычайно токсичен",
+        tox_S: "Макроэлемент — аминокислоты (Met, Cys), белки, детоксикация",
+        tox_Cl: "Макроэлемент — электролит, желудочная кислота (HCl)",
+        tox_Ar: "Инертный газ, не имеет биологической роли",
+        tox_K: "Макроэлемент — ключевой электролит, сердце, мышцы",
+        tox_Ca: "Макроэлемент — кости, зубы, мышцы, нервы",
+        tox_Sc: "Не имеет биологической роли",
+        tox_Ti: "Не имеет биологической роли",
+        tox_V: "Условно-эссенциальный — возможна роль в метаболизме глюкозы",
+        tox_Cr: "Cr(III) — эссенциальный микроэлемент. Соединения Cr(VI) (хроматы, бихроматы) — сильнейшие окислители, канцерогены (IARC1) и мутагены. [ATSDR, IARC]",
+        tox_Mn: "Микроэлемент — аргиназа, СОД, костный метаболизм",
+        tox_Fe: "Микроэлемент — гемоглобин, цитохромы, ДНК-синтез",
+        tox_Co: "Микроэлемент — витамин B12 (кобаламин)",
+        tox_Ni: "Условно-эссенциальный — некоторые бактериальные ферменты",
+        tox_Cu: "Микроэлемент — цитохром-оксидаза, супероксиддисмутаза",
+        tox_Zn: "Микроэлемент — 300+ ферментов, иммунитет, ДНК",
+        tox_Ga: "Не имеет биологической роли",
+        tox_Ge: "Не имеет биологической роли",
+        tox_As: "Высокотоксичен — As(III) связывает тиоловые (-SH) группы ферментов (пируватдегидрогеназа), As(V) нарушает синтез АТФ. Канцероген (IARC1). [WHO, ATSDR]",
+        tox_Se: "Микроэлемент — глутатионпероксидаза, тироксин-дейодиназа",
+        tox_Br: "Не имеет биологической роли",
+        tox_Kr: "Инертный газ, не имеет биологической роли",
+        tox_Rb: "Не имеет биологической роли",
+        tox_Sr: "Не имеет биологической роли",
+        tox_Y: "Не имеет биологической роли",
+        tox_Zr: "Не имеет биологической роли",
+        tox_Nb: "Не имеет биологической роли",
+        tox_Mo: "Микроэлемент — ксантиноксидаза, сульфитоксидаза",
+        tox_Tc: "Радиоактивен — не имеет стабильных изотопов, радиационная опасность",
+        tox_Ru: "Не имеет биологической роли",
+        tox_Rh: "Не имеет биологической роли",
+        tox_Pd: "Не имеет биологической роли",
+        tox_Ag: "Не имеет биологической роли",
+        tox_Cd: "Высокотоксичен — замещает Zn и Ca, вызывает остеомаляцию (болезнь Итай-Итай), поражение почечных канальцев и рак лёгких. [WHO, ATSDR]",
+        tox_In: "Не имеет биологической роли",
+        tox_Sn: "Не имеет биологической роли",
+        tox_Sb: "Токсична — по механизму схожа с мышьяком (Sb³⁺ связывает SH-группы). Вызывает раздражение ЖКТ, поражение печени и миокарда. [ECHA, PubChem]",
+        tox_Te: "Не имеет биологической роли",
+        tox_I: "Микроэлемент — тироксин (T3, T4), щитовидная железа",
+        tox_Xe: "Инертный газ, не имеет биологической роли",
+        tox_Cs: "Не имеет биологической роли",
+        tox_Ba: "Чрезвычайно токсичен в растворимых формах (BaCl₂, Ba(NO₃)₂) — блокатор K⁺-каналов мембран (гипокалиемия, аритмия, паралич). BaSO₄ нетоксичен из-за нерастворимости. [ATSDR, PubChem]",
+        tox_La: "Не имеет биологической роли",
+        tox_Ce: "Не имеет биологической роли",
+        tox_Pr: "Не имеет биологической роли",
+        tox_Nd: "Не имеет биологической роли",
+        tox_Pm: "Не имеет биологической роли",
+        tox_Sm: "Не имеет биологической роли",
+        tox_Eu: "Не имеет биологической роли",
+        tox_Gd: "Не имеет биологической роли",
+        tox_Tb: "Не имеет биологической роли",
+        tox_Dy: "Не имеет биологической роли",
+        tox_Ho: "Не имеет биологической роли",
+        tox_Er: "Не имеет биологической роли",
+        tox_Tm: "Не имеет биологической роли",
+        tox_Yb: "Не имеет биологической роли",
+        tox_Lu: "Не имеет биологической роли",
+        tox_Hf: "Не имеет биологической роли",
+        tox_Ta: "Не имеет биологической роли",
+        tox_W: "Микроэлемент — формальдегиддегидрогеназа (бактерии)",
+        tox_Re: "Не имеет биологической роли",
+        tox_Os: "Металлический инертен. Тетраоксид OsO₄ крайне летуч и токсичен — вызывает необратимое ожог/обрастание роговицы (слепоту) и отек лёгких. [NIOSH, PubChem]",
+        tox_Ir: "Не имеет биологической роли",
+        tox_Pt: "Не имеет биологической роли",
+        tox_Au: "Не имеет биологической роли",
+        tox_Hg: "Высокотоксична — пары Hg⁰ (лёгкие, ЦНС), соли Hg²⁺ (некроз почечных канальцев), метилртуть CH₃Hg⁺ (биоаккумуляция, болезнь Минамата). [WHO, ATSDR]",
+        tox_Tl: "Чрезвычайно токсичен — ион Tl⁺ замещает K⁺ в Na⁺/K⁺-АТФазе. Вызывает острую полинейропатию, алопецию (выпадение волос), летальная доза ~0.8-1 г. [CDC, ATSDR]",
+        tox_Pb: "Высокотоксичен — замещает Ca²⁺ и Fe²⁺, ингибирует аминолевулинатдегидратазу (анемия), энцефалопатия, задержка нервно-психического развития. [WHO, ATSDR]",
+        tox_Bi: "Не имеет биологической роли",
+        tox_Po: "Экстремально радиотоксичен — Po-210 высокоэнергетический α-излучатель. ЛД50 для человека ~1 мкг (острый лучевой синдром, разрушение костного мозга). [IAEA, CDC]",
+        tox_At: "Крайне радиотоксичен — галоген без стабильных изотопов, α-излучатель. Накапливается в щитовидной железе подобно йоду, разрушая её ткань. [IUPAC, PubChem]",
+        tox_Rn: "Токсичный — радиоактивен, канцерогенен (лёгкие)",
+        tox_Fr: "Экстремально радиоактивен — T1/2 наибол. устойчивого изотопа (Fr-223) всего 22 мин. Химическая токсичность не проявляется, так как любой макро-количество мгновенно испаряется от собственного радиоактивного распада. [IUPAC, IAEA]",
+        tox_Ra: "Токсичный — радиоактивен, канцерогенен (кости)",
+        tox_Ac: "Радиоактивен — высокая α-активность, накапливается в костях",
+        tox_Th: "Токсичный — радиоактивен, канцерогенен",
+        tox_Pa: "Токсичный — радиоактивен, канцерогенен",
+        tox_U: "Двойная токсичность — химическая токсичность иона уранила UO₂²⁺ (тяжелое поражение почечных канальцев) значительно превышает его слабую α-радиоактивность. [ATSDR, WHO]",
+        tox_Np: "Токсичный — радиоактивен, канцерогенен",
+        tox_Pu: "Экстремально токсичен — α-излучатель, депонируется в костях и печени. При ингаляции микрограммовых количеств вызывает рак лёгких и острый лучевой синдром. [IAEA, ATSDR]",
+        tox_Am: "Токсичный — радиоактивен, канцерогенен",
+        tox_Cm: "Токсичный — радиоактивен, канцерогенен",
+        tox_Bk: "Токсичный — радиоактивен, канцерогенен",
+        tox_Cf: "Токсичный — радиоактивен, канцерогенен",
+        tox_Es: "Токсичный — радиоактивен, канцерогенен",
+        tox_Fm: "Токсичный — радиоактивен, канцерогенен",
+        tox_Md: "Токсичный — радиоактивен, канцерогенен",
+        tox_No: "Токсичный — радиоактивен, канцерогенен",
+        tox_Lr: "Не имеет биологической роли",
+        tox_Rf: "Не имеет биологической роли",
+        tox_Db: "Не имеет биологической роли",
+        tox_Sg: "Не имеет биологической роли",
+        tox_Bh: "Не имеет биологической роли",
+        tox_Hs: "Не имеет биологической роли",
+        tox_Mt: "Не имеет биологической роли",
+        tox_Ds: "Не имеет биологической роли",
+        tox_Rg: "Не имеет биологической роли",
+        tox_Cn: "Не имеет биологической роли",
+        tox_Nh: "Не имеет биологической роли",
+        tox_Fl: "Не имеет биологической роли",
+        tox_Mc: "Не имеет биологической роли",
+        tox_Lv: "Не имеет биологической роли",
+        tox_Ts: "Не имеет биологической роли",
+        tox_Og: "Не имеет биологической роли"
     },
     en: {
         title: "Periodic Table of Elements",
@@ -389,7 +508,126 @@ const I18N = {
         name_Ts: "Tennessine", name_Og: "Oganesson",
         grp_1А: "1A", grp_2А: "2A", grp_3Б: "3B", grp_4Б: "4B", grp_5Б: "5B", grp_6Б: "6B", grp_7Б: "7B",
         grp_8: "8", grp_1Б: "1B", grp_2Б: "2B", grp_3А: "3A", grp_4А: "4A", grp_5А: "5A", grp_6А: "6A",
-        grp_7А: "7A", grp_8А: "8A"
+        grp_7А: "7A", grp_8А: "8A",
+        // Токсичность и формы
+        tox_H: "Macronutrient — basis of organic compounds, water, biomolecules",
+        tox_He: "Inert gas, no biological role",
+        tox_Li: "Micronutrient — used in psychiatry (bipolar disorder)",
+        tox_Be: "Highly toxic — carcinogen (IARC Group 1). Causes chromosomal aberrations and berylliosis (severe lung granulomatosis). [ATSDR, IARC]",
+        tox_B: "Micronutrient/conditionally essential. Boric acid/borates in overdose affect kidneys, CNS and reproductive system (LD50 oral ~3-5 g/kg). [EFSA, ECHA]",
+        tox_C: "Macronutrient — basis of all organic compounds",
+        tox_N: "Macronutrient — proteins, nucleic acids, ATP",
+        tox_O: "Macronutrient — respiration, oxidation, water",
+        tox_F: "Micronutrient — tooth enamel, bones; F⁻ toxic in excess",
+        tox_Ne: "Inert gas, no biological role",
+        tox_Na: "Macronutrient — key electrolyte, nerve conduction",
+        tox_Mg: "Macronutrient — 300+ enzymes, bones, muscles",
+        tox_Al: "Toxic — neurotoxin, possible link to Alzheimer's disease",
+        tox_Si: "Conditionally essential — collagen, bones, connective tissue",
+        tox_P: "Macronutrient — DNA, RNA, ATP, bones; white phosphorus extremely toxic",
+        tox_S: "Macronutrient — amino acids (Met, Cys), proteins, detoxification",
+        tox_Cl: "Macronutrient — electrolyte, gastric acid (HCl)",
+        tox_Ar: "Inert gas, no biological role",
+        tox_K: "Macronutrient — key electrolyte, heart, muscles",
+        tox_Ca: "Macronutrient — bones, teeth, muscles, nerves",
+        tox_Sc: "No biological role",
+        tox_Ti: "No biological role",
+        tox_V: "Conditionally essential — possible role in glucose metabolism",
+        tox_Cr: "Cr(III) — essential micronutrient. Cr(VI) compounds (chromates, dichromates) — strong oxidizers, carcinogens (IARC1) and mutagens. [ATSDR, IARC]",
+        tox_Mn: "Micronutrient — arginase, SOD, bone metabolism",
+        tox_Fe: "Micronutrient — hemoglobin, cytochromes, DNA synthesis",
+        tox_Co: "Micronutrient — vitamin B12 (cobalamin)",
+        tox_Ni: "Conditionally essential — some bacterial enzymes",
+        tox_Cu: "Micronutrient — cytochrome oxidase, superoxide dismutase",
+        tox_Zn: "Micronutrient — 300+ enzymes, immunity, DNA",
+        tox_Ga: "No biological role",
+        tox_Ge: "No biological role",
+        tox_As: "Highly toxic — As(III) binds thiol (-SH) groups of enzymes (pyruvate dehydrogenase), As(V) disrupts ATP synthesis. Carcinogen (IARC1). [WHO, ATSDR]",
+        tox_Se: "Micronutrient — glutathione peroxidase, thyroxine deiodinase",
+        tox_Br: "No biological role",
+        tox_Kr: "Inert gas, no biological role",
+        tox_Rb: "No biological role",
+        tox_Sr: "No biological role",
+        tox_Y: "No biological role",
+        tox_Zr: "No biological role",
+        tox_Nb: "No biological role",
+        tox_Mo: "Micronutrient — xanthine oxidase, sulfite oxidase",
+        tox_Tc: "Radioactive — no stable isotopes, radiation hazard",
+        tox_Ru: "No biological role",
+        tox_Rh: "No biological role",
+        tox_Pd: "No biological role",
+        tox_Ag: "No biological role",
+        tox_Cd: "Highly toxic — substitutes Zn and Ca, causes osteomalacia (itai-itai disease), renal tubular damage and lung cancer. [WHO, ATSDR]",
+        tox_In: "No biological role",
+        tox_Sn: "No biological role",
+        tox_Sb: "Toxic — similar mechanism to arsenic (Sb³⁺ binds SH-groups). Causes GI irritation, liver and myocardium damage. [ECHA, PubChem]",
+        tox_Te: "No biological role",
+        tox_I: "Micronutrient — thyroxine (T3, T4), thyroid gland",
+        tox_Xe: "Inert gas, no biological role",
+        tox_Cs: "No biological role",
+        tox_Ba: "Extremely toxic in soluble forms (BaCl₂, Ba(NO₃)₂) — blocks K⁺ channels (hypokalemia, arrhythmia, paralysis). BaSO₄ non-toxic due to insolubility. [ATSDR, PubChem]",
+        tox_La: "No biological role",
+        tox_Ce: "No biological role",
+        tox_Pr: "No biological role",
+        tox_Nd: "No biological role",
+        tox_Pm: "No biological role",
+        tox_Sm: "No biological role",
+        tox_Eu: "No biological role",
+        tox_Gd: "No biological role",
+        tox_Tb: "No biological role",
+        tox_Dy: "No biological role",
+        tox_Ho: "No biological role",
+        tox_Er: "No biological role",
+        tox_Tm: "No biological role",
+        tox_Yb: "No biological role",
+        tox_Lu: "No biological role",
+        tox_Hf: "No biological role",
+        tox_Ta: "No biological role",
+        tox_W: "Micronutrient — formaldehyde dehydrogenase (bacteria)",
+        tox_Re: "No biological role",
+        tox_Os: "Metallic form inert. OsO₄ extremely volatile and toxic — causes irreversible corneal damage (blindness) and pulmonary edema. [NIOSH, PubChem]",
+        tox_Ir: "No biological role",
+        tox_Pt: "No biological role",
+        tox_Au: "No biological role",
+        tox_Hg: "Highly toxic — Hg⁰ vapors (lungs, CNS), Hg²⁺ salts (renal tubular necrosis), methylmercury CH₃Hg⁺ (bioaccumulation, Minamata disease). [WHO, ATSDR]",
+        tox_Tl: "Extremely toxic — Tl⁺ substitutes K⁺ in Na⁺/K⁺-ATPase. Causes acute polyneuropathy, alopecia, lethal dose ~0.8-1 g. [CDC, ATSDR]",
+        tox_Pb: "Highly toxic — substitutes Ca²⁺ and Fe²⁺, inhibits aminolevulinic acid dehydratase (anemia), encephalopathy, neurodevelopmental delay. [WHO, ATSDR]",
+        tox_Bi: "No biological role",
+        tox_Po: "Extremely radiotoxic — Po-210 high-energy α-emitter. LD50 for humans ~1 μg (acute radiation syndrome, bone marrow destruction). [IAEA, CDC]",
+        tox_At: "Extremely radiotoxic — halogen without stable isotopes, α-emitter. Accumulates in thyroid like iodine, destroying tissue. [IUPAC, PubChem]",
+        tox_Rn: "Toxic — radioactive, carcinogen (lungs)",
+        tox_Fr: "Extremely radioactive — T½ of most stable isotope (Fr-223) only 22 min. Chemical toxicity not manifest as any macro-quantity instantly evaporates from own radioactive decay. [IUPAC, IAEA]",
+        tox_Ra: "Toxic — radioactive, carcinogen (bones)",
+        tox_Ac: "Radioactive — high α-activity, accumulates in bones",
+        tox_Th: "Toxic — radioactive, carcinogen",
+        tox_Pa: "Toxic — radioactive, carcinogen",
+        tox_U: "Dual toxicity — chemical toxicity of uranyl ion UO₂²⁺ (severe renal tubular damage) significantly exceeds its weak α-radioactivity. [ATSDR, WHO]",
+        tox_Np: "Toxic — radioactive, carcinogen",
+        tox_Pu: "Extremely toxic — α-emitter, deposits in bones and liver. Inhalation of microgram quantities causes lung cancer and acute radiation syndrome. [IAEA, ATSDR]",
+        tox_Am: "Toxic — radioactive, carcinogen",
+        tox_Cm: "Toxic — radioactive, carcinogen",
+        tox_Bk: "Toxic — radioactive, carcinogen",
+        tox_Cf: "Toxic — radioactive, carcinogen",
+        tox_Es: "Toxic — radioactive, carcinogen",
+        tox_Fm: "Toxic — radioactive, carcinogen",
+        tox_Md: "Toxic — radioactive, carcinogen",
+        tox_No: "Toxic — radioactive, carcinogen",
+        tox_Lr: "No biological role",
+        tox_Rf: "No biological role",
+        tox_Db: "No biological role",
+        tox_Sg: "No biological role",
+        tox_Bh: "No biological role",
+        tox_Hs: "No biological role",
+        tox_Mt: "No biological role",
+        tox_Ds: "No biological role",
+        tox_Rg: "No biological role",
+        tox_Cn: "No biological role",
+        tox_Nh: "No biological role",
+        tox_Fl: "No biological role",
+        tox_Mc: "No biological role",
+        tox_Lv: "No biological role",
+        tox_Ts: "No biological role",
+        tox_Og: "No biological role"
     },
     uk: {
         title: "Періодична таблиця елементів",
@@ -501,7 +739,126 @@ const I18N = {
         name_Ts: "Теннессин", name_Og: "Оганесон",
         grp_1А: "1A", grp_2А: "2A", grp_3Б: "3B", grp_4Б: "4B", grp_5Б: "5B", grp_6Б: "6B", grp_7Б: "7B",
         grp_8: "8", grp_1Б: "1B", grp_2Б: "2B", grp_3А: "3A", grp_4А: "4A", grp_5А: "5A", grp_6А: "6A",
-        grp_7А: "7A", grp_8А: "8A"
+        grp_7А: "7A", grp_8А: "8A",
+        // Токсичность и формы
+        tox_H: "Макроелемент — основа органічних сполук, води, біомолекул",
+        tox_He: "Інертний газ, не має біологічної ролі",
+        tox_Li: "Мікроелемент — використовується в психіатрії (біполярний розлад)",
+        tox_Be: "Високотоксичний — канцероген (IARC Група 1). Викликає хромосомні аберації та бериліоз (важкий гранульоматоз легень). [ATSDR, IARC]",
+        tox_B: "Мікроелемент/умовно-есенціальний. Борна кислота/борати при передозуванні уражають нирки, ЦНС та репродуктивну систему (LD50 перорально ~3-5 г/кг). [EFSA, ECHA]",
+        tox_C: "Макроелемент — основа всіх органічних сполук",
+        tox_N: "Макроелемент — білки, нуклеїнові кислоти, АТФ",
+        tox_O: "Макроелемент — дихання, окиснення, вода",
+        tox_F: "Мікроелемент — емаль зубів, кістки; F⁻ токсичний у надлишку",
+        tox_Ne: "Інертний газ, не має біологічної ролі",
+        tox_Na: "Макроелемент — ключовий електроліт, нервова провідність",
+        tox_Mg: "Макроелемент — 300+ ферментів, кістки, м'язи",
+        tox_Al: "Токсичний — нейротоксин, можливий зв'язок з хворобою Альцгеймера",
+        tox_Si: "Умовно-есенціальний — колаген, кістки, сполучна тканина",
+        tox_P: "Макроелемент — ДНК, РНК, АТФ, кістки; білий фосфор надзвичайно токсичний",
+        tox_S: "Макроелемент — амінокислоти (Met, Cys), білки, детоксикація",
+        tox_Cl: "Макроелемент — електроліт, шлункова кислота (HCl)",
+        tox_Ar: "Інертний газ, не має біологічної ролі",
+        tox_K: "Макроелемент — ключовий електроліт, серце, м'язи",
+        tox_Ca: "Макроелемент — кістки, зуби, м'язи, нерви",
+        tox_Sc: "Не має біологічної ролі",
+        tox_Ti: "Не має біологічної ролі",
+        tox_V: "Умовно-есенціальний — можлива роль у метаболізмі глюкози",
+        tox_Cr: "Cr(III) — есенціальний мікроелемент. Cr(VI) сполуки (хромати, біхромати) — сильні окислювачі, канцерогени (IARC1) та мутагени. [ATSDR, IARC]",
+        tox_Mn: "Мікроелемент — аргіназа, СОД, кістковий метаболізм",
+        tox_Fe: "Мікроелемент — гемоглобін, цитохроми, синтез ДНК",
+        tox_Co: "Мікроелемент — вітамін B12 (кобаламін)",
+        tox_Ni: "Умовно-есенціальний — деякі бактеріальні ферменти",
+        tox_Cu: "Мікроелемент — цитохром-оксидаза, супероксиддисмутаза",
+        tox_Zn: "Мікроелемент — 300+ ферментів, імунітет, ДНК",
+        tox_Ga: "Не має біологічної ролі",
+        tox_Ge: "Не має біологічної ролі",
+        tox_As: "Високотоксичний — As(III) зв'язує тіолові (-SH) групи ферментів (піруватдегідрогеназа), As(V) порушує синтез АТФ. Канцероген (IARC1). [WHO, ATSDR]",
+        tox_Se: "Мікроелемент — глутатіонпероксидаза, тироксин-дейодіназа",
+        tox_Br: "Не має біологічної ролі",
+        tox_Kr: "Інертний газ, не має біологічної ролі",
+        tox_Rb: "Не має біологічної ролі",
+        tox_Sr: "Не має біологічної ролі",
+        tox_Y: "Не має біологічної ролі",
+        tox_Zr: "Не має біологічної ролі",
+        tox_Nb: "Не має біологічної ролі",
+        tox_Mo: "Мікроелемент — ксантиноксидаза, сульфітоксидаза",
+        tox_Tc: "Радіоактивний — не має стабільних ізотопів, радіаційна небезпека",
+        tox_Ru: "Не має біологічної ролі",
+        tox_Rh: "Не має біологічної ролі",
+        tox_Pd: "Не має біологічної ролі",
+        tox_Ag: "Не має біологічної ролі",
+        tox_Cd: "Високотоксичний — заміщує Zn та Ca, викликає остеомаляцію (хвороба Ітай-Ітай), ураження ниркових канальців та рак легень. [WHO, ATSDR]",
+        tox_In: "Не має біологічної ролі",
+        tox_Sn: "Не має біологічної ролі",
+        tox_Sb: "Токсична — за механізмом схожа на миш'як (Sb³⁺ зв'язує SH-групи). Викликає подразнення ШКТ, ураження печінки та міокарда. [ECHA, PubChem]",
+        tox_Te: "Не має біологічної ролі",
+        tox_I: "Мікроелемент — тироксин (T3, T4), щитоподібна залоза",
+        tox_Xe: "Інертний газ, не має біологічної ролі",
+        tox_Cs: "Не має біологічної ролі",
+        tox_Ba: "Надзвичайно токсичний у розчинних формах (BaCl₂, Ba(NO₃)₂) — блокує K⁺-канали (гіпокаліємія, аритмія, параліч). BaSO₄ нетоксичний через нерозчинність. [ATSDR, PubChem]",
+        tox_La: "Не має біологічної ролі",
+        tox_Ce: "Не має біологічної ролі",
+        tox_Pr: "Не має біологічної ролі",
+        tox_Nd: "Не має біологічної ролі",
+        tox_Pm: "Не має біологічної ролі",
+        tox_Sm: "Не має біологічної ролі",
+        tox_Eu: "Не має біологічної ролі",
+        tox_Gd: "Не має біологічної ролі",
+        tox_Tb: "Не має біологічної ролі",
+        tox_Dy: "Не має біологічної ролі",
+        tox_Ho: "Не має біологічної ролі",
+        tox_Er: "Не має біологічної ролі",
+        tox_Tm: "Не має біологічної ролі",
+        tox_Yb: "Не має біологічної ролі",
+        tox_Lu: "Не має біологічної ролі",
+        tox_Hf: "Не має біологічної ролі",
+        tox_Ta: "Не має біологічної ролі",
+        tox_W: "Мікроелемент — формальдегіддегідрогеназа (бактерії)",
+        tox_Re: "Не має біологічної ролі",
+        tox_Os: "Металічна форма інертна. OsO₄ надзвичайно леткий та токсичний — викликає незворотне ураження рогівки (сліпоту) та набряк легень. [NIOSH, PubChem]",
+        tox_Ir: "Не має біологічної ролі",
+        tox_Pt: "Не має біологічної ролі",
+        tox_Au: "Не має біологічної ролі",
+        tox_Hg: "Високотоксична — пари Hg⁰ (легені, ЦНС), солі Hg²⁺ (некроз ниркових канальців), метилртуть CH₃Hg⁺ (біоакумуляція, хвороба Мінамата). [WHO, ATSDR]",
+        tox_Tl: "Надзвичайно токсичний — Tl⁺ заміщує K⁺ у Na⁺/K⁺-АТФазі. Викликає гостру полінейропатію, алопецію, летальна доза ~0.8-1 г. [CDC, ATSDR]",
+        tox_Pb: "Високотоксичний — заміщує Ca²⁺ та Fe²⁺, інгібує амінолевулінатдегідратазу (анемія), енцефалопатія, затримка нервово-психічного розвитку. [WHO, ATSDR]",
+        tox_Bi: "Не має біологічної ролі",
+        tox_Po: "Надзвичайно радіотоксичний — Po-210 високоенергетичний α-випромінювач. LD50 для людини ~1 мкг (гострий радіаційний синдром, руйнування кісткового мозку). [IAEA, CDC]",
+        tox_At: "Надзвичайно радіотоксичний — галоген без стабільних ізотопів, α-випромінювач. Накопичується в щитоподібній залозі подібно до йоду, руйнуючи її тканину. [IUPAC, PubChem]",
+        tox_Rn: "Токсичний — радіоактивний, канцероген (легені)",
+        tox_Fr: "Надзвичайно радіоактивний — T½ найбільш стабільного ізотопу (Fr-223) лише 22 хв. Хімічна токсичність не проявляється, оскільки будь-яка макро-кількість миттєво випаровується від власного радіоактивного розпаду. [IUPAC, IAEA]",
+        tox_Ra: "Токсичний — радіоактивний, канцероген (кістки)",
+        tox_Ac: "Радіоактивний — висока α-активність, накопичується в кістках",
+        tox_Th: "Токсичний — радіоактивний, канцероген",
+        tox_Pa: "Токсичний — радіоактивний, канцероген",
+        tox_U: "Подвійна токсичність — хімічна токсичність іону уранілу UO₂²⁺ (тяжке ураження ниркових канальців) значно перевищує його слабку α-радіоактивність. [ATSDR, WHO]",
+        tox_Np: "Токсичний — радіоактивний, канцероген",
+        tox_Pu: "Надзвичайно токсичний — α-випромінювач, депонується в кістках та печінці. При інгаляції мікрограмових кількостей викликає рак легень та гострий радіаційний синдром. [IAEA, ATSDR]",
+        tox_Am: "Токсичний — радіоактивний, канцероген",
+        tox_Cm: "Токсичний — радіоактивний, канцероген",
+        tox_Bk: "Токсичний — радіоактивний, канцероген",
+        tox_Cf: "Токсичний — радіоактивний, канцероген",
+        tox_Es: "Токсичний — радіоактивний, канцероген",
+        tox_Fm: "Токсичний — радіоактивний, канцероген",
+        tox_Md: "Токсичний — радіоактивний, канцероген",
+        tox_No: "Токсичний — радіоактивний, канцероген",
+        tox_Lr: "Не має біологічної ролі",
+        tox_Rf: "Не має біологічної ролі",
+        tox_Db: "Не має біологічної ролі",
+        tox_Sg: "Не має біологічної ролі",
+        tox_Bh: "Не має біологічної ролі",
+        tox_Hs: "Не має біологічної ролі",
+        tox_Mt: "Не має біологічної ролі",
+        tox_Ds: "Не має біологічної ролі",
+        tox_Rg: "Не має біологічної ролі",
+        tox_Cn: "Не має біологічної ролі",
+        tox_Nh: "Не має біологічної ролі",
+        tox_Fl: "Не має біологічної ролі",
+        tox_Mc: "Не має біологічної ролі",
+        tox_Lv: "Не має біологічної ролі",
+        tox_Ts: "Не має біологічної ролі",
+        tox_Og: "Не має біологічної ролі"
     },
     es: {
         title: "Tabla Periódica de Elementos",
@@ -613,7 +970,126 @@ const I18N = {
         name_Ts: "Teneso", name_Og: "Oganesón",
         grp_1А: "1A", grp_2А: "2A", grp_3Б: "3B", grp_4Б: "4B", grp_5Б: "5B", grp_6Б: "6B", grp_7Б: "7B",
         grp_8: "8", grp_1Б: "1B", grp_2Б: "2B", grp_3А: "3A", grp_4А: "4A", grp_5А: "5A", grp_6А: "6A",
-        grp_7А: "7A", grp_8А: "8A"
+        grp_7А: "7A", grp_8А: "8A",
+        // Токсичность и формы
+        tox_H: "Macronutriente — base de compuestos orgánicos, agua, biomoléculas",
+        tox_He: "Gas inerte, sin rol biológico",
+        tox_Li: "Micronutriente — usado en psiquiatría (trastorno bipolar)",
+        tox_Be: "Altamente tóxico — carcinógeno (IARC Grupo 1). Causa aberraciones cromosómicas y beriliosis (granulomatosis pulmonar grave). [ATSDR, IARC]",
+        tox_B: "Micronutriente/condicionalmente esencial. Ácido bórico/boratos en sobredosis afectan riñones, SNC y sistema reproductivo (LD50 oral ~3-5 g/kg). [EFSA, ECHA]",
+        tox_C: "Macronutriente — base de todos los compuestos orgánicos",
+        tox_N: "Macronutriente — proteínas, ácidos nucleicos, ATP",
+        tox_O: "Macronutriente — respiración, oxidación, agua",
+        tox_F: "Micronutriente — esmalte dental, huesos; F⁻ tóxico en exceso",
+        tox_Ne: "Gas inerte, sin rol biológico",
+        tox_Na: "Macronutriente — electrolito clave, conducción nerviosa",
+        tox_Mg: "Macronutriente — 300+ enzimas, huesos, músculos",
+        tox_Al: "Tóxico — neurotoxina, posible vínculo con enfermedad de Alzheimer",
+        tox_Si: "Condicionalmente esencial — colágeno, huesos, tejido conectivo",
+        tox_P: "Macronutriente — ADN, ARN, ATP, huesos; fósforo blanco extremadamente tóxico",
+        tox_S: "Macronutriente — aminoácidos (Met, Cys), proteínas, detoxificación",
+        tox_Cl: "Macronutriente — electrolito, ácido gástrico (HCl)",
+        tox_Ar: "Gas inerte, sin rol biológico",
+        tox_K: "Macronutriente — electrolito clave, corazón, músculos",
+        tox_Ca: "Macronutriente — huesos, dientes, músculos, nervios",
+        tox_Sc: "Sin rol biológico",
+        tox_Ti: "Sin rol biológico",
+        tox_V: "Condicionalmente esencial — posible papel en metabolismo de glucosa",
+        tox_Cr: "Cr(III) — micronutriente esencial. Compuestos Cr(VI) (cromatos, dicromatos) — fuertes oxidantes, carcinógenos (IARC1) y mutágenos. [ATSDR, IARC]",
+        tox_Mn: "Micronutriente — arginasa, SOD, metabolismo óseo",
+        tox_Fe: "Micronutriente — hemoglobina, citocromos, síntesis de ADN",
+        tox_Co: "Micronutriente — vitamina B12 (cobalamina)",
+        tox_Ni: "Condicionalmente esencial — algunas enzimas bacterianas",
+        tox_Cu: "Micronutriente — citocromo oxidasa, superóxido dismutasa",
+        tox_Zn: "Micronutriente — 300+ enzimas, inmunidad, ADN",
+        tox_Ga: "Sin rol biológico",
+        tox_Ge: "Sin rol biológico",
+        tox_As: "Altamente tóxico — As(III) une grupos tiol (-SH) de enzimas (piruvato deshidrogenasa), As(V) altera síntesis de ATP. Carcinógeno (IARC1). [WHO, ATSDR]",
+        tox_Se: "Micronutriente — glutatión peroxidasa, tiroxina yodinasa",
+        tox_Br: "Sin rol biológico",
+        tox_Kr: "Gas inerte, sin rol biológico",
+        tox_Rb: "Sin rol biológico",
+        tox_Sr: "Sin rol biológico",
+        tox_Y: "Sin rol biológico",
+        tox_Zr: "Sin rol biológico",
+        tox_Nb: "Sin rol biológico",
+        tox_Mo: "Micronutriente — xantina oxidasa, sulfito oxidasa",
+        tox_Tc: "Radiactivo — sin isótopos estables, peligro de radiación",
+        tox_Ru: "Sin rol biológico",
+        tox_Rh: "Sin rol biológico",
+        tox_Pd: "Sin rol biológico",
+        tox_Ag: "Sin rol biológico",
+        tox_Cd: "Altamente tóxico — sustituye Zn y Ca, causa osteomalacia (enfermedad itai-itai), daño tubular renal y cáncer de pulmón. [WHO, ATSDR]",
+        tox_In: "Sin rol biológico",
+        tox_Sn: "Sin rol biológico",
+        tox_Sb: "Tóxica — mecanismo similar al arsénico (Sb³⁺ une grupos SH). Causa irritación GI, daño hepático y miocárdico. [ECHA, PubChem]",
+        tox_Te: "Sin rol biológico",
+        tox_I: "Micronutriente — tiroxina (T3, T4), glándula tiroides",
+        tox_Xe: "Gas inerte, sin rol biológico",
+        tox_Cs: "Sin rol biológico",
+        tox_Ba: "Extremadamente tóxico en formas solubles (BaCl₂, Ba(NO₃)₂) — bloquea canales K⁺ (hipokalemia, arritmia, parálisis). BaSO₄ no tóxico por insolubilidad. [ATSDR, PubChem]",
+        tox_La: "Sin rol biológico",
+        tox_Ce: "Sin rol biológico",
+        tox_Pr: "Sin rol biológico",
+        tox_Nd: "Sin rol biológico",
+        tox_Pm: "Sin rol biológico",
+        tox_Sm: "Sin rol biológico",
+        tox_Eu: "Sin rol biológico",
+        tox_Gd: "Sin rol biológico",
+        tox_Tb: "Sin rol biológico",
+        tox_Dy: "Sin rol biológico",
+        tox_Ho: "Sin rol biológico",
+        tox_Er: "Sin rol biológico",
+        tox_Tm: "Sin rol biológico",
+        tox_Yb: "Sin rol biológico",
+        tox_Lu: "Sin rol biológico",
+        tox_Hf: "Sin rol biológico",
+        tox_Ta: "Sin rol biológico",
+        tox_W: "Micronutriente — formaldehído deshidrogenasa (bacterias)",
+        tox_Re: "Sin rol biológico",
+        tox_Os: "Forma metálica inerte. OsO₄ extremadamente volátil y tóxico — causa daño corneal irreversible (ceguera) y edema pulmonar. [NIOSH, PubChem]",
+        tox_Ir: "Sin rol biológico",
+        tox_Pt: "Sin rol biológico",
+        tox_Au: "Sin rol biológico",
+        tox_Hg: "Altamente tóxica — vapores Hg⁰ (pulmones, SNC), sales Hg²⁺ (necrosis tubular renal), metilmercurio CH₃Hg⁺ (bioacumulación, enfermedad de Minamata). [WHO, ATSDR]",
+        tox_Tl: "Extremadamente tóxico — Tl⁺ sustituye K⁺ en Na⁺/K⁺-ATPasa. Causa polineuropatía aguda, alopecia, dosis letal ~0.8-1 g. [CDC, ATSDR]",
+        tox_Pb: "Altamente tóxico — sustituye Ca²⁺ y Fe²⁺, inhibe aminolevulinato deshidratasa (anemia), encefalopatía, retraso del desarrollo neurológico. [WHO, ATSDR]",
+        tox_Bi: "Sin rol biológico",
+        tox_Po: "Extremadamente radiotóxico — Po-210 emisor α de alta energía. DL50 para humanos ~1 μg (síndrome de radiación aguda, destrucción de médula ósea). [IAEA, CDC]",
+        tox_At: "Extremadamente radiotóxico — halógeno sin isótopos estables, emisor α. Se acumula en tiroides como el yodo, destruyendo su tejido. [IUPAC, PubChem]",
+        tox_Rn: "Tóxico — radiactivo, carcinógeno (pulmones)",
+        tox_Fr: "Extremadamente radiactivo — T½ del isótopo más estable (Fr-223) solo 22 min. La toxicidad química no se manifiesta ya que cualquier macro-cantidad se evapora instantáneamente por su propia desintegración radiactiva. [IUPAC, IAEA]",
+        tox_Ra: "Tóxico — radiactivo, carcinógeno (huesos)",
+        tox_Ac: "Radiactivo — alta actividad α, se acumula en huesos",
+        tox_Th: "Tóxico — radiactivo, carcinógeno",
+        tox_Pa: "Tóxico — radiactivo, carcinógeno",
+        tox_U: "Dual toxicidad — la toxicidad química del ion uranilo UO₂²⁺ (daño tubular renal grave) supera significativamente su débil radiactividad α. [ATSDR, WHO]",
+        tox_Np: "Tóxico — radiactivo, carcinógeno",
+        tox_Pu: "Extremadamente tóxico — emisor α, se deposita en huesos e hígado. La inhalación de cantidades microgramo causa cáncer de pulmón y síndrome de radiación aguda. [IAEA, ATSDR]",
+        tox_Am: "Tóxico — radiactivo, carcinógeno",
+        tox_Cm: "Tóxico — radiactivo, carcinógeno",
+        tox_Bk: "Tóxico — radiactivo, carcinógeno",
+        tox_Cf: "Tóxico — radiactivo, carcinógeno",
+        tox_Es: "Tóxico — radiactivo, carcinógeno",
+        tox_Fm: "Tóxico — radiactivo, carcinógeno",
+        tox_Md: "Tóxico — radiactivo, carcinógeno",
+        tox_No: "Tóxico — radiactivo, carcinógeno",
+        tox_Lr: "Sin rol biológico",
+        tox_Rf: "Sin rol biológico",
+        tox_Db: "Sin rol biológico",
+        tox_Sg: "Sin rol biológico",
+        tox_Bh: "Sin rol biológico",
+        tox_Hs: "Sin rol biológico",
+        tox_Mt: "Sin rol biológico",
+        tox_Ds: "Sin rol biológico",
+        tox_Rg: "Sin rol biológico",
+        tox_Cn: "Sin rol biológico",
+        tox_Nh: "Sin rol biológico",
+        tox_Fl: "Sin rol biológico",
+        tox_Mc: "Sin rol biológico",
+        tox_Lv: "Sin rol biológico",
+        tox_Ts: "Sin rol biológico",
+        tox_Og: "Sin rol biológico"
     }
 };
 
@@ -650,124 +1126,124 @@ function setLang(l) {
 
 // Данные: индекс = Z. [Z, символ, название, масса, группа, период, ряд, категория, конфигурация, спины, ключ_цвета_иона, биологическая_роль, токсичность_и_формы]
 const E = [];
-E[1]=[1,"H","Водород",1.008,"1А",1,"s","nonmetal","1s1","↑","ion_H","macro","Макроэлемент — основа органических соединений, воды, биомолекул"];
-E[2]=[2,"He","Гелий",4.003,"8А",1,"s","noble","1s2","↑↓","ion_He","inert","Инертный газ, не имеет биологической роли"];
-E[3]=[3,"Li","Литий",6.94,"1А",2,"s","alkali","[He] 2s1","↑","ion_Li","micro","Микроэлемент — используется в психиатрии (биполярное расстройство)"];
-E[4]=[4,"Be","Бериллий",9.012,"2А",2,"s","alkaline","[He] 2s2","↑↓","ion_Be","toxic","Токсичный — канцерогенен, вызывает бериллиоз"];
-E[5]=[5,"B","Бор",10.81,"3А",2,"p","metalloid","[He] 2s2 2p1","↑↓ | ↑","ion_B","cond_ess","Условно-эссенциальный — важен для костей, суставов, гормонального фона"];
-E[6]=[6,"C","Углерод",12.01,"4А",2,"p","nonmetal","[He] 2s2 2p2","↑↓ | ↑ ↑","ion_C","macro","Макроэлемент — основа всех органических соединений"];
-E[7]=[7,"N","Азот",14.01,"5А",2,"p","nonmetal","[He] 2s2 2p3","↑↓ | ↑ ↑ ↑","ion_N","macro","Макроэлемент — белки, нуклеиновые кислоты, АТФ"];
-E[8]=[8,"O","Кислород",16.00,"6А",2,"p","nonmetal","[He] 2s2 2p4","↑↓ | ↑↓ ↑ ↑","ion_O","macro","Макроэлемент — дыхание, окисление, вода"];
-E[9]=[9,"F","Фтор",19.00,"7А",2,"p","halogen","[He] 2s2 2p5","↑↓ | ↑↓ ↑↓ ↑","ion_F","micro","Микроэлемент — зубная эмаль, кости; F⁻ в избытке токсичен"];
-E[10]=[10,"Ne","Неон",20.18,"8А",2,"p","noble","[He] 2s2 2p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Ne","inert","Инертный газ, не имеет биологической роли"];
-E[11]=[11,"Na","Натрий",22.99,"1А",3,"s","alkali","[Ne] 3s1","↑","ion_Na","macro","Макроэлемент — ключевой электролит, нервная проводимость"];
-E[12]=[12,"Mg","Магний",24.31,"2А",3,"s","alkaline","[Ne] 3s2","↑↓","ion_Mg","macro","Макроэлемент — 300+ ферментов, кости, мышцы"];
-E[13]=[13,"Al","Алюминий",26.98,"3А",3,"p","post","[Ne] 3s2 3p1","↑↓ | ↑","ion_Al","toxic","Токсичный — нейротоксин, возможна связь с болезнью Альцгеймера"];
-E[14]=[14,"Si","Кремний",28.09,"4А",3,"p","metalloid","[Ne] 3s2 3p2","↑↓ | ↑ ↑","ion_Si","cond_ess","Условно-эссенциальный — коллаген, кости, соединительная ткань"];
-E[15]=[15,"P","Фосфор",30.97,"5А",3,"p","nonmetal","[Ne] 3s2 3p3","↑↓ | ↑ ↑ ↑","ion_P","macro","Макроэлемент — ДНК, РНК, АТФ, кости; белый фосфор — чрезвычайно токсичен"];
-E[16]=[16,"S","Сера",32.07,"6А",3,"p","nonmetal","[Ne] 3s2 3p4","↑↓ | ↑↓ ↑ ↑","ion_S","macro","Макроэлемент — аминокислоты (Met, Cys), белки, детоксикация"];
-E[17]=[17,"Cl","Хлор",35.45,"7А",3,"p","halogen","[Ne] 3s2 3p5","↑↓ | ↑↓ ↑↓ ↑","ion_Cl","macro","Макроэлемент — электролит, желудочная кислота (HCl)"];
-E[18]=[18,"Ar","Аргон",39.95,"8А",3,"p","noble","[Ne] 3s2 3p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Ar","inert","Инертный газ, не имеет биологической роли"];
-E[19]=[19,"K","Калий",39.10,"1А",4,"s","alkali","[Ar] 4s1","↑","ion_K","macro","Макроэлемент — ключевой электролит, сердце, мышцы"];
-E[20]=[20,"Ca","Кальций",40.08,"2А",4,"s","alkaline","[Ar] 4s2","↑↓","ion_Ca","macro","Макроэлемент — кости, зубы, мышцы, нервы"];
-E[21]=[21,"Sc","Скандий",44.96,"3Б",4,"d","transition","[Ar] 3d1 4s2","↑ | ↑↓","ion_Sc","no_role","Не имеет биологической роли"];
-E[22]=[22,"Ti","Титан",47.87,"4Б",4,"d","transition","[Ar] 3d2 4s2","↑ ↑ | ↑↓","ion_Ti","no_role","Не имеет биологической роли"];
-E[23]=[23,"V","Ванадий",50.94,"5Б",4,"d","transition","[Ar] 3d3 4s2","↑ ↑ ↑ | ↑↓","ion_V","cond_ess","Условно-эссенциальный — возможна роль в метаболизме глюкозы"];
-E[24]=[24,"Cr","Хром",52.00,"6Б",4,"d","transition","[Ar] 3d5 4s1","↑ ↑ ↑ ↑ ↑ | ↑","ion_Cr","micro","Микроэлемент — Cr(III) важен для метаболизма глюкозы; Cr(VI) — канцерогенен"];
-E[25]=[25,"Mn","Марганец",54.94,"7Б",4,"d","transition","[Ar] 3d5 4s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Mn","micro","Микроэлемент — аргиназа, СОД, костный метаболизм"];
-E[26]=[26,"Fe","Железо",55.85,"8",4,"d","transition","[Ar] 3d6 4s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Fe","micro","Микроэлемент — гемоглобин, цитохромы, ДНК-синтез"];
-E[27]=[27,"Co","Кобальт",58.93,"8",4,"d","transition","[Ar] 3d7 4s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Co","micro","Микроэлемент — витамин B12 (кобаламин)"];
-E[28]=[28,"Ni","Никель",58.69,"8",4,"d","transition","[Ar] 3d8 4s2","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑↓","ion_Ni","cond_ess","Условно-эссенциальный — некоторые бактериальные ферменты"];
-E[29]=[29,"Cu","Медь",63.55,"1Б",4,"d","transition","[Ar] 3d10 4s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Cu","micro","Микроэлемент — цитохром-оксидаза, супероксиддисмутаза"];
-E[30]=[30,"Zn","Цинк",65.38,"2Б",4,"d","transition","[Ar] 3d10 4s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Zn","micro","Микроэлемент — 300+ ферментов, иммунитет, ДНК"];
-E[31]=[31,"Ga","Галлий",69.72,"3А",4,"p","post","[Ar] 3d10 4s2 4p1","↑↓ | ↑","ion_Ga","no_role","Не имеет биологической роли"];
-E[32]=[32,"Ge","Германий",72.63,"4А",4,"p","metalloid","[Ar] 3d10 4s2 4p2","↑↓ | ↑ ↑","ion_Ge","no_role","Не имеет биологической роли"];
-E[33]=[33,"As","Мышьяк",74.92,"5А",4,"p","metalloid","[Ar] 3d10 4s2 4p3","↑↓ | ↑ ↑ ↑","ion_As","toxic","Токсичный — канцерогенен, нарушает клеточное дыхание"];
-E[34]=[34,"Se","Селен",78.97,"6А",4,"p","nonmetal","[Ar] 3d10 4s2 4p4","↑↓ | ↑↓ ↑ ↑","ion_Se","micro","Микроэлемент — глутатионпероксидаза, тироксин-дейодиназа"];
-E[35]=[35,"Br","Бром",79.90,"7А",4,"p","halogen","[Ar] 3d10 4s2 4p5","↑↓ | ↑↓ ↑↓ ↑","ion_Br","no_role","Не имеет биологической роли"];
-E[36]=[36,"Kr","Криптон",83.80,"8А",4,"p","noble","[Ar] 3d10 4s2 4p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Kr","inert","Инертный газ, не имеет биологической роли"];
-E[37]=[37,"Rb","Рубидий",85.47,"1А",5,"s","alkali","[Kr] 5s1","↑","ion_Rb","no_role","Не имеет биологической роли"];
-E[38]=[38,"Sr","Стронций",87.62,"2А",5,"s","alkaline","[Kr] 5s2","↑↓","ion_Sr","no_role","Не имеет биологической роли"];
-E[39]=[39,"Y","Иттрий",88.91,"3Б",5,"d","transition","[Kr] 4d1 5s2","↑ | ↑↓","ion_Y","no_role","Не имеет биологической роли"];
-E[40]=[40,"Zr","Цирконий",91.22,"4Б",5,"d","transition","[Kr] 4d2 5s2","↑ ↑ | ↑↓","ion_Zr","no_role","Не имеет биологической роли"];
-E[41]=[41,"Nb","Ниобий",92.91,"5Б",5,"d","transition","[Kr] 4d4 5s1","↑ ↑ ↑ ↑ | ↑","ion_Nb","no_role","Не имеет биологической роли"];
-E[42]=[42,"Mo","Молибден",95.95,"6Б",5,"d","transition","[Kr] 4d5 5s1","↑ ↑ ↑ ↑ ↑ | ↑","ion_Mo","micro","Микроэлемент — ксантиноксидаза, сульфитоксидаза"];
-E[43]=[43,"Tc","Технеций",98,"7Б",5,"d","transition","[Kr] 4d5 5s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Tc","toxic","Радиоактивен — не имеет стабильных изотопов, радиационная опасность"];
-E[44]=[44,"Ru","Рутений",101.1,"8",5,"d","transition","[Kr] 4d7 5s1","↑↓ ↑↓ ↑ ↑ ↑ | ↑","ion_Ru","no_role","Не имеет биологической роли"];
-E[45]=[45,"Rh","Родий",102.9,"8",5,"d","transition","[Kr] 4d8 5s1","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑","ion_Rh","no_role","Не имеет биологической роли"];
-E[46]=[46,"Pd","Палладий",106.4,"8",5,"d","transition","[Kr] 4d10","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Pd","no_role","Не имеет биологической роли"];
-E[47]=[47,"Ag","Серебро",107.9,"1Б",5,"d","transition","[Kr] 4d10 5s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Ag","no_role","Не имеет биологической роли"];
-E[48]=[48,"Cd","Кадмий",112.4,"2Б",5,"d","transition","[Kr] 4d10 5s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cd","toxic","Токсичный — канцерогенен, поражает почки, кости (итай-итай)"];
-E[49]=[49,"In","Индий",114.8,"3А",5,"p","post","[Kr] 4d10 5s2 5p1","↑↓ | ↑","ion_In","no_role","Не имеет биологической роли"];
-E[50]=[50,"Sn","Олово",118.7,"4А",5,"p","post","[Kr] 4d10 5s2 5p2","↑↓ | ↑ ↑","ion_Sn","no_role","Не имеет биологической роли"];
-E[51]=[51,"Sb","Сурьма",121.8,"5А",5,"p","metalloid","[Kr] 4d10 5s2 5p3","↑↓ | ↑ ↑ ↑","ion_Sb","toxic","Токсичный — вызывает рвоту, поражает печень"];
-E[52]=[52,"Te","Теллур",127.6,"6А",5,"p","metalloid","[Kr] 4d10 5s2 5p4","↑↓ | ↑↓ ↑ ↑","ion_Te","no_role","Не имеет биологической роли"];
-E[53]=[53,"I","Иод",126.9,"7А",5,"p","halogen","[Kr] 4d10 5s2 5p5","↑↓ | ↑↓ ↑↓ ↑","ion_I","micro","Микроэлемент — тироксин (T3, T4), щитовидная железа"];
-E[54]=[54,"Xe","Ксенон",131.3,"8А",5,"p","noble","[Kr] 4d10 5s2 5p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Xe","inert","Инертный газ, не имеет биологической роли"];
-E[55]=[55,"Cs","Цезий",132.9,"1А",6,"s","alkali","[Xe] 6s1","↑","ion_Cs","no_role","Не имеет биологической роли"];
-E[56]=[56,"Ba","Барий",137.3,"2А",6,"s","alkaline","[Xe] 6s2","↑↓","ion_Ba","toxic","Высокотоксичен — растворимые соли (BaCl₂, Ba(NO₃)₂) блокируют K⁺-каналы, вызывают паралич и аритмию; BaSO₄ нетоксичен"];
-E[57]=[57,"La","Лантан",138.9,"3Б",6,"d","transition","[Xe] 5d1 6s2","↑ | ↑↓","ion_La","no_role","Не имеет биологической роли"];
-E[58]=[58,"Ce","Церий",140.1,"3Б",6,"f","lanth","[Xe] 4f1 5d1 6s2","↑ | ↑ | ↑↓","ion_Ce","no_role","Не имеет биологической роли"];
-E[59]=[59,"Pr","Празеодим",140.9,"3Б",6,"f","lanth","[Xe] 4f3 6s2","↑ ↑ ↑ | ↑↓","ion_Pr","no_role","Не имеет биологической роли"];
-E[60]=[60,"Nd","Неодим",144.2,"3Б",6,"f","lanth","[Xe] 4f4 6s2","↑ ↑ ↑ ↑ | ↑↓","ion_Nd","no_role","Не имеет биологической роли"];
-E[61]=[61,"Pm","Прометий",145,"3Б",6,"f","lanth","[Xe] 4f5 6s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Pm","no_role","Не имеет биологической роли"];
-E[62]=[62,"Sm","Самарий",150.4,"3Б",6,"f","lanth","[Xe] 4f6 6s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Sm","no_role","Не имеет биологической роли"];
-E[63]=[63,"Eu","Европий",152.0,"3Б",6,"f","lanth","[Xe] 4f7 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Eu","no_role","Не имеет биологической роли"];
-E[64]=[64,"Gd","Гадолиний",157.3,"3Б",6,"f","lanth","[Xe] 4f7 5d1 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑ | ↑↓","ion_Gd","no_role","Не имеет биологической роли"];
-E[65]=[65,"Tb","Тербий",158.9,"3Б",6,"f","lanth","[Xe] 4f9 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Tb","no_role","Не имеет биологической роли"];
-E[66]=[66,"Dy","Диспрозий",162.5,"3Б",6,"f","lanth","[Xe] 4f10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Dy","no_role","Не имеет биологической роли"];
-E[67]=[67,"Ho","Гольмий",164.9,"3Б",6,"f","lanth","[Xe] 4f11 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Ho","no_role","Не имеет биологической роли"];
-E[68]=[68,"Er","Эрбий",167.3,"3Б",6,"f","lanth","[Xe] 4f12 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Er","no_role","Не имеет биологической роли"];
-E[69]=[69,"Tm","Тулий",168.9,"3Б",6,"f","lanth","[Xe] 4f13 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Tm","no_role","Не имеет биологической роли"];
-E[70]=[70,"Yb","Иттербий",173.0,"3Б",6,"f","lanth","[Xe] 4f14 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Yb","no_role","Не имеет биологической роли"];
-E[71]=[71,"Lu","Лютеций",175.0,"3Б",6,"d","transition","[Xe] 4f14 5d1 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Lu","no_role","Не имеет биологической роли"];
-E[72]=[72,"Hf","Гафний",178.5,"4Б",6,"d","transition","[Xe] 4f14 5d2 6s2","↑ ↑ | ↑↓","ion_Hf","no_role","Не имеет биологической роли"];
-E[73]=[73,"Ta","Тантал",180.9,"5Б",6,"d","transition","[Xe] 4f14 5d3 6s2","↑ ↑ ↑ | ↑↓","ion_Ta","no_role","Не имеет биологической роли"];
-E[74]=[74,"W","Вольфрам",183.8,"6Б",6,"d","transition","[Xe] 4f14 5d4 6s2","↑ ↑ ↑ ↑ | ↑↓","ion_W","micro","Микроэлемент — формальдегиддегидрогеназа (бактерии)"];
-E[75]=[75,"Re","Рений",186.2,"7Б",6,"d","transition","[Xe] 4f14 5d5 6s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Re","no_role","Не имеет биологической роли"];
-E[76]=[76,"Os","Осмий",190.2,"8",6,"d","transition","[Xe] 4f14 5d6 6s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Os","toxic","Токсичен — OsO₄ чрезвычайно летуч, вызывает слепоту и отек лёгких"];
-E[77]=[77,"Ir","Иридий",192.2,"8",6,"d","transition","[Xe] 4f14 5d7 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Ir","no_role","Не имеет биологической роли"];
-E[78]=[78,"Pt","Платина",195.1,"8",6,"d","transition","[Xe] 4f14 5d9 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑ ↑ | ↑","ion_Pt","no_role","Не имеет биологической роли"];
-E[79]=[79,"Au","Золото",197.0,"1Б",6,"d","transition","[Xe] 4f14 5d10 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Au","no_role","Не имеет биологической роли"];
-E[80]=[80,"Hg","Ртуть",200.6,"2Б",6,"d","transition","[Xe] 4f14 5d10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Hg","toxic","Токсичный — нейротоксин, биоаккумуляция (метилртуть)"];
-E[81]=[81,"Tl","Таллий",204.4,"3А",6,"p","post","[Xe] 4f14 5d10 6s2 6p1","↑↓ | ↑","ion_Tl","toxic","Токсичный — нейротоксин, канцерогенен"];
-E[82]=[82,"Pb","Свинец",207.2,"4А",6,"p","post","[Xe] 4f14 5d10 6s2 6p2","↑↓ | ↑ ↑","ion_Pb","toxic","Токсичный — нейротоксин, анемия, поражение почек"];
-E[83]=[83,"Bi","Висмут",209.0,"5А",6,"p","post","[Xe] 4f14 5d10 6s2 6p3","↑↓ | ↑ ↑ ↑","ion_Bi","no_role","Не имеет биологической роли"];
-E[84]=[84,"Po","Полоний",209,"6А",6,"p","metalloid","[Xe] 4f14 5d10 6s2 6p4","↑↓ | ↑↓ ↑ ↑","ion_Po","toxic","Токсичный — радиоактивен, крайне токсичен"];
-E[85]=[85,"At","Астат",210,"7А",6,"p","halogen","[Xe] 4f14 5d10 6s2 6p5","↑↓ | ↑↓ ↑↓ ↑","ion_At","toxic","Радиоактивен — чрезвычайно токсичен из-за высокой α-активности"];
-E[86]=[86,"Rn","Радон",222,"8А",6,"p","noble","[Xe] 4f14 5d10 6s2 6p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Rn","toxic","Токсичный — радиоактивен, канцерогенен (лёгкие)"];
-E[87]=[87,"Fr","Франций",223,"1А",7,"s","alkali","[Rn] 7s1","↑","ion_Fr","no_role","Не имеет биологической роли"];
-E[88]=[88,"Ra","Радий",226,"2А",7,"s","alkaline","[Rn] 7s2","↑↓","ion_Ra","toxic","Токсичный — радиоактивен, канцерогенен (кости)"];
-E[89]=[89,"Ac","Актиний",227,"3Б",7,"d","transition","[Rn] 6d1 7s2","↑ | ↑↓","ion_Ac","toxic","Радиоактивен — высокая α-активность, накапливается в костях"];
-E[90]=[90,"Th","Торий",232.0,"3Б",7,"f","actin","[Rn] 6d2 7s2","↑ ↑ | ↑↓","ion_Th","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[91]=[91,"Pa","Протактиний",231.0,"3Б",7,"f","actin","[Rn] 5f2 6d1 7s2","↑ ↑ | ↑ | ↑↓","ion_Pa","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[92]=[92,"U","Уран",238.0,"3Б",7,"f","actin","[Rn] 5f3 6d1 7s2","↑ ↑ ↑ | ↑ | ↑↓","ion_U","toxic","Токсичный — радиоактивен, химически токсичен (почки)"];
-E[93]=[93,"Np","Нептуний",237,"3Б",7,"f","actin","[Rn] 5f4 6d1 7s2","↑ ↑ ↑ ↑ | ↑ | ↑↓","ion_Np","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[94]=[94,"Pu","Плутоний",244,"3Б",7,"f","actin","[Rn] 5f6 7s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Pu","toxic","Токсичный — радиоактивен, канцерогенен (лёгкие, кости)"];
-E[95]=[95,"Am","Америций",243,"3Б",7,"f","actin","[Rn] 5f7 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Am","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[96]=[96,"Cm","Кюрий",247,"3Б",7,"f","actin","[Rn] 5f7 6d1 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑ | ↑↓","ion_Cm","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[97]=[97,"Bk","Берклий",247,"3Б",7,"f","actin","[Rn] 5f9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Bk","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[98]=[98,"Cf","Калифорний",251,"3Б",7,"f","actin","[Rn] 5f10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cf","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[99]=[99,"Es","Эйнштейний",252,"3Б",7,"f","actin","[Rn] 5f11 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Es","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[100]=[100,"Fm","Фермий",257,"3Б",7,"f","actin","[Rn] 5f12 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Fm","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[101]=[101,"Md","Менделевий",258,"3Б",7,"f","actin","[Rn] 5f13 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Md","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[102]=[102,"No","Нобелий",259,"3Б",7,"f","actin","[Rn] 5f14 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_No","toxic","Токсичный — радиоактивен, канцерогенен"];
-E[103]=[103,"Lr","Лоуренсий",266,"3Б",7,"d","transition","[Rn] 5f14 7s2 7p1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓ | ↑","ion_Lr","no_role","Не имеет биологической роли"];
-E[104]=[104,"Rf","Резерфордий",267,"4Б",7,"d","transition","[Rn] 5f14 6d2 7s2","↑ ↑ | ↑↓","ion_Rf","no_role","Не имеет биологической роли"];
-E[105]=[105,"Db","Дубний",268,"5Б",7,"d","transition","[Rn] 5f14 6d3 7s2","↑ ↑ ↑ | ↑↓","ion_Db","no_role","Не имеет биологической роли"];
-E[106]=[106,"Sg","Сиборгий",269,"6Б",7,"d","transition","[Rn] 5f14 6d4 7s2","↑ ↑ ↑ ↑ | ↑↓","ion_Sg","no_role","Не имеет биологической роли"];
-E[107]=[107,"Bh","Борий",270,"7Б",7,"d","transition","[Rn] 5f14 6d5 7s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Bh","no_role","Не имеет биологической роли"];
-E[108]=[108,"Hs","Хассий",277,"8",7,"d","transition","[Rn] 5f14 6d6 7s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Hs","no_role","Не имеет биологической роли"];
-E[109]=[109,"Mt","Мейтнерий",278,"8",7,"d","transition","[Rn] 5f14 6d7 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Mt","no_role","Не имеет биологической роли"];
-E[110]=[110,"Ds","Дармштадтий",281,"8",7,"d","transition","[Rn] 5f14 6d8 7s2","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑↓","ion_Ds","no_role","Не имеет биологической роли"];
-E[111]=[111,"Rg","Рентгений",282,"1Б",7,"d","transition","[Rn] 5f14 6d9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Rg","no_role","Не имеет биологической роли"];
-E[112]=[112,"Cn","Коперниций",285,"2Б",7,"d","transition","[Rn] 5f14 6d10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cn","no_role","Не имеет биологической роли"];
-E[113]=[113,"Nh","Нихоний",286,"3А",7,"p","post","[Rn] 5f14 6d10 7s2 7p1","↑↓ | ↑","ion_Nh","no_role","Не имеет биологической роли"];
-E[114]=[114,"Fl","Флеровий",289,"4А",7,"p","post","[Rn] 5f14 6d10 7s2 7p2","↑↓ | ↑ ↑","ion_Fl","no_role","Не имеет биологической роли"];
-E[115]=[115,"Mc","Московий",290,"5А",7,"p","post","[Rn] 5f14 6d10 7s2 7p3","↑↓ | ↑ ↑ ↑","ion_Mc","no_role","Не имеет биологической роли"];
-E[116]=[116,"Lv","Ливерморий",293,"6А",7,"p","post","[Rn] 5f14 6d10 7s2 7p4","↑↓ | ↑↓ ↑ ↑","ion_Lv","no_role","Не имеет биологической роли"];
-E[117]=[117,"Ts","Теннессин",294,"7А",7,"p","halogen","[Rn] 5f14 6d10 7s2 7p5","↑↓ | ↑↓ ↑↓ ↑","ion_Ts","no_role","Не имеет биологической роли"];
-E[118]=[118,"Og","Оганесон",294,"8А",7,"p","noble","[Rn] 5f14 6d10 7s2 7p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Og","no_role","Не имеет биологической роли"];
+E[1]=[1,"H","Водород",1.008,"1А",1,"s","nonmetal","1s1","↑","ion_H","macro","tox_H"];
+E[2]=[2,"He","Гелий",4.003,"8А",1,"s","noble","1s2","↑↓","ion_He","inert","tox_He"];
+E[3]=[3,"Li","Литий",6.94,"1А",2,"s","alkali","[He] 2s1","↑","ion_Li","micro","tox_Li"];
+E[4]=[4,"Be","Бериллий",9.012,"2А",2,"s","alkaline","[He] 2s2","↑↓","ion_Be","toxic","tox_Be"];
+E[5]=[5,"B","Бор",10.81,"3А",2,"p","metalloid","[He] 2s2 2p1","↑↓ | ↑","ion_B","cond_ess","tox_B"];
+E[6]=[6,"C","Углерод",12.01,"4А",2,"p","nonmetal","[He] 2s2 2p2","↑↓ | ↑ ↑","ion_C","macro","tox_C"];
+E[7]=[7,"N","Азот",14.01,"5А",2,"p","nonmetal","[He] 2s2 2p3","↑↓ | ↑ ↑ ↑","ion_N","macro","tox_N"];
+E[8]=[8,"O","Кислород",16.00,"6А",2,"p","nonmetal","[He] 2s2 2p4","↑↓ | ↑↓ ↑ ↑","ion_O","macro","tox_O"];
+E[9]=[9,"F","Фтор",19.00,"7А",2,"p","halogen","[He] 2s2 2p5","↑↓ | ↑↓ ↑↓ ↑","ion_F","micro","tox_F"];
+E[10]=[10,"Ne","Неон",20.18,"8А",2,"p","noble","[He] 2s2 2p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Ne","inert","tox_Ne"];
+E[11]=[11,"Na","Натрий",22.99,"1А",3,"s","alkali","[Ne] 3s1","↑","ion_Na","macro","tox_Na"];
+E[12]=[12,"Mg","Магний",24.31,"2А",3,"s","alkaline","[Ne] 3s2","↑↓","ion_Mg","macro","tox_Mg"];
+E[13]=[13,"Al","Алюминий",26.98,"3А",3,"p","post","[Ne] 3s2 3p1","↑↓ | ↑","ion_Al","toxic","tox_Al"];
+E[14]=[14,"Si","Кремний",28.09,"4А",3,"p","metalloid","[Ne] 3s2 3p2","↑↓ | ↑ ↑","ion_Si","cond_ess","tox_Si"];
+E[15]=[15,"P","Фосфор",30.97,"5А",3,"p","nonmetal","[Ne] 3s2 3p3","↑↓ | ↑ ↑ ↑","ion_P","macro","tox_P"];
+E[16]=[16,"S","Сера",32.07,"6А",3,"p","nonmetal","[Ne] 3s2 3p4","↑↓ | ↑↓ ↑ ↑","ion_S","macro","tox_S"];
+E[17]=[17,"Cl","Хлор",35.45,"7А",3,"p","halogen","[Ne] 3s2 3p5","↑↓ | ↑↓ ↑↓ ↑","ion_Cl","macro","tox_Cl"];
+E[18]=[18,"Ar","Аргон",39.95,"8А",3,"p","noble","[Ne] 3s2 3p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Ar","inert","tox_Ar"];
+E[19]=[19,"K","Калий",39.10,"1А",4,"s","alkali","[Ar] 4s1","↑","ion_K","macro","tox_K"];
+E[20]=[20,"Ca","Кальций",40.08,"2А",4,"s","alkaline","[Ar] 4s2","↑↓","ion_Ca","macro","tox_Ca"];
+E[21]=[21,"Sc","Скандий",44.96,"3Б",4,"d","transition","[Ar] 3d1 4s2","↑ | ↑↓","ion_Sc","no_role","tox_Sc"];
+E[22]=[22,"Ti","Титан",47.87,"4Б",4,"d","transition","[Ar] 3d2 4s2","↑ ↑ | ↑↓","ion_Ti","no_role","tox_Ti"];
+E[23]=[23,"V","Ванадий",50.94,"5Б",4,"d","transition","[Ar] 3d3 4s2","↑ ↑ ↑ | ↑↓","ion_V","cond_ess","tox_V"];
+E[24]=[24,"Cr","Хром",52.00,"6Б",4,"d","transition","[Ar] 3d5 4s1","↑ ↑ ↑ ↑ ↑ | ↑","ion_Cr","micro","tox_Cr"];
+E[25]=[25,"Mn","Марганец",54.94,"7Б",4,"d","transition","[Ar] 3d5 4s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Mn","micro","tox_Mn"];
+E[26]=[26,"Fe","Железо",55.85,"8",4,"d","transition","[Ar] 3d6 4s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Fe","micro","tox_Fe"];
+E[27]=[27,"Co","Кобальт",58.93,"8",4,"d","transition","[Ar] 3d7 4s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Co","micro","tox_Co"];
+E[28]=[28,"Ni","Никель",58.69,"8",4,"d","transition","[Ar] 3d8 4s2","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑↓","ion_Ni","cond_ess","tox_Ni"];
+E[29]=[29,"Cu","Медь",63.55,"1Б",4,"d","transition","[Ar] 3d10 4s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Cu","micro","tox_Cu"];
+E[30]=[30,"Zn","Цинк",65.38,"2Б",4,"d","transition","[Ar] 3d10 4s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Zn","micro","tox_Zn"];
+E[31]=[31,"Ga","Галлий",69.72,"3А",4,"p","post","[Ar] 3d10 4s2 4p1","↑↓ | ↑","ion_Ga","no_role","tox_Ga"];
+E[32]=[32,"Ge","Германий",72.63,"4А",4,"p","metalloid","[Ar] 3d10 4s2 4p2","↑↓ | ↑ ↑","ion_Ge","no_role","tox_Ge"];
+E[33]=[33,"As","Мышьяк",74.92,"5А",4,"p","metalloid","[Ar] 3d10 4s2 4p3","↑↓ | ↑ ↑ ↑","ion_As","toxic","tox_As"];
+E[34]=[34,"Se","Селен",78.97,"6А",4,"p","nonmetal","[Ar] 3d10 4s2 4p4","↑↓ | ↑↓ ↑ ↑","ion_Se","micro","tox_Se"];
+E[35]=[35,"Br","Бром",79.90,"7А",4,"p","halogen","[Ar] 3d10 4s2 4p5","↑↓ | ↑↓ ↑↓ ↑","ion_Br","no_role","tox_Br"];
+E[36]=[36,"Kr","Криптон",83.80,"8А",4,"p","noble","[Ar] 3d10 4s2 4p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Kr","inert","tox_Kr"];
+E[37]=[37,"Rb","Рубидий",85.47,"1А",5,"s","alkali","[Kr] 5s1","↑","ion_Rb","no_role","tox_Rb"];
+E[38]=[38,"Sr","Стронций",87.62,"2А",5,"s","alkaline","[Kr] 5s2","↑↓","ion_Sr","no_role","tox_Sr"];
+E[39]=[39,"Y","Иттрий",88.91,"3Б",5,"d","transition","[Kr] 4d1 5s2","↑ | ↑↓","ion_Y","no_role","tox_Y"];
+E[40]=[40,"Zr","Цирконий",91.22,"4Б",5,"d","transition","[Kr] 4d2 5s2","↑ ↑ | ↑↓","ion_Zr","no_role","tox_Zr"];
+E[41]=[41,"Nb","Ниобий",92.91,"5Б",5,"d","transition","[Kr] 4d4 5s1","↑ ↑ ↑ ↑ | ↑","ion_Nb","no_role","tox_Nb"];
+E[42]=[42,"Mo","Молибден",95.95,"6Б",5,"d","transition","[Kr] 4d5 5s1","↑ ↑ ↑ ↑ ↑ | ↑","ion_Mo","micro","tox_Mo"];
+E[43]=[43,"Tc","Технеций",98,"7Б",5,"d","transition","[Kr] 4d5 5s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Tc","toxic","tox_Tc"];
+E[44]=[44,"Ru","Рутений",101.1,"8",5,"d","transition","[Kr] 4d7 5s1","↑↓ ↑↓ ↑ ↑ ↑ | ↑","ion_Ru","no_role","tox_Ru"];
+E[45]=[45,"Rh","Родий",102.9,"8",5,"d","transition","[Kr] 4d8 5s1","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑","ion_Rh","no_role","tox_Rh"];
+E[46]=[46,"Pd","Палладий",106.4,"8",5,"d","transition","[Kr] 4d10","↑↓ ↑↓ ↑↓ ↑↓ ↑↓","ion_Pd","no_role","tox_Pd"];
+E[47]=[47,"Ag","Серебро",107.9,"1Б",5,"d","transition","[Kr] 4d10 5s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Ag","no_role","tox_Ag"];
+E[48]=[48,"Cd","Кадмий",112.4,"2Б",5,"d","transition","[Kr] 4d10 5s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cd","toxic","tox_Cd"];
+E[49]=[49,"In","Индий",114.8,"3А",5,"p","post","[Kr] 4d10 5s2 5p1","↑↓ | ↑","ion_In","no_role","tox_In"];
+E[50]=[50,"Sn","Олово",118.7,"4А",5,"p","post","[Kr] 4d10 5s2 5p2","↑↓ | ↑ ↑","ion_Sn","no_role","tox_Sn"];
+E[51]=[51,"Sb","Сурьма",121.8,"5А",5,"p","metalloid","[Kr] 4d10 5s2 5p3","↑↓ | ↑ ↑ ↑","ion_Sb","toxic","tox_Sb"];
+E[52]=[52,"Te","Теллур",127.6,"6А",5,"p","metalloid","[Kr] 4d10 5s2 5p4","↑↓ | ↑↓ ↑ ↑","ion_Te","no_role","tox_Te"];
+E[53]=[53,"I","Иод",126.9,"7А",5,"p","halogen","[Kr] 4d10 5s2 5p5","↑↓ | ↑↓ ↑↓ ↑","ion_I","micro","tox_I"];
+E[54]=[54,"Xe","Ксенон",131.3,"8А",5,"p","noble","[Kr] 4d10 5s2 5p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Xe","inert","tox_Xe"];
+E[55]=[55,"Cs","Цезий",132.9,"1А",6,"s","alkali","[Xe] 6s1","↑","ion_Cs","no_role","tox_Cs"];
+E[56]=[56,"Ba","Барий",137.3,"2А",6,"s","alkaline","[Xe] 6s2","↑↓","ion_Ba","toxic","tox_Ba"];
+E[57]=[57,"La","Лантан",138.9,"3Б",6,"d","transition","[Xe] 5d1 6s2","↑ | ↑↓","ion_La","no_role","tox_La"];
+E[58]=[58,"Ce","Церий",140.1,"3Б",6,"f","lanth","[Xe] 4f1 5d1 6s2","↑ | ↑ | ↑↓","ion_Ce","no_role","tox_Ce"];
+E[59]=[59,"Pr","Празеодим",140.9,"3Б",6,"f","lanth","[Xe] 4f3 6s2","↑ ↑ ↑ | ↑↓","ion_Pr","no_role","tox_Pr"];
+E[60]=[60,"Nd","Неодим",144.2,"3Б",6,"f","lanth","[Xe] 4f4 6s2","↑ ↑ ↑ ↑ | ↑↓","ion_Nd","no_role","tox_Nd"];
+E[61]=[61,"Pm","Прометий",145,"3Б",6,"f","lanth","[Xe] 4f5 6s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Pm","no_role","tox_Pm"];
+E[62]=[62,"Sm","Самарий",150.4,"3Б",6,"f","lanth","[Xe] 4f6 6s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Sm","no_role","tox_Sm"];
+E[63]=[63,"Eu","Европий",152.0,"3Б",6,"f","lanth","[Xe] 4f7 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Eu","no_role","tox_Eu"];
+E[64]=[64,"Gd","Гадолиний",157.3,"3Б",6,"f","lanth","[Xe] 4f7 5d1 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑ | ↑↓","ion_Gd","no_role","tox_Gd"];
+E[65]=[65,"Tb","Тербий",158.9,"3Б",6,"f","lanth","[Xe] 4f9 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Tb","no_role","tox_Tb"];
+E[66]=[66,"Dy","Диспрозий",162.5,"3Б",6,"f","lanth","[Xe] 4f10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Dy","no_role","tox_Dy"];
+E[67]=[67,"Ho","Гольмий",164.9,"3Б",6,"f","lanth","[Xe] 4f11 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Ho","no_role","tox_Ho"];
+E[68]=[68,"Er","Эрбий",167.3,"3Б",6,"f","lanth","[Xe] 4f12 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Er","no_role","tox_Er"];
+E[69]=[69,"Tm","Тулий",168.9,"3Б",6,"f","lanth","[Xe] 4f13 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Tm","no_role","tox_Tm"];
+E[70]=[70,"Yb","Иттербий",173.0,"3Б",6,"f","lanth","[Xe] 4f14 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Yb","no_role","tox_Yb"];
+E[71]=[71,"Lu","Лютеций",175.0,"3Б",6,"d","transition","[Xe] 4f14 5d1 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Lu","no_role","tox_Lu"];
+E[72]=[72,"Hf","Гафний",178.5,"4Б",6,"d","transition","[Xe] 4f14 5d2 6s2","↑ ↑ | ↑↓","ion_Hf","no_role","tox_Hf"];
+E[73]=[73,"Ta","Тантал",180.9,"5Б",6,"d","transition","[Xe] 4f14 5d3 6s2","↑ ↑ ↑ | ↑↓","ion_Ta","no_role","tox_Ta"];
+E[74]=[74,"W","Вольфрам",183.8,"6Б",6,"d","transition","[Xe] 4f14 5d4 6s2","↑ ↑ ↑ ↑ | ↑↓","ion_W","micro","tox_W"];
+E[75]=[75,"Re","Рений",186.2,"7Б",6,"d","transition","[Xe] 4f14 5d5 6s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Re","no_role","tox_Re"];
+E[76]=[76,"Os","Осмий",190.2,"8",6,"d","transition","[Xe] 4f14 5d6 6s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Os","toxic","tox_Os"];
+E[77]=[77,"Ir","Иридий",192.2,"8",6,"d","transition","[Xe] 4f14 5d7 6s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Ir","no_role","tox_Ir"];
+E[78]=[78,"Pt","Платина",195.1,"8",6,"d","transition","[Xe] 4f14 5d9 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑ ↑ | ↑","ion_Pt","no_role","tox_Pt"];
+E[79]=[79,"Au","Золото",197.0,"1Б",6,"d","transition","[Xe] 4f14 5d10 6s1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑","ion_Au","no_role","tox_Au"];
+E[80]=[80,"Hg","Ртуть",200.6,"2Б",6,"d","transition","[Xe] 4f14 5d10 6s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Hg","toxic","tox_Hg"];
+E[81]=[81,"Tl","Таллий",204.4,"3А",6,"p","post","[Xe] 4f14 5d10 6s2 6p1","↑↓ | ↑","ion_Tl","toxic","tox_Tl"];
+E[82]=[82,"Pb","Свинец",207.2,"4А",6,"p","post","[Xe] 4f14 5d10 6s2 6p2","↑↓ | ↑ ↑","ion_Pb","toxic","tox_Pb"];
+E[83]=[83,"Bi","Висмут",209.0,"5А",6,"p","post","[Xe] 4f14 5d10 6s2 6p3","↑↓ | ↑ ↑ ↑","ion_Bi","no_role","tox_Bi"];
+E[84]=[84,"Po","Полоний",209,"6А",6,"p","metalloid","[Xe] 4f14 5d10 6s2 6p4","↑↓ | ↑↓ ↑ ↑","ion_Po","toxic","tox_Po"];
+E[85]=[85,"At","Астат",210,"7А",6,"p","halogen","[Xe] 4f14 5d10 6s2 6p5","↑↓ | ↑↓ ↑↓ ↑","ion_At","toxic","tox_At"];
+E[86]=[86,"Rn","Радон",222,"8А",6,"p","noble","[Xe] 4f14 5d10 6s2 6p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Rn","toxic","tox_Rn"];
+E[87]=[87,"Fr","Франций",223,"1А",7,"s","alkali","[Rn] 7s1","↑","ion_Fr","toxic","tox_Fr"];
+E[88]=[88,"Ra","Радий",226,"2А",7,"s","alkaline","[Rn] 7s2","↑↓","ion_Ra","toxic","tox_Ra"];
+E[89]=[89,"Ac","Актиний",227,"3Б",7,"d","transition","[Rn] 6d1 7s2","↑ | ↑↓","ion_Ac","toxic","tox_Ac"];
+E[90]=[90,"Th","Торий",232.0,"3Б",7,"f","actin","[Rn] 6d2 7s2","↑ ↑ | ↑↓","ion_Th","toxic","tox_Th"];
+E[91]=[91,"Pa","Протактиний",231.0,"3Б",7,"f","actin","[Rn] 5f2 6d1 7s2","↑ ↑ | ↑ | ↑↓","ion_Pa","toxic","tox_Pa"];
+E[92]=[92,"U","Уран",238.0,"3Б",7,"f","actin","[Rn] 5f3 6d1 7s2","↑ ↑ ↑ | ↑ | ↑↓","ion_U","toxic","tox_U"];
+E[93]=[93,"Np","Нептуний",237,"3Б",7,"f","actin","[Rn] 5f4 6d1 7s2","↑ ↑ ↑ ↑ | ↑ | ↑↓","ion_Np","toxic","tox_Np"];
+E[94]=[94,"Pu","Плутоний",244,"3Б",7,"f","actin","[Rn] 5f6 7s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Pu","toxic","tox_Pu"];
+E[95]=[95,"Am","Америций",243,"3Б",7,"f","actin","[Rn] 5f7 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Am","toxic","tox_Am"];
+E[96]=[96,"Cm","Кюрий",247,"3Б",7,"f","actin","[Rn] 5f7 6d1 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑ | ↑↓","ion_Cm","toxic","tox_Cm"];
+E[97]=[97,"Bk","Берклий",247,"3Б",7,"f","actin","[Rn] 5f9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Bk","toxic","tox_Bk"];
+E[98]=[98,"Cf","Калифорний",251,"3Б",7,"f","actin","[Rn] 5f10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cf","toxic","tox_Cf"];
+E[99]=[99,"Es","Эйнштейний",252,"3Б",7,"f","actin","[Rn] 5f11 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Es","toxic","tox_Es"];
+E[100]=[100,"Fm","Фермий",257,"3Б",7,"f","actin","[Rn] 5f12 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Fm","toxic","tox_Fm"];
+E[101]=[101,"Md","Менделевий",258,"3Б",7,"f","actin","[Rn] 5f13 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Md","toxic","tox_Md"];
+E[102]=[102,"No","Нобелий",259,"3Б",7,"f","actin","[Rn] 5f14 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_No","toxic","tox_No"];
+E[103]=[103,"Lr","Лоуренсий",266,"3Б",7,"d","transition","[Rn] 5f14 7s2 7p1","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓ | ↑","ion_Lr","no_role","tox_Lr"];
+E[104]=[104,"Rf","Резерфордий",267,"4Б",7,"d","transition","[Rn] 5f14 6d2 7s2","↑ ↑ | ↑↓","ion_Rf","no_role","tox_Rf"];
+E[105]=[105,"Db","Дубний",268,"5Б",7,"d","transition","[Rn] 5f14 6d3 7s2","↑ ↑ ↑ | ↑↓","ion_Db","no_role","tox_Db"];
+E[106]=[106,"Sg","Сиборгий",269,"6Б",7,"d","transition","[Rn] 5f14 6d4 7s2","↑ ↑ ↑ ↑ | ↑↓","ion_Sg","no_role","tox_Sg"];
+E[107]=[107,"Bh","Борий",270,"7Б",7,"d","transition","[Rn] 5f14 6d5 7s2","↑ ↑ ↑ ↑ ↑ | ↑↓","ion_Bh","no_role","tox_Bh"];
+E[108]=[108,"Hs","Хассий",277,"8",7,"d","transition","[Rn] 5f14 6d6 7s2","↑↓ ↑ ↑ ↑ ↑ | ↑↓","ion_Hs","no_role","tox_Hs"];
+E[109]=[109,"Mt","Мейтнерий",278,"8",7,"d","transition","[Rn] 5f14 6d7 7s2","↑↓ ↑↓ ↑ ↑ ↑ | ↑↓","ion_Mt","no_role","tox_Mt"];
+E[110]=[110,"Ds","Дармштадтий",281,"8",7,"d","transition","[Rn] 5f14 6d8 7s2","↑↓ ↑↓ ↑↓ ↑ ↑ | ↑↓","ion_Ds","no_role","tox_Ds"];
+E[111]=[111,"Rg","Рентгений",282,"1Б",7,"d","transition","[Rn] 5f14 6d9 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑ | ↑↓","ion_Rg","no_role","tox_Rg"];
+E[112]=[112,"Cn","Коперниций",285,"2Б",7,"d","transition","[Rn] 5f14 6d10 7s2","↑↓ ↑↓ ↑↓ ↑↓ ↑↓ | ↑↓","ion_Cn","no_role","tox_Cn"];
+E[113]=[113,"Nh","Нихоний",286,"3А",7,"p","post","[Rn] 5f14 6d10 7s2 7p1","↑↓ | ↑","ion_Nh","no_role","tox_Nh"];
+E[114]=[114,"Fl","Флеровий",289,"4А",7,"p","post","[Rn] 5f14 6d10 7s2 7p2","↑↓ | ↑ ↑","ion_Fl","no_role","tox_Fl"];
+E[115]=[115,"Mc","Московий",290,"5А",7,"p","post","[Rn] 5f14 6d10 7s2 7p3","↑↓ | ↑ ↑ ↑","ion_Mc","no_role","tox_Mc"];
+E[116]=[116,"Lv","Ливерморий",293,"6А",7,"p","post","[Rn] 5f14 6d10 7s2 7p4","↑↓ | ↑↓ ↑ ↑","ion_Lv","no_role","tox_Lv"];
+E[117]=[117,"Ts","Теннессин",294,"7А",7,"p","halogen","[Rn] 5f14 6d10 7s2 7p5","↑↓ | ↑↓ ↑↓ ↑","ion_Ts","no_role","tox_Ts"];
+E[118]=[118,"Og","Оганесон",294,"8А",7,"p","noble","[Rn] 5f14 6d10 7s2 7p6","↑↓ | ↑↓ ↑↓ ↑↓","ion_Og","no_role","tox_Og"];
 
 // ИСПРАВЛЕНИЕ 1: Убрано дублирование La (57) и Ac (89) из основной сетки.
 // Lu (71) и Lr (103) перенесены в 3-ю группу согласно рекомендации IUPAC.
@@ -899,7 +1375,7 @@ function showDetail(z) {
         <div class="spin-box">${d[9]}</div>
         <div class="row"><span class="label">${t('ion_color')}:</span> <span class="val">${t(d[10])}</span></div>
         <div class="row"><span class="label">${t('bio_role')}:</span> <span class="val">${t(d[11])}</span></div>
-        <div class="row"><span class="label">${t('toxicity_forms')}:</span> <span class="val">${d[12]}</span></div>
+        <div class="row"><span class="label">${t('toxicity_forms')}:</span> <span class="val">${t(d[12])}</span></div>
     `;
     detail.classList.add('open');
 }

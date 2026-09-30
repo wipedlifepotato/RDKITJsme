@@ -32,8 +32,10 @@ app = FastAPI(
 )
 
 # Инициализация БД (создание таблиц при первом запуске)
+import database
 from database import init_db
-init_db("sqlite:///./chem.db")
+if database.SessionLocal is None:  # main.py уже мог инициализировать БД из конфига
+    init_db("sqlite:///./chem.db")
 
 # Подключаем расширенный RDKit роутер
 # include_router не работает с текущей версией FastAPI — добавляем маршруты вручную
@@ -224,15 +226,7 @@ def get_properties(
 
         mol = m.m
 
-        # Точная масса через pyOpenMS
-        exact_mass = None
-        try:
-            import pyopenms as oms
-            formula = rdMolDescriptors.CalcMolFormula(mol)
-            ef = oms.EmpiricalFormula(formula)
-            exact_mass = ef.getMonoWeight()
-        except Exception:
-            pass
+        exact_mass = round(Descriptors.ExactMolWt(mol), 6)
 
         return {
             "smiles": smiles,
@@ -262,7 +256,7 @@ def convert_smiles(
         mol = m.m
         return {
             "valid": True,
-            "canonical_smiles": Chem.MolToSmiles(mol, canonical=True),
+            "canonical_smiles": Chem.MolToSmiles(mol, isomericSmiles=False),  # без стереохимии
             "isomeric_smiles": Chem.MolToSmiles(mol, isomericSmiles=True),
             "inchi": inchi.MolToInchi(mol),        # ИСПРАВЛЕНИЕ: Использование подмодуля inchi
             "inchikey": inchi.MolToInchiKey(mol),  # ИСПРАВЛЕНИЕ: Использование подмодуля inchi
@@ -453,6 +447,10 @@ def name_to_smiles(
                 db.rollback()
 
             return {"name": name, "smiles": smiles, "source": "cactus"}
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise HTTPException(status_code=404, detail=get_text("name_not_found", lang))
+        raise HTTPException(status_code=502, detail=f"{get_text('proxy_request_error', lang)}: {e}")
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -528,7 +526,7 @@ def _get_pubchem_data(url: str, use_proxy: bool = True) -> dict:
 
 
 @app.get("/api/pubchem_toxicity")
-async def check_toxicity_via_pubchem(
+def check_toxicity_via_pubchem(
     smiles: str = Query(..., description="SMILES молекулы, например C#N"),
     lang: str = Depends(get_lang),
     db: Session = Depends(get_db),
@@ -587,6 +585,7 @@ async def check_toxicity_via_pubchem(
     # 2. Запрашиваем токсикологические предупреждения GHS по CID
     hazards = []
     is_high_risk = False
+    ghs_ok = False  # True только если данные реально получены
 
     try:
         view_data = _get_pubchem_data(PUBCHEM_VIEW_URL.format(cid=cid))
@@ -594,12 +593,14 @@ async def check_toxicity_via_pubchem(
         if view_data and "Record" in view_data:
             # Рекурсивно извлекаем все GHS Hazard Statements
             hazards = extract_ghs_hazards(view_data)
+            ghs_ok = True
             # Фильтруем ключевые слова острой токсичности
             for msg in hazards:
                 if any(w in msg.lower() for w in ["fatal", "toxic", "danger", "poison", "mortal"]):
                     is_high_risk = True
-    except HTTPException:
-        pass
+    except urllib.error.HTTPError as e:
+        if e.code == 404:  # у соединения нет GHS-раздела — это валидный ответ
+            ghs_ok = True
     except Exception:
         pass
 
@@ -611,8 +612,9 @@ async def check_toxicity_via_pubchem(
             high_toxicity_risk="true" if is_high_risk else "false",
             hazard_statements=json.dumps(hazards[:10])
         )
-        db.add(new_cache)
-        db.commit()
+        if ghs_ok:
+            db.add(new_cache)
+            db.commit()
     except IntegrityError:
         db.rollback()
 
@@ -626,7 +628,7 @@ async def check_toxicity_via_pubchem(
 
 
 @app.get("/api/combined_toxicity")
-async def combined_toxicity_assessment(
+def combined_toxicity_assessment(
     smiles: str = Query(..., description="SMILES молекулы, например C#N"),
     lang: str = Depends(get_lang),
     db: Session = Depends(get_db),
@@ -654,11 +656,11 @@ async def combined_toxicity_assessment(
     ```
     """
     # Получаем данные от RDKit
+    m = Molecule(smiles)
+    if m.m is None:
+        raise HTTPException(status_code=400, detail=get_text("invalid_smiles", lang))
+    mol = m.m
     try:
-        m = Molecule(smiles)
-        if m.m is None:
-            raise ValueError(get_text("invalid_smiles", lang))
-        mol = m.m
 
         from rdkit.Chem import FilterCatalog
         params = FilterCatalog.FilterCatalogParams()
@@ -690,6 +692,7 @@ async def combined_toxicity_assessment(
         pubchem_data["high_toxicity_risk"] = cached.high_toxicity_risk == "true"
         pubchem_data["hazard_statements"] = json.loads(cached.hazard_statements) if cached.hazard_statements else []
     else:
+        ghs_ok = False
         encoded_smiles = urllib.parse.quote(smiles, safe='')
         
         try:
@@ -706,10 +709,14 @@ async def combined_toxicity_assessment(
                     if view_data and "Record" in view_data:
                         # Рекурсивно извлекаем все GHS Hazard Statements
                         pubchem_data["hazard_statements"] = extract_ghs_hazards(view_data)
+                        ghs_ok = True
                         # Фильтруем ключевые слова острой токсичности
                         for msg in pubchem_data["hazard_statements"]:
                             if any(w in msg.lower() for w in ["fatal", "toxic", "danger", "poison", "mortal"]):
                                 pubchem_data["high_toxicity_risk"] = True
+                except urllib.error.HTTPError as e:
+                    if e.code == 404:
+                        ghs_ok = True
                 except Exception:
                     pass
                 
@@ -721,8 +728,9 @@ async def combined_toxicity_assessment(
                         high_toxicity_risk="true" if pubchem_data["high_toxicity_risk"] else "false",
                         hazard_statements=json.dumps(pubchem_data["hazard_statements"][:10])
                     )
-                    db.add(new_cache)
-                    db.commit()
+                    if ghs_ok:
+                        db.add(new_cache)
+                        db.commit()
                 except IntegrityError:
                     db.rollback()
         except Exception:

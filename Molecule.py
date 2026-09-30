@@ -27,6 +27,7 @@ def DrawToFileWithCharges(smiles, fname='Pic.png'):
 #mol = Chem.MolFromSmiles('C1=CC=CC=C1')
 #Draw.MolToFile(mol, 'benzene.png')
 from enum import Enum
+from functools import cached_property
 from io import BytesIO
 import base64
 
@@ -35,6 +36,7 @@ class Molecule():
         JUST = 0
         INDEXES = 1
         CHARGES = 2
+    @staticmethod
     def GetB64(m, h=400, y=400):
         img = Draw.MolToImage(m, size=(h, y))
         buffer = BytesIO()
@@ -43,11 +45,24 @@ class Molecule():
         return b64_str
     def __init__(self, smiles):
         self.smiles = smiles
-        self.m = Chem.MolFromSmiles(smiles)
-        self.m_with_indexes = mol_with_atom_index(self.m)
-        self.m_with_charges = GetCharges(self.m)
+        # Невалидный/пустой SMILES -> self.m is None (проверки `m.m is None` в роутерах работают)
+        m = Chem.MolFromSmiles(smiles) if smiles and smiles.strip() else None
+        if m is not None and m.GetNumAtoms() == 0:
+            m = None
+        self.m = m
+
+    # Тяжёлые представления считаем лениво, только когда они реально нужны (render)
+    @cached_property
+    def m_with_indexes(self):
+        return mol_with_atom_index(self.m) if self.m is not None else None
+
+    @cached_property
+    def m_with_charges(self):
+        return GetCharges(self.m) if self.m is not None else None
 
     def Get(self, Type: DrawType):
+        if self.m is None:
+            raise ValueError("Invalid SMILES string")
         if Type == self.DrawType.JUST:
             return self.m
         elif Type == self.DrawType.INDEXES:

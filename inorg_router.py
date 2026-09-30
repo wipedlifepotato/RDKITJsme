@@ -9,6 +9,7 @@ import urllib.parse
 import urllib.request
 import json
 import math
+import re
 
 from database import get_db
 from Molecule import Molecule
@@ -151,7 +152,9 @@ def _parse_formula(formula: str) -> Dict[str, int]:
     Парсит химическую формулу и возвращает словарь {элемент: количество}.
     Поддерживает скобки и коэффициенты.
     """
-    import re
+    formula = formula.replace(" ", "")
+    if not formula or re.search(r"[^A-Za-z0-9()]", formula) or formula.count("(") != formula.count(")"):
+        raise ValueError(f"Некорректная формула: {formula!r}")
     tokens = re.findall(r'([A-Z][a-z]?)(\d*)|(\()|(\))(\d*)', formula)
     stack = [{}]
     for elem, count, open_paren, close_paren, close_count in tokens:
@@ -313,6 +316,8 @@ def get_electronegativity(
 
         if en1 is None or en2 is None:
             raise ValueError(f"Неизвестный элемент: {element1 if en1 is None else element2}")
+        if en1 == 0 or en2 == 0:
+            raise ValueError("Для благородных газов электроотрицательность не определена")
 
         delta = abs(en1 - en2)
 
@@ -566,8 +571,9 @@ def analyze_redox(
         if len(parts) != 2:
             raise ValueError("Реакция должна быть в формате: A + B -> C + D")
 
-        left = [s.strip() for s in parts[0].split("+")]
-        right = [s.strip() for s in parts[1].split("+")]
+        # убираем ведущие коэффициенты ("2H2" -> "H2")
+        left = [re.sub(r"^\d+\s*", "", s.strip()) for s in parts[0].split("+")]
+        right = [re.sub(r"^\d+\s*", "", s.strip()) for s in parts[1].split("+")]
 
         # Парсим формулы
         left_formulas = [_parse_formula(s) for s in left]
@@ -595,48 +601,65 @@ def analyze_redox(
 
 def _balance_reaction(left_formulas: List[str], right_formulas: List[str], left_parsed: List[Dict], right_parsed: List[Dict], elements: set) -> dict:
     """
-    Уравнивает химическую реакцию перебором минимальных целых коэффициентов.
+    Уравнивает реакцию через нуль-пространство матрицы состава (точная арифметика Fraction).
+    Работает за полиномиальное время, в отличие от перебора коэффициентов.
     """
+    from fractions import Fraction
     from math import gcd
     from functools import reduce
-    from itertools import product
 
     n_left = len(left_formulas)
-    n_right = len(right_formulas)
-    n_compounds = n_left + n_right
-    elem_list = sorted(elements)
+    n = n_left + len(right_formulas)
+    fail = {"equation": "Не удалось уравнять", "coefficients": [], "equation_en": "Could not balance"}
+    if n < 2:
+        return fail
 
-    if n_compounds < 2:
-        return {"equation": " + ".join(["?"] * n_compounds), "coefficients": []}
+    # строки — элементы, столбцы — вещества (продукты со знаком минус)
+    rows = [
+        [Fraction(left_parsed[j].get(el, 0)) for j in range(n_left)]
+        + [Fraction(-right_parsed[j].get(el, 0)) for j in range(n - n_left)]
+        for el in sorted(elements)
+    ]
 
-    # Перебор коэффициентов от 1 до 20
-    max_coeff = 20
-    for coeffs in product(range(1, max_coeff + 1), repeat=n_compounds):
-        # Проверяем баланс по каждому элементу
-        balanced = True
-        for elem in elem_list:
-            left_count = sum(coeffs[j] * left_parsed[j].get(elem, 0) for j in range(n_left))
-            right_count = sum(coeffs[n_left + j] * right_parsed[j].get(elem, 0) for j in range(n_right))
-            if left_count != right_count:
-                balanced = False
-                break
+    pivots, r = [], 0
+    for c in range(n):
+        p = next((i for i in range(r, len(rows)) if rows[i][c] != 0), None)
+        if p is None:
+            continue
+        rows[r], rows[p] = rows[p], rows[r]
+        pv = rows[r][c]
+        rows[r] = [x / pv for x in rows[r]]
+        for i in range(len(rows)):
+            if i != r and rows[i][c] != 0:
+                f = rows[i][c]
+                rows[i] = [a - f * b for a, b in zip(rows[i], rows[r])]
+        pivots.append(c)
+        r += 1
+        if r == len(rows):
+            break
 
-        if balanced:
-            # Сокращаем на НОД
-            common = reduce(gcd, coeffs)
-            int_coeffs = [c // common for c in coeffs]
+    free = [c for c in range(n) if c not in pivots]
+    if len(free) != 1:  # 0 — нет решения, >1 — уравнение неоднозначно
+        return fail
 
-            # Формируем уравнение
-            left_str = " + ".join(f"{int_coeffs[i]}{left_formulas[i]}" if int_coeffs[i] != 1 else left_formulas[i] for i in range(n_left))
-            right_str = " + ".join(f"{int_coeffs[n_left + i]}{right_formulas[i]}" if int_coeffs[n_left + i] != 1 else right_formulas[i] for i in range(n_right))
-            equation = f"{left_str} -> {right_str}"
+    sol = [Fraction(0)] * n
+    sol[free[0]] = Fraction(1)
+    for i, pc in enumerate(pivots):
+        sol[pc] = -rows[i][free[0]]
+    if any(x <= 0 for x in sol):
+        return fail
 
-            return {
-                "equation": equation,
-                "coefficients": int_coeffs,
-            }
+    lcm = reduce(lambda a, b: a * b // gcd(a, b), (x.denominator for x in sol))
+    ints = [int(x * lcm) for x in sol]
+    g = reduce(gcd, ints)
+    ints = [x // g for x in ints]
 
-    return {"equation": "Не удалось уравнять", "coefficients": [], "equation_en": "Could not balance", "equation_uk": "Не вдалося врівняти", "equation_es": "No se pudo balancear"}
+    def term(k, name):
+        return f"{ints[k]}{name}" if ints[k] != 1 else name
+
+    left_str = " + ".join(term(i, left_formulas[i]) for i in range(n_left))
+    right_str = " + ".join(term(n_left + i, right_formulas[i]) for i in range(len(right_formulas)))
+    return {"equation": f"{left_str} -> {right_str}", "coefficients": ints}
 
 
 @router.get("/stoichiometry", summary="Стехиометрия реакции")
@@ -776,13 +799,13 @@ def get_orbitals(
 
         # Заполняем орбитали
         remaining = Z
-        config = []
+        filling = {}
         for orbital, capacity in orbital_order:
-            if remaining <= 0:
-                break
-            electrons = min(remaining, capacity)
-            config.append(f"{orbital}{electrons}")
-            remaining -= electrons
+            e = min(remaining, capacity)
+            filling[orbital] = e
+            remaining -= e
+        filling.update(_AUFBAU_EXCEPTIONS.get(Z, {}))
+        config = [f"{o}{filling[o]}" for o, _ in orbital_order if filling[o] > 0]
 
         # Нотация благородного газа
         noble_gases = {2: "He", 10: "Ne", 18: "Ar", 36: "Kr", 54: "Xe", 86: "Rn", 118: "Og"}
@@ -795,9 +818,8 @@ def get_orbitals(
 
         if core:
             # Упрощённо: берём всё после конфигурации благородного газа
-            ng_config = _get_noble_gas_config(core)
-            ng_orbitals = len(ng_config.split())
-            valence_config = " ".join(config[ng_orbitals:])
+            core_labels = {c[:2] for c in _get_noble_gas_config(core).split()}
+            valence_config = " ".join(c for c in config if c[:2] not in core_labels)
             config_str = f"[{core}] {valence_config}"
         else:
             config_str = " ".join(config)
@@ -815,7 +837,7 @@ def get_orbitals(
             "full_configuration": " ".join(config),
             "unpaired_electrons": unpaired,
             "valence_electrons": valence,
-            "orbitals": [{"orbital": o, "electrons": int(c)} for o, c in [c.split(":") if ":" in c else (c[:-1], c[-1]) for c in config]],
+            "orbitals": [{"orbital": f"{n}{l}", "electrons": e} for n, l, e in (_parse_orb(c) for c in config)],
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -834,49 +856,64 @@ def _get_noble_gas_config(element: str) -> str:
     return configs.get(element, "")
 
 
+_AUFBAU_EXCEPTIONS = {
+    24: {"4s": 1, "3d": 5},  # Cr
+    29: {"4s": 1, "3d": 10},  # Cu
+    41: {"5s": 1, "4d": 4},  # Nb
+    42: {"5s": 1, "4d": 5},  # Mo
+    44: {"5s": 1, "4d": 7},  # Ru
+    45: {"5s": 1, "4d": 8},  # Rh
+    46: {"5s": 0, "4d": 10},  # Pd
+    47: {"5s": 1, "4d": 10},  # Ag
+    57: {"4f": 0, "5d": 1},  # La
+    58: {"4f": 1, "5d": 1},  # Ce
+    64: {"4f": 7, "5d": 1},  # Gd
+    78: {"6s": 1, "5d": 9},  # Pt
+    79: {"6s": 1, "5d": 10},  # Au
+    89: {"5f": 0, "6d": 1},  # Ac
+    90: {"5f": 0, "6d": 2},  # Th
+    91: {"5f": 2, "6d": 1},  # Pa
+    92: {"5f": 3, "6d": 1},  # U
+    93: {"5f": 4, "6d": 1},  # Np
+    96: {"5f": 7, "6d": 1},  # Cm
+}
+
+
+def _parse_orb(item: str):
+    """'3d10' -> (3, 'd', 10)"""
+    m = re.match(r"^(\d)([spdf])(\d+)$", item)
+    return int(m.group(1)), m.group(2), int(m.group(3))
+
+
 def _count_unpaired(config: list) -> int:
-    """Подсчитывает неспаренные электроны по правилу Хунда."""
+    """Неспаренные электроны по правилу Хунда."""
+    sub_orbitals = {"s": 1, "p": 3, "d": 5, "f": 7}
     unpaired = 0
     for item in config:
-        orbital = item[:-1]
-        electrons = int(item[-1])
-        if orbital.endswith("s"):
-            unpaired += 0 if electrons == 2 else 1
-        elif orbital.endswith("p"):
-            # p-орбиталь: 3 подорбитали, каждая до 2 электронов
-            if electrons <= 3:
-                unpaired += electrons
-            else:
-                unpaired += 6 - electrons
-        elif orbital.endswith("d"):
-            # d-орбиталь: 5 подорбиталей
-            if electrons <= 5:
-                unpaired += electrons
-            else:
-                unpaired += 10 - electrons
-        elif orbital.endswith("f"):
-            # f-орбиталь: 7 подорбиталей
-            if electrons <= 7:
-                unpaired += electrons
-            else:
-                unpaired += 14 - electrons
+        _, l, e = _parse_orb(item)
+        k = sub_orbitals[l]
+        unpaired += e if e <= k else 2 * k - e
     return unpaired
 
 
 def _count_valence(config: list) -> int:
-    """Подсчитывает валентные электроны (последняя оболочка)."""
-    if not config:
+    """Валентные электроны: внешние ns/np + незавершённые (n-1)d и (n-2)f."""
+    parsed = [_parse_orb(c) for c in config]
+    sp = [(n, l, e) for n, l, e in parsed if l in "sp"]
+    if not sp:
         return 0
-    # Последняя оболочка
-    last_n = int(config[-1][0])
-    valence = 0
-    for item in config:
-        n = int(item[0])
-        if n == last_n:
-            valence += int(item[-1])
-        # Также учитываем d-электронны предыдущей оболочки для переходных металлов
-        if n == last_n - 1 and item[1] == "d":
-            valence += int(item[-1])
+    last_n = max(n for n, _, _ in sp)
+    # Pd ([Kr] 4d10): внешнего s-электрона нет, валентны 4d-электроны
+    if any(l == "d" and n == last_n for n, l, _ in parsed):
+        return sum(e for n, l, e in parsed if l == "d" and n == last_n)
+    valence = sum(e for n, l, e in sp if n == last_n)
+    s_last = sum(e for n, l, e in sp if n == last_n and l == "s")
+    for n, l, e in parsed:
+        # d10 считаем валентным только для группы 11 (Cu/Ag/Au: ns1 (n-1)d10)
+        if l == "d" and n == last_n - 1 and (e < 10 or s_last == 1):
+            valence += e
+        elif l == "f" and n == last_n - 2 and e < 14:
+            valence += e
     return valence
 
 

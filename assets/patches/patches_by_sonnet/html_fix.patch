@@ -1,0 +1,47 @@
+--- a/index_jsme.html
++++ b/index_jsme.html
+@@ -2114,6 +2114,7 @@
+ 
+     // --- Conformers Endpoints ---
+ 
++    let confViewer = null;
+     async function getConformers() {
+         const smiles = document.getElementById('smiles').value.trim();
+         const count = document.getElementById('conf_count').value || 10;
+@@ -2132,20 +2133,27 @@
+                 });
+                 out.innerHTML = html;
+ 
+-                // Show first conformer in viewer
++                // Show first conformer in viewer (отдельный viewer, не делим с блоком 3D)
+                 if (data.conformers.length > 0) {
++                    if (typeof $3Dmol === 'undefined') {
++                        out.innerHTML += `<span style="color:#e67e22">3D-просмотр недоступен: не загружен /StaticFiles/3Dmol-min.js</span>`;
++                        return;
++                    }
+                     viewer.style.display = 'block';
+-                    if (!viewer3D) {
+-                        viewer3D = $3Dmol.createViewer('conf_viewer', { backgroundColor: 'white' });
++                    if (!confViewer) {
++                        confViewer = $3Dmol.createViewer('conf_viewer', { backgroundColor: 'white' });
+                     }
+-                    viewer3D.clear();
+-                    viewer3D.addModel(data.conformers[0].sdf, 'sdf');
+-                    viewer3D.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
+-                    viewer3D.zoomTo();
+-                    viewer3D.render();
++                    confViewer.clear();
++                    confViewer.addModel(data.conformers[0].sdf, 'sdf');
++                    confViewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.3 } });
++                    confViewer.zoomTo();
++                    confViewer.render();
+                 }
+             } else out.innerHTML = `<span style="color:red">Error: ${escapeHtml(data.detail)}</span>`;
+-        } catch (e) { out.innerHTML = "API Connection Error"; }
++        } catch (e) {
++            console.error('getConformers:', e);
++            out.innerHTML += `<br><span style="color:red">Error: ${escapeHtml(e && e.message ? e.message : e)}</span>`;
++        }
+     }
+ 
+     // --- Export Endpoints ---
