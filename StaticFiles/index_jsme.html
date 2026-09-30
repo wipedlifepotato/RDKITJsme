@@ -2338,8 +2338,9 @@
                         const stable = conf.is_most_stable ? ' ✅ MOST STABLE' : '';
                         const unstable = conf.is_least_stable ? ' ⚠️ LEAST STABLE' : '';
                         html += `&nbsp;&nbsp;• <b>${escapeHtml(cp.conformation)}</b> (E=${escapeHtml(conf.energy)} kcal/mol)${stable}${unstable}<br>`;
-                        if (cp.Q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;Q=${escapeHtml(cp.Q)} | θ=${escapeHtml(cp.theta)}° | φ=${escapeHtml(cp.phi)}°<br>`;
-                        if (cp.q !== undefined) html += `&nbsp;&nbsp;&nbsp;&nbsp;q=${escapeHtml(cp.q)} | θ=${escapeHtml(cp.theta)}° | φ=${escapeHtml(cp.phi)}°<br>`;
+                        const amp = cp.Q !== undefined ? `Q=${escapeHtml(cp.Q)} Å` : (cp.q !== undefined ? `q=${escapeHtml(cp.q)} Å` : '');
+                        const th = (cp.theta !== null && cp.theta !== undefined) ? ` | θ=${escapeHtml(cp.theta)}°` : '';
+                        if (amp) html += `&nbsp;&nbsp;&nbsp;&nbsp;${amp}${th} | φ=${escapeHtml(cp.phi)}°<br>`;
                     });
                     html += `<br>`;
                 });
