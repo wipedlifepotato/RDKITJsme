@@ -57,13 +57,14 @@
 - Фильтры по категориям элементов
 - Мультиязычность: русский, английский, украинский, испанский
 - Доступ: http://localhost:1235/periodatic_table
+- типичные минералы
 
 ## Быстрый старт
 
 ```bash
 # Клонирование репозитория
-git clone https://github.com/yourusername/chem.git
-cd chem
+git clone https://github.com/wipedlifepotato/RadoniumAPI 
+cd RadoniumAPI
 
 # Создание виртуального окружения
 python3 -m venv venv
@@ -71,7 +72,7 @@ source venv/bin/activate  # Linux/Mac
 # venv\Scripts\activate  # Windows
 
 # Установка зависимостей
-pip install -r reqs.txt
+python3 -m pip install -r reqs.txt
 
 # Запуск приложения
 python3 main.py
@@ -85,26 +86,8 @@ python3 main.py
 
 ### Конфигурация nginx
 
-Файл `nginx.conf` содержит пример конфигурации. Перед использованием необходимо изменить:
-
-1. **Пути к файлам:**
-   - `/opt/chem/RDKITJsme/examples_clients/` — путь к клиентским файлам
-   - `/opt/chem/RDKITJsme/StaticFiles/` — путь к статическим файлам
-   - `/var/www/html` — путь к статическим файлам по умолчанию
-
-2. **Порт приложения:**
-   - В блоке `location /rdkit/` указан `proxy_pass http://127.0.0.1:1235/;`
-   - Измените порт `1235` на порт, который использует ваше приложение (по умолчанию `1235`)
-
-3. **SSL (опционально):**
-   - Раскомментируйте строки с `ssl_certificate` и `ssl_certificate_key`
-   - Укажите пути к вашим SSL-сертификатам
-
-4. **Server name (опционально):**
-   - Раскомментируйте `server_name` и укажите ваш домен
-
 ### Пример конфигурации
-nginx.conf file
+nginx.conf file. Дальше уже в HTML файле прописана логика если видно, что не с локалхоста запущено
 
 ### Запуск через systemd
 
@@ -133,82 +116,12 @@ sudo systemctl start chem
 sudo systemctl status chem
 ```
 
-## Использование
-
-### Веб-интерфейс
-
-1. Ввод SMILES: Введите SMILES-строку в поле ввода
-2. Редактирование: Используйте JSME-редактор для рисования молекул
-3. Анализ: Переключайтесь между вкладками (Basic, ADME, Analysis, Advanced, 3D, NMR, Toxicity, Retrosynthesis, Conformers, Export)
-4. Справка: Нажмите кнопку "Help" для объяснения всех дескрипторов
-
-### Примеры SMILES
-
-| Молекула | SMILES |
-|----------|--------|
-| Аспирин | `CC(=O)Oc1ccccc1C(=O)O` |
-| Кофеин | `CN1C=NC2=C1C(=O)N(C(=O)N2C)C` |
-| Этанол | `CCO` |
-| Бензол | `c1ccccc1` |
-| Глюкоза | `C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O` |
-| Кетозы длиной цепи глюкозы (для проверки стереоизомерии, функционала) (фруктоза, сорбоза, псикоза, тагатоза)  | `O=C(CO)C(O)C(O)C(O)CO` |
-
-## API Endpoints
-
-### Основные
-
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/` | Главная страница (JSME-редактор) |
-| GET | `/api/get_properties` | Базовые свойства молекулы |
-| GET | `/api/convert` | Конвертация форматов |
-| GET | `/api/similarity` | Сравнение двух молекул |
-| GET | `/api/get_3d_sdf` | 3D-структура в SDF |
-| GET | `/api/get_name` | Название молекулы (IUPAC) |
-| GET | `/api/get_chiral` | Хиральные центры |
-| GET | `/api/substructure_search` | Поиск подструктур |
-| GET | `/api/render` | Рендеринг 2D |
-
-### Расширенные (RDKit)
-
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/rdkit/api/adme` | ADME-свойства, QED, SA Score |
-| GET | `/rdkit/api/functional_groups` | Поиск функциональных групп |
-| GET | `/rdkit/api/validate` | Валидация SMILES |
-| GET | `/rdkit/api/pka` | Оценка pKa |
-| GET | `/rdkit/api/descriptors` | Все дескрипторы (200+) |
-| GET | `/rdkit/api/reaction` | Применение реакций |
-| GET | `/rdkit/api/by_inchikey` | Поиск по InChIKey |
-| GET | `/rdkit/api/3d` | 3D-структура |
-| GET | `/rdkit/api/nmr` | Оценка ЯМР (1H и 13C) |
-| GET | `/rdkit/api/toxicity` | Оценка токсичности |
-| GET | `/rdkit/api/retrosynthesis` | Ретросинтетический анализ |
-| GET | `/rdkit/api/conformers` | Генерация конформеров |
-| GET | `/rdkit/api/export_svg` | Экспорт в SVG |
-| GET | `/rdkit/api/ms` | Масс-спектрометрия |
-| POST | `/rdkit/api/batch` | Пакетный анализ |
-| GET | `/rdkit/api/library` | Библиотека молекул |
-| POST | `/rdkit/api/library/save` | Сохранение в библиотеку |
-| DELETE | `/rdkit/api/library/{smiles}` | Удаление из библиотеки |
-| POST | `/rdkit/api/compare` | Сравнение молекул |
-| GET | `/rdkit/api/render_highlighted` | Рендеринг с подсветкой |
-
-### Документация API
+## Доки
 
 - Swagger UI: http://localhost:1235/docs
 - ReDoc: http://localhost:1235/redoc
-- OpenAPI JSON: http://localhost:1235/openapi.json
 
 ## Конфигурация
-
-### Прокси (SOCKS5)
-
-```ini
-# config.ini
-[proxy]
-address = 127.0.0.1:9050
-```
 
 ### Порт и хост
 config.ini или аргументы командной строки. Приоритет у аргументов CLI: `-h/--host`, `-p/--port`, `-s/--socks`, `-d/--db`. Если аргумент не передан, берётся значение из config.ini.
