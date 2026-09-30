@@ -128,6 +128,5 @@ sudo systemctl status chem
 config.ini или аргументы командной строки. Приоритет у аргументов CLI: `-h/--host`, `-p/--port`, `-s/--socks`, `-d/--db`. Если аргумент не передан, берётся значение из config.ini.
 
 ## Лицензия
-WTF
-Подробнее: [LICENSE](LICENSE)
+ [LICENSE](LICENSE)
 
