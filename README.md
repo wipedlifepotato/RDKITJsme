@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🧪 RadoniumAPI
+# RadoniumAPI
 
 <p>
-  <a href="#english"><b>🇬🇧 English</b></a> &nbsp;&nbsp;|&nbsp;&nbsp;
-  <a href="#russian"><b>🇷🇺 Русский</b></a>
+  <a href="#english"><b>English</b></a> &nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="#russian"><b>Русский</b></a>
 </p>
 
 </div>
